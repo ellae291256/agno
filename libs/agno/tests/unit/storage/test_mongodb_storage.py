@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -14,6 +16,20 @@ def mock_mongo_client():
         mock_collection = MagicMock()
         mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
         yield mock_client, mock_collection
+
+
+def agent_storage(mock_mongo_client):
+    """Create an agent storage instance."""
+    mock_client, mock_collection = mock_mongo_client
+    storage = MongoDbStorage(collection_name="test_collection")
+    return storage
+
+
+def workflow_storage(mock_mongo_client):
+    """Create a workflow storage instance."""
+    mock_client, mock_collection = mock_mongo_client
+    storage = MongoDbStorage(collection_name="test_collection", mode="workflow")
+    return storage
 
 
 @pytest.fixture
@@ -285,17 +301,16 @@ def test_drop_collection(agent_storage):
 
 def test_mode_switching():
     """Test switching between agent and workflow modes."""
-    with patch("agno.storage.mongodb.MongoClient") as mock_client:
+    with patch("agno.storage.mongodb.MongoClient"):
         mock_collection = MagicMock()
-        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
+        with patch.object(MongoDbStorage, "_get_collection", return_value=mock_collection):
+            # Create storage in agent mode
+            storage = MongoDbStorage(collection_name="test_collection")
+            assert storage.mode == "agent"
 
-        # Create storage in agent mode
-        storage = MongoDbStorage(collection_name="test_collection")
-        assert storage.mode == "agent"
-
-        # Switch to workflow mode
-        storage.mode = "workflow"
-        assert storage.mode == "workflow"
+            # Switch to workflow mode
+            storage.mode = "workflow"
+            assert storage.mode == "workflow"
 
 
 def test_deepcopy(agent_storage):

@@ -1,5 +1,5 @@
 import asyncio
-from typing import AsyncIterator, Generator
+from collections.abc import AsyncIterator, Generator
 
 import pytest
 
@@ -53,8 +53,7 @@ async def test_async_generator_decorator():
     @tool
     async def async_generator(count: int) -> AsyncIterator[int]:
         """Test async generator"""
-        for i in range(count):
-            await asyncio.sleep(0.1)
+        async for i in async_range(count):
             yield i
 
     assert isinstance(async_generator, Function)
@@ -64,6 +63,12 @@ async def test_async_generator_decorator():
     async for item in gen:
         result.append(item)
     assert result == [0, 1, 2]
+
+
+async def async_range(n: int):
+    for i in range(n):
+        await asyncio.sleep(0.1)
+        yield i
 
 
 def test_decorator_with_parameters():

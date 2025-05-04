@@ -1,4 +1,5 @@
-from typing import Dict
+from __future__ import annotations
+
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
@@ -36,7 +37,7 @@ def mock_redis_client():
 
         # Mock scan_iter to return keys
         client.scan_iter.side_effect = lambda match: [
-            k for k in mock_data.keys() if k.startswith(match.replace("*", ""))
+            k for k in mock_data if k.startswith(match.replace("*", ""))
         ]
 
         # Return the mock Redis instance when Redis.Redis() is called

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import runpy
 from pathlib import Path
@@ -7,7 +9,7 @@ from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
 
 
-@functools.lru_cache(maxsize=None)
+@functools.cache
 def warn() -> None:
     logger.warning("PythonTools can run arbitrary code, please provide human supervision.")
 
@@ -86,7 +88,11 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return f"successfully ran {str(file_path)}"
+        except FileNotFoundError as e:
+            logger.error(f"Error saving and running code: {e}")
+            return f"Error saving and running code: {e}"
         except Exception as e:
+            # Broad exception handling is necessary here as runpy.run_path can raise various runtime errors
             logger.error(f"Error saving and running code: {e}")
             return f"Error saving and running code: {e}"
 
@@ -113,7 +119,11 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return f"successfully ran {str(file_path)}"
+        except FileNotFoundError as e:
+            logger.error(f"Error running file: {e}")
+            return f"Error running file: {e}"
         except Exception as e:
+            # Broad exception handling is necessary here as runpy.run_path can raise various runtime errors
             logger.error(f"Error running file: {e}")
             return f"Error running file: {e}"
 
@@ -128,6 +138,9 @@ class PythonTools(Toolkit):
             file_path = self.base_dir.joinpath(file_name)
             contents = file_path.read_text(encoding="utf-8")
             return str(contents)
+        except FileNotFoundError as e:
+            logger.error(f"Error reading file: {e}")
+            return f"Error reading file: {e}"
         except Exception as e:
             logger.error(f"Error reading file: {e}")
             return f"Error reading file: {e}"
@@ -171,6 +184,7 @@ class PythonTools(Toolkit):
             else:
                 return "successfully ran python code"
         except Exception as e:
+            # Broad exception handling is necessary here as exec can raise various runtime errors
             logger.error(f"Error running python code: {e}")
             return f"Error running python code: {e}"
 
@@ -191,7 +205,11 @@ class PythonTools(Toolkit):
 
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error installing package {package_name}: {e}")
+            return f"Error installing package {package_name}: {e}"
         except Exception as e:
+            # Broad exception handling is necessary here as subprocess can raise various errors
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"
 
@@ -212,6 +230,10 @@ class PythonTools(Toolkit):
 
             subprocess.check_call([sys.executable, "-m", "uv", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Error installing package {package_name}: {e}")
+            return f"Error installing package {package_name}: {e}"
         except Exception as e:
+            # Broad exception handling is necessary here as subprocess can raise various errors
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"

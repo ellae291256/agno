@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Literal, Optional
+from typing import Literal
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -23,7 +25,7 @@ class OpenAITools(Toolkit):
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         enable_transcription: bool = True,
         enable_image_generation: bool = True,
         enable_speech_generation: bool = True,
@@ -31,7 +33,7 @@ class OpenAITools(Toolkit):
         text_to_speech_voice: OpenAIVoice = "alloy",
         text_to_speech_model: OpenAITTSModel = "tts-1",
         text_to_speech_format: OpenAITTSFormat = "mp3",
-        image_model: Optional[str] = "dall-e-3",
+        image_model: str | None = "dall-e-3",
         **kwargs,
     ):
         super().__init__(name="openai_tools", **kwargs)
@@ -68,12 +70,12 @@ class OpenAITools(Toolkit):
                 file=audio_file,
                 response_format="text",
             )
-        except Exception as e:  # type: ignore[return]
+        except Exception as e:
             log_error(f"Failed to transcribe audio: {str(e)}")
             return f"Failed to transcribe audio: {str(e)}"
 
         log_debug(f"Transcript: {transcript}")
-        return transcript  # type: ignore[return-value]
+        return transcript
 
     def generate_image(
         self,
@@ -144,4 +146,5 @@ class OpenAITools(Toolkit):
             )
             return f"Speech generated successfully with ID: {media_id}"
         except Exception as e:
+            log_error(f"Failed to generate speech: {str(e)}")
             return f"Failed to generate speech: {str(e)}"

@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Dict, List, Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -115,7 +116,7 @@ class RedditTools(Toolkit):
             log_info(f"Getting info for u/{username}")
 
             user = self.reddit.redditor(username)
-            info: Dict[str, Union[str, int, bool, float]] = {
+            info: dict[str, str | int | bool | float] = {
                 "name": user.name,
                 "comment_karma": user.comment_karma,
                 "link_karma": user.link_karma,
@@ -146,7 +147,7 @@ class RedditTools(Toolkit):
         try:
             log_debug(f"Getting top posts from r/{subreddit}")
             posts = self.reddit.subreddit(subreddit).top(time_filter=time_filter, limit=limit)
-            top_posts: List[Dict[str, Union[str, int, float]]] = [
+            top_posts: list[dict[str, str | int | float]] = [
                 {
                     "id": post.id,
                     "title": post.title,
@@ -181,7 +182,7 @@ class RedditTools(Toolkit):
 
             subreddit = self.reddit.subreddit(subreddit_name)
             flairs = [flair["text"] for flair in subreddit.flair.link_templates]
-            info: Dict[str, Union[str, int, bool, float, List[str]]] = {
+            info: dict[str, str | int | bool | float | list[str]] = {
                 "display_name": subreddit.display_name,
                 "title": subreddit.title,
                 "description": subreddit.description,
@@ -206,7 +207,7 @@ class RedditTools(Toolkit):
         try:
             log_debug("Getting trending subreddits")
             popular_subreddits = self.reddit.subreddits.popular(limit=5)
-            trending: List[str] = [subreddit.display_name for subreddit in popular_subreddits]
+            trending: list[str] = [subreddit.display_name for subreddit in popular_subreddits]
             return json.dumps({"trending_subreddits": trending})
         except Exception as e:
             return f"Error getting trending subreddits: {e}"
@@ -225,7 +226,7 @@ class RedditTools(Toolkit):
         try:
             log_debug(f"Getting stats for r/{subreddit}")
             sub = self.reddit.subreddit(subreddit)
-            stats: Dict[str, Union[str, int, bool, float]] = {
+            stats: dict[str, str | int | bool | float] = {
                 "display_name": sub.display_name,
                 "subscribers": sub.subscribers,
                 "active_users": sub.active_user_count,
@@ -243,7 +244,7 @@ class RedditTools(Toolkit):
         subreddit: str,
         title: str,
         content: str,
-        flair: Optional[str] = None,
+        flair: str | None = None,
         is_self: bool = True,
     ) -> str:
         """
@@ -253,7 +254,7 @@ class RedditTools(Toolkit):
             subreddit (str): Name of the subreddit to post in.
             title (str): Title of the post.
             content (str): Content of the post (text for self posts, URL for link posts).
-            flair (Optional[str]): Flair to add to the post. Must be an available flair in the subreddit.
+            flair (str | None): Flair to add to the post. Must be an available flair in the subreddit.
             is_self (bool): Whether this is a self (text) post (True) or link post (False).
         Returns:
             str: JSON string containing the created post information.
@@ -288,7 +289,7 @@ class RedditTools(Toolkit):
                 )
             log_info(f"Post created: {submission.permalink}")
 
-            post_info: Dict[str, Union[str, int, float]] = {
+            post_info: dict[str, str | int | float] = {
                 "id": submission.id,
                 "title": submission.title,
                 "url": submission.url,
@@ -303,7 +304,7 @@ class RedditTools(Toolkit):
         except Exception as e:
             return f"Error creating post: {e}"
 
-    def reply_to_post(self, post_id: str, content: str, subreddit: Optional[str] = None) -> str:
+    def reply_to_post(self, post_id: str, content: str, subreddit: str | None = None) -> str:
         """
         Post a reply to an existing Reddit post or comment.
 
@@ -311,7 +312,7 @@ class RedditTools(Toolkit):
             post_id (str): The ID of the post or comment to reply to.
                           Can be a full URL, permalink, or just the ID.
             content (str): The content of the reply.
-            subreddit (Optional[str]): The subreddit name if known.
+            subreddit (str | None): The subreddit name if known.
                                      This helps with error handling and validation.
 
         Returns:
@@ -359,7 +360,7 @@ class RedditTools(Toolkit):
             reply = submission.reply(body=content)
 
             # Prepare the response information
-            reply_info: Dict[str, Union[str, int, float]] = {
+            reply_info: dict[str, str | int | float] = {
                 "id": reply.id,
                 "body": reply.body,
                 "score": reply.score,
@@ -386,7 +387,7 @@ class RedditTools(Toolkit):
             logger.error(error_msg)
             return error_msg
 
-    def reply_to_comment(self, comment_id: str, content: str, subreddit: Optional[str] = None) -> str:
+    def reply_to_comment(self, comment_id: str, content: str, subreddit: str | None = None) -> str:
         """
         Post a reply to an existing Reddit comment.
 
@@ -394,7 +395,7 @@ class RedditTools(Toolkit):
             comment_id (str): The ID of the comment to reply to.
                             Can be a full URL, permalink, or just the ID.
             content (str): The content of the reply.
-            subreddit (Optional[str]): The subreddit name if known.
+            subreddit (str | None): The subreddit name if known.
                                      This helps with error handling and validation.
 
         Returns:
@@ -433,7 +434,7 @@ class RedditTools(Toolkit):
             reply = comment.reply(body=content)
 
             # Prepare the response information
-            reply_info: Dict[str, Union[str, int, float]] = {
+            reply_info: dict[str, str | int | float] = {
                 "id": reply.id,
                 "body": reply.body,
                 "score": reply.score,

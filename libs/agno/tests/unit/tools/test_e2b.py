@@ -1,5 +1,7 @@
 """Unit tests for E2BTools class."""
 
+from __future__ import annotations
+
 import os
 from unittest.mock import Mock, patch
 
