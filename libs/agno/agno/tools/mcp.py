@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from contextlib import AsyncExitStack
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from os import environ
 from types import TracebackType
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -23,9 +25,9 @@ class SSEClientParams:
     """Parameters for SSE client connection."""
 
     url: str
-    headers: Optional[Dict[str, Any]] = None
-    timeout: Optional[float] = None
-    sse_read_timeout: Optional[float] = None
+    headers: dict[str, Any] | None = None
+    timeout: float | None = None
+    sse_read_timeout: float | None = None
 
 
 class MCPTools(Toolkit):
@@ -225,6 +227,7 @@ class MCPTools(Toolkit):
         except Exception as e:
             logger.error(f"Failed to get MCP tools: {e}")
             raise
+            raise
 
 
 class MultiMCPTools(Toolkit):
@@ -274,10 +277,10 @@ class MultiMCPTools(Toolkit):
         if server_params_list is None and commands is None and urls is None:
             raise ValueError("Either server_params_list or commands or urls must be provided")
 
-        self.server_params_list: List[Union[SSEClientParams, StdioServerParameters]] = server_params_list or []
+        self.server_params_list: list[SSEClientParams | StdioServerParameters] = server_params_list or []
         self.timeout_seconds = timeout_seconds
-        self.commands: Optional[List[str]] = commands
-        self.urls: Optional[List[str]] = urls
+        self.commands: list[str] | None = commands
+        self.urls: list[str] | None = urls
 
         # Merge provided env with system env
         if env is not None:

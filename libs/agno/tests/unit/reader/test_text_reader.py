@@ -288,8 +288,8 @@ async def test_async_without_aiofiles(tmp_path):
 async def test_async_invalid_encoding(tmp_path):
     text_path = tmp_path / "invalid.txt"
     try:
-        with open(text_path, "wb") as f:
-            f.write(b"\xff\xfe\x00\x00")  # Invalid UTF-8
+        async with aiofiles.open(text_path, "wb") as f:
+            await f.write(b"\xff\xfe\x00\x00")  # Invalid UTF-8
 
         reader = TextReader()
         documents = await reader.async_read(text_path)
