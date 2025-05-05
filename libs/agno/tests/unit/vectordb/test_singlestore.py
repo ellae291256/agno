@@ -1,5 +1,6 @@
 import json
-from typing import List
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -38,6 +39,15 @@ def mock_session():
 
 
 @pytest.fixture
+@pytest.fixture
+def mock_embedder():
+    """Fixture to create a mock embedder"""
+    embedder = MagicMock()
+    embedder.embed_documents.return_value = [[0.1] * 128 for _ in range(3)]
+    embedder.embed_query.return_value = [0.1] * 128
+    return embedder
+
+
 def singlestore_db(mock_engine, mock_session, mock_embedder):
     """Fixture to create a SingleStore instance with mocked components"""
     with patch("agno.vectordb.singlestore.singlestore.sessionmaker") as mock_sessionmaker:

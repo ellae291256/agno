@@ -1,7 +1,6 @@
 import asyncio
 from io import BytesIO
 from pathlib import Path
-from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -254,7 +253,6 @@ async def test_async_large_text_file(tmp_path):
 async def test_async_with_aiofiles(tmp_path):
     test_data = "Hello, world!"
     text_path = tmp_path / "test.txt"
-    text_path.write_text(test_data)
 
     with patch("aiofiles.open") as mock_aiofiles:
         # Mock the async context manager
@@ -272,7 +270,6 @@ async def test_async_with_aiofiles(tmp_path):
 async def test_async_without_aiofiles(tmp_path):
     test_data = "Hello, world!"
     text_path = tmp_path / "test.txt"
-    text_path.write_text(test_data)
 
     with patch("agno.document.reader.text_reader.aiofiles", create=True) as mock_aiofiles:
         mock_aiofiles.open.side_effect = ImportError
@@ -288,8 +285,7 @@ async def test_async_without_aiofiles(tmp_path):
 async def test_async_invalid_encoding(tmp_path):
     text_path = tmp_path / "invalid.txt"
     try:
-        with open(text_path, "wb") as f:
-            f.write(b"\xff\xfe\x00\x00")  # Invalid UTF-8
+        text_path.write_bytes(b"\xff\xfe\x00\x00")  # Invalid UTF-8
 
         reader = TextReader()
         documents = await reader.async_read(text_path)
@@ -315,7 +311,7 @@ async def test_async_parallel_chunking():
     ]
 
     # Create a mock async chunk processor
-    async def mock_async_chunk_processor(document: Document) -> List[Document]:
+    async def mock_async_chunk_processor(document: Document) -> list[Document]:
         await asyncio.sleep(0.1)  # Simulate async work
         return reader.chunk_document(document)
 

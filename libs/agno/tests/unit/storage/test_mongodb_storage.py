@@ -11,37 +11,37 @@ from agno.storage.session.workflow import WorkflowSession
 def mock_mongo_client():
     """Create a mock MongoDB client."""
     with patch("agno.storage.mongodb.MongoClient") as mock_client:
-        mock_collection = MagicMock()
-        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
-        yield mock_client, mock_collection
+        _mock_collection = MagicMock()
+        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = _mock_collection
+        yield mock_client, _mock_collection
 
 
 @pytest.fixture
 def agent_storage(mock_mongo_client):
     """Create a MongoDbStorage instance for agent mode with mocked components."""
-    mock_client, mock_collection = mock_mongo_client
+    mock_client, _mock_collection = mock_mongo_client
 
     storage = MongoDbStorage(collection_name="agent_sessions", db_name="test_db", mode="agent")
 
-    return storage, mock_collection
+    return storage, _mock_collection
 
 
 @pytest.fixture
 def workflow_storage(mock_mongo_client):
     """Create a MongoDbStorage instance for workflow mode with mocked components."""
-    mock_client, mock_collection = mock_mongo_client
+    mock_client, _mock_collection = mock_mongo_client
 
     storage = MongoDbStorage(collection_name="workflow_sessions", db_name="test_db", mode="workflow")
 
-    return storage, mock_collection
+    return storage, _mock_collection
 
 
 def test_initialization():
     """Test MongoDbStorage initialization with different parameters."""
     # Test with db_url
     with patch("agno.storage.mongodb.MongoClient") as mock_client:
-        mock_collection = MagicMock()
-        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
+        _mock_collection = MagicMock()
+        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = _mock_collection
 
         storage = MongoDbStorage(
             collection_name="test_collection", db_url="mongodb://localhost:27017", db_name="test_db"
@@ -55,8 +55,8 @@ def test_initialization():
     # Test with existing client
     with patch("agno.storage.mongodb.MongoClient") as mock_client:
         mock_existing_client = MagicMock()
-        mock_collection = MagicMock()
-        mock_existing_client.__getitem__.return_value.__getitem__.return_value = mock_collection
+        _mock_collection = MagicMock()
+        mock_existing_client.__getitem__.return_value.__getitem__.return_value = _mock_collection
 
         storage = MongoDbStorage(collection_name="test_collection", db_name="test_db", client=mock_existing_client)
 
@@ -66,8 +66,8 @@ def test_initialization():
 
     # Test with no parameters
     with patch("agno.storage.mongodb.MongoClient") as mock_client:
-        mock_collection = MagicMock()
-        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
+        _mock_collection = MagicMock()
+        mock_client.return_value.__getitem__.return_value.__getitem__.return_value = _mock_collection
 
         storage = MongoDbStorage(collection_name="test_collection")
 
@@ -302,7 +302,7 @@ def test_deepcopy(agent_storage):
     """Test deep copying the storage instance."""
     from copy import deepcopy
 
-    storage, _ = agent_storage
+    storage, _mock_collection = agent_storage
 
     # Deep copy the storage
     copied_storage = deepcopy(storage)

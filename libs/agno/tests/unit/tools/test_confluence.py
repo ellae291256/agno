@@ -13,7 +13,7 @@ from agno.tools.confluence import ConfluenceTools
 def mock_confluence():
     """Create a mock Confluence client."""
     with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
-        mock_client = MagicMock(spec=Confluence)
+        mock_client = MagicMock()
         mock_confluence_class.return_value = mock_client
         yield mock_client
 
@@ -21,14 +21,12 @@ def mock_confluence():
 @pytest.fixture
 def confluence_tools(mock_confluence):
     """Create ConfluenceTools instance with mocked dependencies."""
-    with patch.dict(
-        "os.environ",
-        {
-            "CONFLUENCE_URL": "https://example.atlassian.net",
-            "CONFLUENCE_USERNAME": "test_user",
-            "CONFLUENCE_API_KEY": "test_api_key",
-        },
-    ):
+    env_vars = {
+        "CONFLUENCE_URL": "https://example.atlassian.net",
+        "CONFLUENCE_USERNAME": "test_user",
+        "CONFLUENCE_API_KEY": "test_api_key",
+    }
+    with patch.dict("os.environ", env_vars):
         tools = ConfluenceTools()
         tools.confluence = mock_confluence
         return tools
@@ -37,14 +35,12 @@ def confluence_tools(mock_confluence):
 # Initialization Tests
 def test_init_with_environment_variables():
     """Test initialization with environment variables."""
-    with patch.dict(
-        "os.environ",
-        {
-            "CONFLUENCE_URL": "https://example.atlassian.net",
-            "CONFLUENCE_USERNAME": "test_user",
-            "CONFLUENCE_API_KEY": "test_api_key",
-        },
-    ):
+    env_vars = {
+        "CONFLUENCE_URL": "https://example.atlassian.net",
+        "CONFLUENCE_USERNAME": "test_user",
+        "CONFLUENCE_API_KEY": "test_api_key",
+    }
+    with patch.dict("os.environ", env_vars):
         tools = ConfluenceTools()
         assert tools.url == "https://example.atlassian.net"
         assert tools.username == "test_user"
