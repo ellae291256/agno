@@ -139,6 +139,7 @@ def test_generate_image_success(mock_gemini_tools, mock_agent, mock_successful_r
 
         expected_base64_bytes = base64.b64encode(b"fake_image_bytes")  # Keep as bytes
         assert added_artifact.content == expected_base64_bytes  # Compare bytes
+        assert mock_agent.add_image.call_args.kwargs.get("media_id") == expected_media_id
 
 
 def test_generate_image_api_error(mock_gemini_tools, mock_agent):
@@ -223,6 +224,7 @@ def test_generate_video_success(mock_gemini_tools, mock_agent, mock_video_operat
 
         expected_content = base64.b64encode(b"fake_video_bytes").decode("utf-8")
         assert added.content == expected_content
+        assert mock_agent.add_video.call_args.kwargs.get("media_id") == expected_id
 
 
 def test_generate_video_exception(mock_gemini_tools, mock_agent):
