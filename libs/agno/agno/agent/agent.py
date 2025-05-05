@@ -2462,26 +2462,26 @@ class Agent:
                             self.memory.runs = []
                             for run in session.memory["runs"]:
                                 self.memory.runs.append(AgentRun.model_validate(run))
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load runs from memory: {e}")
                     if "messages" in session.memory:
                         try:
                             self.memory.messages = [Message.model_validate(m) for m in session.memory["messages"]]
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load messages from memory: {e}")
                     if "summary" in session.memory:
                         from agno.memory.summary import SessionSummary
 
                         try:
                             self.memory.summary = SessionSummary.model_validate(session.memory["summary"])
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load session summary from memory: {e}")
                     if "memories" in session.memory:
                         from agno.memory.memory import Memory as UserMemory
 
                         try:
                             self.memory.memories = [UserMemory.model_validate(m) for m in session.memory["memories"]]
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load user memories: {e}")
                     if self.memory.create_user_memories:
                         if self.user_id is not None and self.memory.user_id is None:
@@ -2492,7 +2492,7 @@ class Agent:
                             log_debug(f"Memories loaded for user: {self.user_id}")
                         else:
                             log_debug("Memories loaded")
-                except Exception as e:
+                except (ValueError, TypeError) as e:
                     log_warning(f"Failed to load AgentMemory: {e}")
             elif isinstance(self.memory, Memory):
                 if "runs" in session.memory:
@@ -2506,7 +2506,7 @@ class Agent:
                                 self.memory.runs[run_session_id].append(TeamRunResponse.from_dict(run))
                             else:
                                 self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to load runs from memory: {e}")
                 if "memories" in session.memory:
                     from agno.memory.v2.memory import UserMemory as UserMemoryV2
@@ -2524,7 +2524,7 @@ class Agent:
                                 }
                                 for user_id, user_memories in session.memory["memories"].items()
                             }
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to load user memories: {e}")
                 if "summaries" in session.memory:
                     from agno.memory.v2.memory import SessionSummary as SessionSummaryV2
@@ -2537,7 +2537,7 @@ class Agent:
                             }
                             for user_id, user_session_summaries in session.memory["summaries"].items()
                         }
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to load session summaries: {e}")
         log_debug(f"-*- AgentSession loaded: {session.session_id}")
 
@@ -2743,7 +2743,7 @@ class Agent:
                     from zoneinfo import ZoneInfo
 
                     tz = ZoneInfo(self.timezone_identifier)
-                except Exception:
+                except (KeyError, ValueError):
                     log_warning("Invalid timezone identifier")
 
             time = datetime.now(tz) if tz else datetime.now()
@@ -4520,13 +4520,13 @@ class Agent:
             return search_knowledge_base
 
     def search_knowledge_base_with_agentic_filters_function(
-        self, knowledge_filters: Optional[Dict[str, Any]] = None, async_mode: bool = False
+        self, knowledge_filters: dict | None = None, async_mode: bool = False
     ) -> Callable:
         """Factory function to create a search_knowledge_base function with filters."""
         # Determine which filters to use
         effective_filters = knowledge_filters if knowledge_filters is not None else self.knowledge_filters
 
-        def search_knowledge_base(query: str, filters: Optional[Dict[str, Any]] = None) -> str:
+        def search_knowledge_base(query: str, filters: dict | None = None) -> str:
             """Use this function to search the knowledge base for information about a query.
 
             Args:
@@ -4561,7 +4561,7 @@ class Agent:
                 return "No documents found"
             return self.convert_documents_to_string(docs_from_knowledge)
 
-        async def asearch_knowledge_base(query: str, filters: Optional[Dict[str, Any]] = None) -> str:
+        async def asearch_knowledge_base(query: str, filters: dict | None = None) -> str:
             """Use this function to search the knowledge base for information about a query asynchronously.
 
             Args:
@@ -4598,7 +4598,7 @@ class Agent:
             return search_knowledge_base
 
     def _get_agentic_or_user_search_filters(
-        self, filters: Optional[Dict[str, Any]], effective_filters: Optional[Dict[str, Any]]
+        self, filters: dict | None, effective_filters: dict | None
     ) -> Dict[str, Any]:
         """Helper function to determine the final filters to use for the search.
 
@@ -4670,7 +4670,7 @@ class Agent:
     # Api functions
     ###########################################################################
 
-    def _log_agent_session(self, session_id: str, user_id: Optional[str] = None):
+    def _log_agent_session(self, session_id: str, user_id: str | None = None):
         if not (self.telemetry or self.monitoring):
             return
 
@@ -4721,7 +4721,7 @@ class Agent:
 
         return run_data
 
-    def _log_agent_run(self, session_id: str, user_id: Optional[str] = None) -> None:
+    def _log_agent_run(self, session_id: str, user_id: str | None = None) -> None:
         self.set_monitoring()
 
         if not self.telemetry and not self.monitoring:

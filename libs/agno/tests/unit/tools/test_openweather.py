@@ -249,16 +249,15 @@ def test_units_parameter(openweather_tools, mock_openweather_api):
     # Create a tool with imperial units
     with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
         imperial_tools = OpenWeatherTools(units="imperial")
+        # Reset the mock
+        mock_openweather_api.reset_mock()
+        mock_openweather_api.side_effect = [geocode_response, weather_response]
 
-    # Reset the mock
-    mock_openweather_api.reset_mock()
-    mock_openweather_api.side_effect = [geocode_response, weather_response]
+        # Call the method
+        imperial_tools.get_current_weather("London")
 
-    # Call the method
-    imperial_tools.get_current_weather("London")
-
-    # Check that the units parameter was passed correctly
-    calls = mock_openweather_api.call_args_list
-    assert len(calls) == 2  # Two calls: geocode and weather
-    weather_call = calls[1]
-    assert weather_call[1]["params"]["units"] == "imperial"
+        # Check that the units parameter was passed correctly
+        calls = mock_openweather_api.call_args_list
+        assert len(calls) == 2  # Two calls: geocode and weather
+        weather_call = calls[1]
+        assert weather_call[1]["params"]["units"] == "imperial"

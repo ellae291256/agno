@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import time
 from os import getenv
@@ -104,7 +106,7 @@ class GeminiTools(Toolkit):
                     )
                 )
                 log_debug(f"Successfully generated image {media_id} with model {self.image_model}")
-            return "Image generated successfully"
+            return f"Image generated successfully with ID: {media_id}"
 
         except Exception as e:
             log_error(f"Failed to generate image: Client or method not available ({e})")
@@ -144,6 +146,7 @@ class GeminiTools(Toolkit):
                 time.sleep(5)
                 operation = self.client.operations.get(operation=operation)
 
+            media_id = None
             for video in operation.result.generated_videos:
                 generated_video = video.video
 
@@ -159,7 +162,7 @@ class GeminiTools(Toolkit):
                     )
                 )
                 log_debug(f"Successfully generated video {media_id} with model {self.video_model}")
-            return "Video generated successfully"
+            return f"Video generated successfully with ID: {media_id}"
         except Exception as e:
             log_error(f"Failed to generate video: {e}")
             return f"Failed to generate video: {e}"
