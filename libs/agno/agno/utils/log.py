@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from os import getenv
 from typing import Any, Optional
@@ -32,10 +34,9 @@ class ColoredRichHandler(RichHandler):
             return Text("")
 
         level_name = record.levelname.lower()
-        if self.source_type and self.source_type in LOG_STYLES:
-            if level_name in LOG_STYLES[self.source_type]:
-                color = LOG_STYLES[self.source_type][level_name]
-                return Text(record.levelname, style=color)
+        if self.source_type and self.source_type in LOG_STYLES and level_name in LOG_STYLES[self.source_type]:
+            color = LOG_STYLES[self.source_type][level_name]
+            return Text(record.levelname, style=color)
         return super().get_level_text(record)
 
 
@@ -99,7 +100,7 @@ def set_log_level_to_debug(source_type: Optional[str] = None):
     _logger = logging.getLogger(LOGGER_NAME if source_type is None else f"{LOGGER_NAME}-{source_type}")
     _logger.setLevel(logging.DEBUG)
 
-    global debug_on
+    global debug_on  # noqa: PLW0603
     debug_on = True
 
 
@@ -107,7 +108,7 @@ def set_log_level_to_info(source_type: Optional[str] = None):
     _logger = logging.getLogger(LOGGER_NAME if source_type is None else f"{LOGGER_NAME}-{source_type}")
     _logger.setLevel(logging.INFO)
 
-    global debug_on
+    global debug_on  # noqa: PLW0603
     debug_on = False
 
 
@@ -116,7 +117,7 @@ def center_header(message: str, symbol: str = "*") -> str:
         import shutil
 
         terminal_width = shutil.get_terminal_size().columns
-    except Exception:
+    except (shutil.Error, OSError):
         terminal_width = 80  # fallback width
 
     header = f" {message} "
@@ -136,14 +137,14 @@ def use_agent_logger():
 
 
 def log_debug(msg, center: bool = False, symbol: str = "*", *args, **kwargs):
-    global logger
-    global debug_on
+    global logger  # noqa: PLW0603
+    global debug_on  # noqa: PLW0603
     if debug_on:
         logger.debug(msg, center, symbol, *args, **kwargs)
 
 
 def log_info(msg, center: bool = False, symbol: str = "*", *args, **kwargs):
-    global logger
+    global logger  # noqa: PLW0603
     logger.info(msg, center, symbol, *args, **kwargs)
 
 

@@ -292,13 +292,13 @@ class DockerTools(Toolkit):
     def run_container(
         self,
         image: str,
-        command: Optional[str] = None,
-        name: Optional[str] = None,
+        command: str | None = None,
+        name: str | None = None,
         detach: bool = True,
-        ports: Optional[Dict[str, Union[str, int]]] = None,  # Updated type hint
-        volumes: Optional[Dict[str, Dict[str, str]]] = None,
-        environment: Optional[Dict[str, str]] = None,
-        network: Optional[str] = None,
+        ports: dict[str, str | int] | None = None,  # Updated type hint
+        volumes: dict[str, dict[str, str]] | None = None,
+        environment: dict[str, str] | None = None,
+        network: str | None = None,
     ) -> str:
         """
         Run a Docker container.
@@ -420,7 +420,7 @@ class DockerTools(Toolkit):
 
             logger.info(f"Successfully pulled image {image_name}:{tag}")
             return f"Image {image_name}:{tag} pulled successfully"
-        except Exception as e:
+        except DockerException as e:
             error_msg = f"Error pulling image: {str(e)}"
             logger.error(error_msg)
             return error_msg
@@ -460,7 +460,7 @@ class DockerTools(Toolkit):
             str: A success message or error message.
         """
         try:
-            image, logs = self.client.images.build(path=path, tag=tag, dockerfile=dockerfile, rm=rm)
+            image, _ = self.client.images.build(path=path, tag=tag, dockerfile=dockerfile, rm=rm)
             return f"Image built successfully with ID: {image.id}"
         except DockerException as e:
             error_msg = f"Error building image: {str(e)}"

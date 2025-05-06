@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Iterator, Optional, Union
 
 import httpx
 from pydantic import BaseModel
@@ -64,7 +66,7 @@ class Llama(Model):
     client: Optional[LlamaAPIClient] = None
     async_client: Optional[AsyncLlamaAPIClient] = None
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("LLAMA_API_KEY")
@@ -99,7 +101,7 @@ class Llama(Model):
         if self.client:
             return self.client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client is not None:
             client_params["http_client"] = self.http_client
         self.client = LlamaAPIClient(**client_params)
@@ -115,7 +117,7 @@ class Llama(Model):
         if self.async_client:
             return self.async_client
 
-        client_params: Dict[str, Any] = self._get_client_params()
+        client_params: dict[str, Any] = self._get_client_params()
         if self.http_client:
             client_params["http_client"] = self.http_client
         else:
@@ -126,7 +128,7 @@ class Llama(Model):
         return AsyncLlamaAPIClient(**client_params)
 
     @property
-    def request_kwargs(self) -> Dict[str, Any]:
+    def request_kwargs(self) -> dict[str, Any]:
         """
         Returns keyword arguments for API requests.
 
@@ -169,7 +171,7 @@ class Llama(Model):
 
         return request_params
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert the model to a dictionary.
 
@@ -195,7 +197,7 @@ class Llama(Model):
         cleaned_dict = {k: v for k, v in model_dict.items() if v is not None}
         return cleaned_dict
 
-    def invoke(self, messages: List[Message]) -> CreateChatCompletionResponse:
+    def invoke(self, messages: list[Message]) -> CreateChatCompletionResponse:
         """
         Send a chat completion request to the Llama API.
 
@@ -211,7 +213,7 @@ class Llama(Model):
             **self.request_kwargs,
         )
 
-    async def ainvoke(self, messages: List[Message]) -> CreateChatCompletionResponse:
+    async def ainvoke(self, messages: list[Message]) -> CreateChatCompletionResponse:
         """
         Sends an asynchronous chat completion request to the Llama API.
 
@@ -250,7 +252,7 @@ class Llama(Model):
             log_error(f"Error from Llama API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
-    async def ainvoke_stream(self, messages: List[Message]) -> AsyncIterator[CreateChatCompletionResponseStreamChunk]:
+    async def ainvoke_stream(self, messages: list[Message]) -> AsyncIterator[CreateChatCompletionResponseStreamChunk]:
         """
         Sends an asynchronous streaming chat completion request to the Llama API.
 
@@ -275,7 +277,7 @@ class Llama(Model):
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[EventDeltaToolCallDeltaFunction]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[EventDeltaToolCallDeltaFunction]) -> list[dict[str, Any]]:
         """
         Parse the tool calls from the Llama API.
 
@@ -285,11 +287,11 @@ class Llama(Model):
         Returns:
             List[Dict[str, Any]]: The parsed tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
 
         _tool_call_id: Optional[str] = None
-        _function_name_parts: List[str] = []
-        _function_arguments_parts: List[str] = []
+        _function_name_parts: list[str] = []
+        _function_arguments_parts: list[str] = []
 
         def _create_tool_call():
             nonlocal _tool_call_id
@@ -361,10 +363,7 @@ class Llama(Model):
 
         # Add content
         if response_message.content is not None:
-            if isinstance(response_message.content, MessageTextContentItem):
-                model_response.content = response_message.content.text
-            else:
-                model_response.content = response_message.content
+            model_response.content = response_message.content.text if isinstance(response_message.content, MessageTextContentItem) else response_message.content
 
         # Add tool calls
         if response_message.tool_calls is not None and len(response_message.tool_calls) > 0:

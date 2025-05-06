@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel, field_validator, model_validator
 
@@ -63,13 +65,12 @@ class Video(BaseModel):
         # Convert and decompress content to bytes if it's a string
         if content and isinstance(content, str):
             import base64
+            import zlib
 
             try:
-                import zlib
-
                 decoded_content = base64.b64decode(content)
                 content = zlib.decompress(decoded_content)
-            except Exception:
+            except (base64.binascii.Error, zlib.error):
                 content = base64.b64decode(content).decode("utf-8")
         data["content"] = content
 
@@ -123,13 +124,12 @@ class Audio(BaseModel):
         # Convert and decompress content to bytes if it's a string
         if content and isinstance(content, str):
             import base64
+            import zlib
 
             try:
-                import zlib
-
                 decoded_content = base64.b64decode(content)
                 content = zlib.decompress(decoded_content)
-            except Exception:
+            except (base64.binascii.Error, zlib.error):
                 content = base64.b64decode(content).decode("utf-8")
         data["content"] = content
 
@@ -233,13 +233,12 @@ class Image(BaseModel):
         # Convert and decompress content to bytes if it's a string
         if content and isinstance(content, str):
             import base64
+            import zlib
 
             try:
-                import zlib
-
                 decoded_content = base64.b64decode(content)
                 content = zlib.decompress(decoded_content)
-            except Exception:
+            except (base64.binascii.Error, zlib.error):
                 content = base64.b64decode(content).decode("utf-8")
         data["content"] = content
 
@@ -253,7 +252,7 @@ class Image(BaseModel):
 
         return data
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         import base64
         import zlib
 
@@ -276,13 +275,13 @@ class Image(BaseModel):
 
 
 class File(BaseModel):
-    url: Optional[str] = None
-    filepath: Optional[Union[Path, str]] = None
+    url: str | None = None
+    filepath: Path | str | None = None
     # Raw bytes content of a file
-    content: Optional[Any] = None
-    mime_type: Optional[str] = None
+    content: Any | None = None
+    mime_type: str | None = None
     # External file object (e.g. GeminiFile, must be a valid object as expected by the model you are using)
-    external: Optional[Any] = None
+    external: Any | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -301,7 +300,7 @@ class File(BaseModel):
         return v
 
     @classmethod
-    def valid_mime_types(cls) -> List[str]:
+    def valid_mime_types(cls) -> list[str]:
         return [
             "application/pdf",
             "application/x-javascript",
@@ -318,7 +317,7 @@ class File(BaseModel):
         ]
 
     @property
-    def file_url_content(self) -> Optional[Tuple[bytes, str]]:
+    def file_url_content(self) -> tuple[bytes, str] | None:
         import httpx
 
         if self.url:

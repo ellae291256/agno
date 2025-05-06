@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import json
 from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import datetime
 from os import getenv
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal, Union
 
 from pydantic import BaseModel, Field
 
@@ -36,7 +38,7 @@ class TeamMemberInteraction:
     task: str
     response: Union[RunResponse, TeamRunResponse]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "member_name": self.member_name,
             "task": self.task,
@@ -44,7 +46,7 @@ class TeamMemberInteraction:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TeamMemberInteraction":
+    def from_dict(cls, data: dict[str, Any]) -> "TeamMemberInteraction":
         return cls(member_name=data["member_name"], task=data["task"], response=RunResponse.from_dict(data["response"]))
 
 
@@ -54,14 +56,14 @@ class TeamContext:
     member_interactions: List[TeamMemberInteraction] = field(default_factory=list)
     text: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "member_interactions": [interaction.to_dict() for interaction in self.member_interactions],
             "text": self.text,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "TeamContext":
+    def from_dict(cls, data: dict[str, Any]) -> "TeamContext":
         return cls(
             member_interactions=[
                 TeamMemberInteraction.from_dict(interaction) for interaction in data["member_interactions"]
@@ -73,25 +75,25 @@ class TeamContext:
 @dataclass
 class Memory:
     # Model used for memories and summaries
-    model: Optional[Model] = None
+    model: Model | None = None
 
     # Memories per memory ID per user
-    memories: Optional[Dict[str, Dict[str, UserMemory]]] = None
+    memories: dict[str, dict[str, UserMemory]] | None = None
     # Manager to manage memories
-    memory_manager: Optional[MemoryManager] = None
+    memory_manager: MemoryManager | None = None
 
     # Session summaries per session per user
-    summaries: Optional[Dict[str, Dict[str, SessionSummary]]] = None
+    summaries: dict[str, dict[str, SessionSummary]] | None = None
     # Summarizer to generate session summaries
-    summary_manager: Optional[SessionSummarizer] = None
+    summary_manager: SessionSummarizer | None = None
 
-    db: Optional[MemoryDb] = None
+    db: MemoryDb | None = None
 
     # runs per session
-    runs: Optional[Dict[str, List[Union[RunResponse, TeamRunResponse]]]] = None
+    runs: dict[str, list[Union[RunResponse, TeamRunResponse]]] | None = None
 
     # Team context per session
-    team_context: Optional[Dict[str, TeamContext]] = None
+    team_context: dict[str, TeamContext] | None = None
 
     # Whether to delete memories
     delete_memories: bool = False
@@ -103,13 +105,13 @@ class Memory:
 
     def __init__(
         self,
-        model: Optional[Model] = None,
-        memory_manager: Optional[MemoryManager] = None,
-        summarizer: Optional[SessionSummarizer] = None,
-        db: Optional[MemoryDb] = None,
-        memories: Optional[Dict[str, Dict[str, UserMemory]]] = None,
-        summaries: Optional[Dict[str, Dict[str, SessionSummary]]] = None,
-        runs: Optional[Dict[str, List[Union[RunResponse, TeamRunResponse]]]] = None,
+        model: Model | None = None,
+        memory_manager: MemoryManager | None = None,
+        summarizer: SessionSummarizer | None = None,
+        db: MemoryDb | None = None,
+        memories: dict[str, dict[str, UserMemory]] | None = None,
+        summaries: dict[str, dict[str, SessionSummary]] | None = None,
+        runs: dict[str, list[Union[RunResponse, TeamRunResponse]]] | None = None,
         debug_mode: bool = False,
         delete_memories: bool = False,
         clear_memories: bool = False,
@@ -230,7 +232,7 @@ class Memory:
         return _memory_dict
 
     # -*- Public Functions
-    def get_user_memories(self, user_id: Optional[str] = None, refresh_from_db: bool = True) -> List[UserMemory]:
+    def get_user_memories(self, user_id: str | None = None, refresh_from_db: bool = True) -> list[UserMemory]:
         """Get the user memories for a given user id"""
         if user_id is None:
             user_id = "default"
@@ -242,7 +244,7 @@ class Memory:
             return []
         return list(self.memories.get(user_id, {}).values())
 
-    def get_session_summaries(self, user_id: Optional[str] = None) -> List[SessionSummary]:
+    def get_session_summaries(self, user_id: str | None = None) -> list[SessionSummary]:
         """Get the session summaries for a given user id"""
         if user_id is None:
             user_id = "default"
@@ -633,15 +635,15 @@ class Memory:
         self,
         session_id: str,
         user_role: str = "user",
-        assistant_role: Optional[List[str]] = None,
+        assistant_role: list[str] | None = None,
         skip_history_messages: bool = True,
-    ) -> List[Message]:
+    ) -> list[Message]:
         """Returns a list of messages for the session that iterate through user message and assistant response."""
 
         if assistant_role is None:
             assistant_role = ["assistant", "model", "CHATBOT"]
 
-        final_messages: List[Message] = []
+        final_messages: list[Message] = []
         session_runs = self.runs.get(session_id, []) if self.runs else []
         for run_response in session_runs:
             if run_response and run_response.messages:
@@ -680,10 +682,10 @@ class Memory:
     def get_messages_from_last_n_runs(
         self,
         session_id: str,
-        last_n: Optional[int] = None,
-        skip_role: Optional[str] = None,
+        last_n: int | None = None,
+        skip_role: str | None = None,
         skip_history_messages: bool = True,
-    ) -> List[Message]:
+    ) -> list[Message]:
         """Returns the messages from the last_n runs, excluding previously tagged history messages.
         Args:
             session_id: The session id to get the messages from.
@@ -722,7 +724,7 @@ class Memory:
         log_debug(f"Getting messages from previous runs: {len(messages_from_history)}")
         return messages_from_history
 
-    def get_tool_calls(self, session_id: str, num_calls: Optional[int] = None) -> List[Dict[str, Any]]:
+    def get_tool_calls(self, session_id: str, num_calls: int | None = None) -> list[dict[str, Any]]:
         """Returns a list of tool calls from the messages"""
 
         tool_calls = []
@@ -739,12 +741,12 @@ class Memory:
 
     def search_user_memories(
         self,
-        query: Optional[str] = None,
-        limit: Optional[int] = None,
-        retrieval_method: Optional[Literal["last_n", "first_n", "agentic"]] = None,
-        user_id: Optional[str] = None,
+        query: str | None = None,
+        limit: int | None = None,
+        retrieval_method: Literal["last_n", "first_n", "agentic"] | None = None,
+        user_id: str | None = None,
         refresh_from_db: bool = True,
-    ) -> List[UserMemory]:
+    ) -> list[UserMemory]:
         """Search through user memories using the specified retrieval method.
 
         Args:
@@ -808,7 +810,7 @@ class Memory:
             model.response_format = {"type": "json_object"}
             model.structured_outputs = False
 
-    def _search_user_memories_agentic(self, user_id: str, query: str, limit: Optional[int] = None) -> List[UserMemory]:
+    def _search_user_memories_agentic(self, user_id: str, query: str, limit: int | None = None) -> list[UserMemory]:
         """Search through user memories using agentic search."""
         if not self.memories:
             return []
@@ -876,7 +878,7 @@ class Memory:
                 memories_to_return.append(user_memories[memory_id])
         return memories_to_return[:limit]
 
-    def _get_last_n_memories(self, user_id: str, limit: Optional[int] = None) -> List[UserMemory]:
+    def _get_last_n_memories(self, user_id: str, limit: int | None = None) -> list[UserMemory]:
         """Get the most recent user memories.
 
         Args:
@@ -909,7 +911,7 @@ class Memory:
 
         return sorted_memories_list
 
-    def _get_first_n_memories(self, user_id: str, limit: Optional[int] = None) -> List[UserMemory]:
+    def _get_first_n_memories(self, user_id: str, limit: int | None = None) -> list[UserMemory]:
         """Get the oldest user memories.
 
         Args:

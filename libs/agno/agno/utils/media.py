@@ -88,17 +88,16 @@ def save_base64_data(base64_data: str, output_path: str) -> bool:
         # Decode the base64 string into bytes
         decoded_data = base64.b64decode(base64_data)
     except Exception as e:
-        raise Exception(f"An unexpected error occurred during base64 decoding: {e}")
+        raise RuntimeError(f"An unexpected error occurred during base64 decoding: {e}") from e
 
     try:
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write the bytes to the local file in binary mode
-        with open(path, "wb") as file:
-            file.write(decoded_data)
+        path.write_bytes(decoded_data)
 
         print(f"Data successfully saved to '{path}'.")
         return True
     except Exception as e:
-        raise Exception(f"An unexpected error occurred while saving data to '{output_path}': {e}")
+        raise RuntimeError(f"An unexpected error occurred while saving data to '{output_path}': {e}") from e

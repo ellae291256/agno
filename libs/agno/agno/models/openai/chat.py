@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Iterator, Optional, Union
 
 import httpx
 from pydantic import BaseModel
@@ -96,7 +98,7 @@ class OpenAIChat(Model):
         "model": "assistant",
     }
 
-    def _get_client_params(self) -> Dict[str, Any]:
+    def _get_client_params(self) -> dict[str, Any]:
         # Fetch API key from env if not already set
         if not self.api_key:
             self.api_key = getenv("OPENAI_API_KEY")
@@ -246,7 +248,7 @@ class OpenAIChat(Model):
         cleaned_dict = {k: v for k, v in model_dict.items() if v is not None}
         return cleaned_dict
 
-    def _format_message(self, message: Message) -> Dict[str, Any]:
+    def _format_message(self, message: Message) -> dict[str, Any]:
         """
         Format a message into the format expected by OpenAI.
 
@@ -254,9 +256,9 @@ class OpenAIChat(Model):
             message (Message): The message to format.
 
         Returns:
-            Dict[str, Any]: The formatted message.
+            dict[str, Any]: The formatted message.
         """
-        message_dict: Dict[str, Any] = {
+        message_dict: dict[str, Any] = {
             "role": self.role_map[message.role],
             "content": message.content,
             "name": message.name,
@@ -311,12 +313,12 @@ class OpenAIChat(Model):
 
         return message_dict
 
-    def invoke(self, messages: List[Message]) -> Union[ChatCompletion, ParsedChatCompletion]:
+    def invoke(self, messages: list[Message]) -> Union[ChatCompletion, ParsedChatCompletion]:
         """
         Send a chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             ChatCompletion: The chat completion response from the API.
@@ -376,12 +378,12 @@ class OpenAIChat(Model):
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
-    async def ainvoke(self, messages: List[Message]) -> Union[ChatCompletion, ParsedChatCompletion]:
+    async def ainvoke(self, messages: list[Message]) -> Union[ChatCompletion, ParsedChatCompletion]:
         """
         Sends an asynchronous chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             ChatCompletion: The chat completion response from the API.
@@ -439,12 +441,12 @@ class OpenAIChat(Model):
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
-    def invoke_stream(self, messages: List[Message]) -> Iterator[ChatCompletionChunk]:
+    def invoke_stream(self, messages: list[Message]) -> Iterator[ChatCompletionChunk]:
         """
         Send a streaming chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             Iterator[ChatCompletionChunk]: An iterator of chat completion chunks.
@@ -496,12 +498,12 @@ class OpenAIChat(Model):
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
-    async def ainvoke_stream(self, messages: List[Message]) -> AsyncIterator[ChatCompletionChunk]:
+    async def ainvoke_stream(self, messages: list[Message]) -> AsyncIterator[ChatCompletionChunk]:
         """
         Sends an asynchronous streaming chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             Any: An asynchronous iterator of chat completion chunks.
@@ -557,17 +559,17 @@ class OpenAIChat(Model):
 
     # Override base method
     @staticmethod
-    def parse_tool_calls(tool_calls_data: List[ChoiceDeltaToolCall]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(tool_calls_data: list[ChoiceDeltaToolCall]) -> list[dict[str, Any]]:
         """
         Build tool calls from streamed tool call data.
 
         Args:
-            tool_calls_data (List[ChoiceDeltaToolCall]): The tool call data to build from.
+            tool_calls_data (list[ChoiceDeltaToolCall]): The tool call data to build from.
 
         Returns:
-            List[Dict[str, Any]]: The built tool calls.
+            list[dict[str, Any]]: The built tool calls.
         """
-        tool_calls: List[Dict[str, Any]] = []
+        tool_calls: list[dict[str, Any]] = []
         for _tool_call in tool_calls_data:
             _index = _tool_call.index or 0
             _tool_call_id = _tool_call.id

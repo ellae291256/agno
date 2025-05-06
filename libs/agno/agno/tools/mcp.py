@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from contextlib import AsyncExitStack
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from os import environ
 from types import TracebackType
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -239,11 +241,11 @@ class MultiMCPTools(Toolkit):
 
     def __init__(
         self,
-        commands: Optional[List[str]] = None,
-        urls: Optional[List[str]] = None,
+        commands: Optional[list[str]] = None,
+        urls: Optional[list[str]] = None,
         *,
         env: Optional[dict[str, str]] = None,
-        server_params_list: Optional[List[Union[SSEClientParams, StdioServerParameters]]] = None,
+        server_params_list: Optional[list[Union[SSEClientParams, StdioServerParameters]]] = None,
         timeout_seconds: int = 5,
         client=None,
         include_tools: Optional[list[str]] = None,
@@ -273,10 +275,10 @@ class MultiMCPTools(Toolkit):
         if server_params_list is None and commands is None and urls is None:
             raise ValueError("Either server_params_list or commands or urls must be provided")
 
-        self.server_params_list: List[Union[SSEClientParams, StdioServerParameters]] = server_params_list or []
+        self.server_params_list: list[Union[SSEClientParams, StdioServerParameters]] = server_params_list or []
         self.timeout_seconds = timeout_seconds
-        self.commands: Optional[List[str]] = commands
-        self.urls: Optional[List[str]] = urls
+        self.commands: Optional[list[str]] = commands
+        self.urls: Optional[list[str]] = urls
 
         # Merge provided env with system env
         if env is not None:
