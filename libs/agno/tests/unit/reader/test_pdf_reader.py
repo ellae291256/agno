@@ -24,7 +24,7 @@ def sample_pdf_path(tmp_path_factory) -> Path:
         url = "https://agno-public.s3.amazonaws.com/recipes/ThaiRecipes.pdf"
 
         # Download the PDF file
-        response = httpx.get(url)
+        response = httpx.get(url, timeout=10)
         response.raise_for_status()
 
         # Save to temporary location
@@ -38,6 +38,7 @@ def sample_pdf_url() -> str:
     return "https://agno-public.s3.amazonaws.com/recipes/ThaiRecipes.pdf"
 
 
+@pytest.mark.timeout(30)
 def test_pdf_reader_read_file(sample_pdf_path):
     reader = PDFReader()
     documents = reader.read(sample_pdf_path)
@@ -49,6 +50,7 @@ def test_pdf_reader_read_file(sample_pdf_path):
 
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(30)
 async def test_pdf_reader_async_read_file(sample_pdf_path):
     reader = PDFReader()
     documents = await reader.async_read(sample_pdf_path)
@@ -138,6 +140,7 @@ def test_pdf_url_reader_invalid_url():
 
 
 @pytest.mark.asyncio
+@pytest.mark.timeout(30)
 async def test_async_pdf_processing(sample_pdf_path):
     reader = PDFReader()
     tasks = [reader.async_read(sample_pdf_path) for _ in range(3)]
