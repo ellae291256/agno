@@ -105,7 +105,7 @@ def test_get_access_token_refresh_on_expiry(zoom_tools, mock_token_response):
         assert token1 == "test_access_token"
 
         # Manually expire the token
-        zoom_tools._ZoomTools__token_expiry = datetime.now() - timedelta(seconds=1)
+        zoom_tools._ZoomTools__token_expiry = datetime.now(timezone.utc) - timedelta(seconds=1)
 
         # Should get new token
         token2 = zoom_tools.get_access_token()
@@ -248,7 +248,7 @@ def test_list_meetings_success(zoom_tools):
                 "id": 987654321,
                 "topic": "Scheduled Meeting 2",
                 "type": 2,
-                "start_time": "2024-02-02T15:00:00Z",
+                "start_time": "2024-02-02T15:00:00+00:00",
             },
         ],
     }
@@ -274,7 +274,7 @@ def test_get_meeting_recordings_success(zoom_tools):
         "uuid": "abcd1234",
         "host_id": "host123",
         "topic": "Recorded Meeting",
-        "start_time": "2024-02-01T10:00:00Z",
+        "start_time": "2024-02-01T10:00:00+00:00",
         "duration": 60,
         "total_size": 1000000,
         "recording_count": 2,
