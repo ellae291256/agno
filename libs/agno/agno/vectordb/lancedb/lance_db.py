@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     import lancedb
@@ -101,7 +103,7 @@ class LanceDb(VectorDb):
                 self.table = table
                 self.table_name = self.table.name
                 self._vector_col = self.table.schema.names[0]
-                self._id = self.tbl.schema.names[1]  # type: ignore
+                self._id = self.table.schema.names[1]  # type: ignore
             else:
                 if not table_name:
                     raise ValueError("Either table or table_name should be provided.")

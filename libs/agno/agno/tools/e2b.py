@@ -5,7 +5,7 @@ import tempfile
 import time
 from os import fdopen, getenv
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Union
+from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -62,7 +62,7 @@ class E2BTools(Toolkit):
             self.sandbox = Sandbox(api_key=self.api_key, timeout=timeout, **self.sandbox_options)
         except Exception as e:
             logger.error(f"Warning: Could not create sandbox: {e}")
-            raise e
+            raise RuntimeError(f"Could not create sandbox: {e}") from e
 
         # Last execution result for reference
         self.last_execution = None
@@ -178,7 +178,7 @@ class E2BTools(Toolkit):
                 file_in_sandbox = self.sandbox.files.write(sandbox_path, f)
 
             return file_in_sandbox.path
-        except Exception as e:
+        except (IOError, OSError) as e:
             return json.dumps({"status": "error", "message": f"Error uploading file: {str(e)}"})
 
     def download_png_result(
@@ -241,7 +241,7 @@ class E2BTools(Toolkit):
             else:
                 return f"Image added as artifact with ID {image_id}"
 
-        except Exception as e:
+        except (IOError, OSError, ValueError) as e:
             return json.dumps({"status": "error", "message": f"Error processing PNG: {str(e)}"})
 
     def download_chart_data(
@@ -324,7 +324,7 @@ class E2BTools(Toolkit):
 
             return summary
 
-        except Exception as e:
+        except (IOError, OSError, ValueError, KeyError) as e:
             return json.dumps({"status": "error", "message": f"Error extracting chart data: {str(e)}"})
 
     def download_file_from_sandbox(self, sandbox_path: str, local_path: Optional[str] = None) -> str:
@@ -350,7 +350,7 @@ class E2BTools(Toolkit):
                 f.write(content)
 
             return local_path
-        except Exception as e:
+        except (IOError, OSError) as e:
             return json.dumps({"status": "error", "message": f"Error downloading file: {str(e)}"})
 
     # Command Execution Functions
@@ -488,7 +488,7 @@ class E2BTools(Toolkit):
                 result += f"- {file.name} ({file_type}, {size})\n"
 
             return result
-        except Exception as e:
+        except (IOError, OSError) as e:
             return json.dumps({"status": "error", "message": f"Error listing files: {str(e)}"})
 
     def read_file_content(self, file_path: str, encoding: str = "utf-8") -> str:
@@ -512,7 +512,7 @@ class E2BTools(Toolkit):
             except UnicodeDecodeError:
                 return f"File read successfully but contains binary data ({len(content)} bytes). Use download_file_from_sandbox to save it."
 
-        except Exception as e:
+        except (IOError, OSError) as e:
             return json.dumps({"status": "error", "message": f"Error reading file: {str(e)}"})
 
     def write_file_content(self, file_path: str, content: str) -> str:
@@ -534,7 +534,7 @@ class E2BTools(Toolkit):
             file_info = self.sandbox.files.write(file_path, bytes_content)
 
             return file_info.path
-        except Exception as e:
+        except (IOError, OSError) as e:
             return json.dumps({"status": "error", "message": f"Error writing file: {str(e)}"})
 
     def watch_directory(self, directory_path: str, duration_seconds: int = 5) -> str:
@@ -580,7 +580,7 @@ class E2BTools(Toolkit):
                     }
                 )
 
-        except Exception as e:
+        except (IOError, OSError) as e:
             return json.dumps({"status": "error", "message": f"Error watching directory: {str(e)}"})
 
     # Internet Access Functions

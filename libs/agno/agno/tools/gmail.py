@@ -46,7 +46,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -109,7 +109,7 @@ class GmailTools(Toolkit):
         creds: Optional[Credentials] = None,
         credentials_path: Optional[str] = None,
         token_path: Optional[str] = None,
-        scopes: Optional[List[str]] = None,
+        scopes: Optional[list[str]] = None,
         **kwargs,
     ):
         """Initialize GmailTools and authenticate with Gmail API
@@ -217,7 +217,7 @@ class GmailTools(Toolkit):
             if self.creds and self.creds.valid:
                 token_file.write_text(self.creds.to_json())
 
-    def _format_emails(self, emails: List[dict]) -> str:
+    def _format_emails(self, emails: list[dict]) -> str:
         """Format list of email dictionaries into a readable string"""
         if not emails:
             return "No emails found"
@@ -256,8 +256,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving latest emails: {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving latest emails: {type(error).__name__}: {error}"
 
     @authenticate
     def get_emails_from_user(self, user: str, count: int) -> str:
@@ -278,8 +276,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving emails from {user}: {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving emails from {user}: {type(error).__name__}: {error}"
 
     @authenticate
     def get_unread_emails(self, count: int) -> str:
@@ -298,8 +294,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving unread emails: {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving unread emails: {type(error).__name__}: {error}"
 
     @authenticate
     def get_emails_by_thread(self, thread_id: str) -> str:
@@ -319,8 +313,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving emails from thread {thread_id}: {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving emails from thread {thread_id}: {type(error).__name__}: {error}"
 
     @authenticate
     def get_starred_emails(self, count: int) -> str:
@@ -339,8 +331,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving starred emails: {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving starred emails: {type(error).__name__}: {error}"
 
     @authenticate
     def get_emails_by_context(self, context: str, count: int) -> str:
@@ -360,8 +350,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving emails by context '{context}': {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving emails by context '{context}': {type(error).__name__}: {error}"
 
     @authenticate
     def get_emails_by_date(
@@ -391,8 +379,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving emails by date: {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving emails by date: {type(error).__name__}: {error}"
 
     @authenticate
     def create_draft_email(self, to: str, subject: str, body: str, cc: Optional[str] = None) -> str:
@@ -482,8 +468,6 @@ class GmailTools(Toolkit):
             return self._format_emails(emails)
         except HttpError as error:
             return f"Error retrieving emails with query '{query}': {error}"
-        except Exception as error:
-            return f"Unexpected error retrieving emails with query '{query}': {type(error).__name__}: {error}"
 
     def _validate_email_params(self, to: str, subject: str, body: str) -> None:
         """Validate email parameters."""
@@ -586,8 +570,8 @@ class GmailTools(Toolkit):
                         attachments.append(part["filename"])
             elif "body" in msg_data["payload"] and "data" in msg_data["payload"]["body"]:
                 body = base64.urlsafe_b64decode(msg_data["payload"]["body"]["data"]).decode()
-        except Exception:
-            return "Unable to decode message body"
+        except Exception as error:
+            return f"Unable to decode message body: {error}"
 
         if attachments:
             return f"{body}\n\nAttachments: {', '.join(attachments)}"

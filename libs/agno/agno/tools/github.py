@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import List, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -586,13 +587,13 @@ class GithubTools(Toolkit):
             logger.error(f"Error reopening issue: {e}")
             return json.dumps({"error": str(e)})
 
-    def assign_issue(self, repo_name: str, issue_number: int, assignees: List[str]) -> str:
+    def assign_issue(self, repo_name: str, issue_number: int, assignees: list[str]) -> str:
         """Assign users to an issue.
 
         Args:
             repo_name (str): The full name of the repository.
             issue_number (int): The number of the issue.
-            assignees (List[str]): A list of usernames to assign.
+            assignees (list[str]): A list of usernames to assign.
 
         Returns:
             A JSON-formatted string confirming the assignees.
@@ -607,13 +608,13 @@ class GithubTools(Toolkit):
             logger.error(f"Error assigning issue: {e}")
             return json.dumps({"error": str(e)})
 
-    def label_issue(self, repo_name: str, issue_number: int, labels: List[str]) -> str:
+    def label_issue(self, repo_name: str, issue_number: int, labels: list[str]) -> str:
         """Add labels to an issue.
 
         Args:
             repo_name (str): The full name of the repository.
             issue_number (int): The number of the issue.
-            labels (List[str]): A list of label names to add.
+            labels (list[str]): A list of label names to add.
 
         Returns:
             A JSON-formatted string confirming the labels.
@@ -665,8 +666,8 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         issue_number: int,
-        title: Optional[str] = None,
-        body: Optional[str] = None,
+        title: str | None = None,
+        body: str | None = None,
     ) -> str:
         """Edit the title or body of an issue.
 
@@ -1254,16 +1255,16 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         pr_number: int,
-        reviewers: List[str],
-        team_reviewers: Optional[List[str]] = None,
+        reviewers: list[str],
+        team_reviewers: list[str] | None = None,
     ) -> str:
         """Create a review request for a pull request.
 
         Args:
             repo_name (str): The full name of the repository (e.g., 'owner/repo').
             pr_number (int): The number of the pull request.
-            reviewers (List[str]): List of user logins that will be requested to review.
-            team_reviewers (List[str], optional): List of team slugs that will be requested to review. Defaults to None.
+            reviewers (list[str]): List of user logins that will be requested to review.
+            team_reviewers (list[str], optional): List of team slugs that will be requested to review. Defaults to None.
 
         Returns:
             A JSON-formatted string with the success message or error.
@@ -1292,7 +1293,7 @@ class GithubTools(Toolkit):
         path: str,
         content: str,
         message: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Create a new file in a repository.
 
@@ -1333,7 +1334,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error creating file: {e}")
             return json.dumps({"error": str(e)})
 
-    def get_file_content(self, repo_name: str, path: str, ref: Optional[str] = None) -> str:
+    def get_file_content(self, repo_name: str, path: str, ref: str | None = None) -> str:
         """Get the content of a file in a repository.
 
         Args:
@@ -1396,7 +1397,7 @@ class GithubTools(Toolkit):
         content: str,
         message: str,
         sha: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Update an existing file in a repository.
 
@@ -1450,7 +1451,7 @@ class GithubTools(Toolkit):
         path: str,
         message: str,
         sha: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Delete a file from a repository.
 

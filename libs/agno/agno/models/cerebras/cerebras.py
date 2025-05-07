@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -318,7 +320,6 @@ class Cerebras(Model):
             model_response.content = message.content
 
         # Add tool calls
-        print("delta.tool_calls", message.tool_calls)
         if message.tool_calls:
             try:
                 model_response.tool_calls = [

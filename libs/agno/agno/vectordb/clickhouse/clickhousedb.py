@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.vectordb.clickhouse.index import HNSW
 
@@ -32,12 +34,13 @@ class Clickhouse(VectorDb):
         asyncclient: Optional[clickhouse_connect.driver.asyncclient.AsyncClient] = None,
         embedder: Optional[Embedder] = None,
         distance: Distance = Distance.cosine,
-        index: Optional[HNSW] = HNSW(),
+        index: Optional[HNSW] = None,
     ):
         # Store connection parameters as instance attributes
         self.host = host
         self.username = username
         self.password = password
+        self.index = index
         self.port = port
         self.dsn = dsn
         self.compress = compress
@@ -106,8 +109,7 @@ class Clickhouse(VectorDb):
                     parameters=parameters,
                 )
             )
-        except Exception as e:
-            logger.error(e)
+        except Exception:
             return False
 
     async def async_table_exists(self) -> bool:
@@ -122,8 +124,7 @@ class Clickhouse(VectorDb):
                 parameters=parameters,
             )
             return bool(result)
-        except Exception as e:
-            logger.error(f"Async error checking if table exists: {e}")
+        except Exception:
             return False
 
     def create(self) -> None:
@@ -405,7 +406,7 @@ class Clickhouse(VectorDb):
             parameters=parameters,
         )
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None) -> list[Document]:
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
@@ -414,8 +415,8 @@ class Clickhouse(VectorDb):
         parameters = self._get_base_parameters()
         where_query = ""
         if filters:
-            query_filters: List[str] = []
-            for key, value in filters.values():
+            query_filters: list[str] = []
+            for key, value in filters.items():
                 query_filters.append(f"{{{key}_key:String}} = {{{key}_value:String}}")
                 parameters[f"{key}_key"] = key
                 parameters[f"{key}_value"] = value
@@ -442,14 +443,13 @@ class Clickhouse(VectorDb):
                 clickhouse_query,
                 parameters=parameters,
             )
-        except Exception as e:
-            logger.error(f"Error searching for documents: {e}")
+        except Exception:
             logger.error("Table might not exist, creating for future use")
             self.create()
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results.result_rows:
             search_results.append(
                 Document(
@@ -465,8 +465,8 @@ class Clickhouse(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None
+    ) -> list[Document]:
         """Search for documents asynchronously."""
         async_client = await self._ensure_async_client()
 
@@ -478,8 +478,8 @@ class Clickhouse(VectorDb):
         parameters = self._get_base_parameters()
         where_query = ""
         if filters:
-            query_filters: List[str] = []
-            for key, value in filters.values():
+            query_filters: list[str] = []
+            for key, value in filters.items():
                 query_filters.append(f"{{{key}_key:String}} = {{{key}_value:String}}")
                 parameters[f"{key}_key"] = key
                 parameters[f"{key}_value"] = value
@@ -506,14 +506,13 @@ class Clickhouse(VectorDb):
                 clickhouse_query,
                 parameters=parameters,
             )
-        except Exception as e:
-            logger.error(f"Async error searching for documents: {e}")
+        except Exception:
             logger.error("Table might not exist, creating for future use")
             await self.async_create()
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results.result_rows:
             search_results.append(
                 Document(

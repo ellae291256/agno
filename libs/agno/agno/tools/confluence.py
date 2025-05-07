@@ -40,7 +40,8 @@ class ConfluenceTools(Toolkit):
         super().__init__(name="confluence_tools", **kwargs)
         self.url = url or getenv("CONFLUENCE_URL")
         self.username = username or getenv("CONFLUENCE_USERNAME")
-        self.password = api_key or getenv("CONFLUENCE_API_KEY") or password or getenv("CONFLUENCE_PASSWORD")
+        self.password = password or getenv("CONFLUENCE_PASSWORD")
+        self.api_key = api_key or getenv("CONFLUENCE_API_KEY")
 
         if not self.url:
             raise ValueError(
@@ -92,6 +93,9 @@ class ConfluenceTools(Toolkit):
             logger.warning(f"Page '{page_title}' not found in space '{space_name}'")
             return json.dumps({"error": f"Page '{page_title}' not found in space '{space_name}'"})
 
+        except KeyError as e:
+            logger.error(f"Error retrieving page '{page_title}': {e}")
+            return json.dumps({"error": str(e)})
         except Exception as e:
             logger.error(f"Error retrieving page '{page_title}': {e}")
             return json.dumps({"error": str(e)})
@@ -160,6 +164,9 @@ class ConfluenceTools(Toolkit):
             page = self.confluence.create_page(space_key, title, body, parent_id=parent_id)
             log_info(f"Page created: {title} with ID {page['id']}")
             return json.dumps({"id": page["id"], "title": title})
+        except KeyError as e:
+            logger.error(f"Error creating page '{title}': {e}")
+            return json.dumps({"error": str(e)})
         except Exception as e:
             logger.error(f"Error creating page '{title}': {e}")
             return json.dumps({"error": str(e)})
@@ -179,6 +186,9 @@ class ConfluenceTools(Toolkit):
             updated_page = self.confluence.update_page(page_id, title, body)
             log_info(f"Page updated: {title} with ID {updated_page['id']}")
             return json.dumps({"status": "success", "id": updated_page["id"]})
+        except KeyError as e:
+            logger.error(f"Error updating page '{title}': {e}")
+            return json.dumps({"error": str(e)})
         except Exception as e:
             logger.error(f"Error updating page '{title}': {e}")
             return json.dumps({"error": str(e)})
