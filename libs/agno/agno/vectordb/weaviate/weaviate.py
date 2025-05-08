@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import uuid
 from hashlib import md5
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from warnings import filterwarnings
@@ -272,7 +274,7 @@ class Weaviate(VectorDb):
             )
             log_debug(f"Inserted document: {document.name} ({document.meta_data})")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Insert documents into Weaviate asynchronously.
 
@@ -318,11 +320,11 @@ class Weaviate(VectorDb):
                     log_debug(f"Inserted document asynchronously: {document.name}")
 
                 except Exception as e:
-                    logger.error(f"Error inserting document {document.name}: {str(e)}")
+                    logger.error(f"Error inserting document {document.name}: {e}")
         finally:
             await client.close()
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into Weaviate.
 
@@ -333,7 +335,7 @@ class Weaviate(VectorDb):
         log_debug(f"Upserting {len(documents)} documents into Weaviate.")
         self.insert(documents)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into Weaviate asynchronously.
         When documents with the same ID already exist, they will be replaced.
@@ -377,7 +379,7 @@ class Weaviate(VectorDb):
         finally:
             await client.close()
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a search based on the configured search type.
 
@@ -400,8 +402,8 @@ class Weaviate(VectorDb):
             return []
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """
         Perform a search based on the configured search type asynchronously.
 
@@ -492,7 +494,7 @@ class Weaviate(VectorDb):
 
         return search_results
 
-    def keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a keyword search in Weaviate.
 
@@ -501,7 +503,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         collection = self.get_client().collections.get(self.collection)
         response = collection.query.bm25(
@@ -512,7 +514,7 @@ class Weaviate(VectorDb):
             include_vector=True,
         )
 
-        search_results: List[Document] = self.get_search_results(response)
+        search_results: list[Document] = self.get_search_results(response)
 
         if self.reranker:
             search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -520,7 +522,7 @@ class Weaviate(VectorDb):
         self.get_client().close()
         return search_results
 
-    async def async_keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    async def async_keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a keyword search in Weaviate asynchronously.
 
@@ -529,7 +531,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         search_results = []
         client = await self.get_async_client()
@@ -552,7 +554,7 @@ class Weaviate(VectorDb):
 
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a hybrid search combining vector and keyword search in Weaviate.
 
@@ -561,7 +563,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -579,7 +581,7 @@ class Weaviate(VectorDb):
             alpha=self.hybrid_search_alpha,
         )
 
-        search_results: List[Document] = self.get_search_results(response)
+        search_results: list[Document] = self.get_search_results(response)
 
         if self.reranker:
             search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -587,7 +589,7 @@ class Weaviate(VectorDb):
         self.get_client().close()
         return search_results
 
-    async def async_hybrid_search(self, query: str, limit: int = 5) -> List[Document]:
+    async def async_hybrid_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a hybrid search combining vector and keyword search in Weaviate asynchronously.
 
@@ -596,7 +598,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -686,7 +688,7 @@ class Weaviate(VectorDb):
 
         return configs[index_type]
 
-    def get_search_results(self, response: Any) -> List[Document]:
+    def get_search_results(self, response: Any) -> list[Document]:
         """
         Create search results from the Weaviate response.
 
@@ -694,9 +696,9 @@ class Weaviate(VectorDb):
             response (Any): The Weaviate response object.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for obj in response.objects:
             properties = obj.properties
             meta_data = json.loads(properties["meta_data"]) if properties.get("meta_data") else None

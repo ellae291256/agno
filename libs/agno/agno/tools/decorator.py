@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from functools import update_wrapper, wraps
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Union, overload
+from typing import Any, Callable, TypeVar, overload
 
 from agno.tools.function import Function
 from agno.utils.log import logger
@@ -106,7 +108,7 @@ def tool(*args, **kwargs) -> Union[Function, Callable[[F], Function]]:
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return func(*args, **kwargs)
-            except Exception as e:
+            except BaseException as e:
                 logger.error(
                     f"Error in tool {func.__name__!r}: {e!r}",
                     exc_info=True,
@@ -117,7 +119,7 @@ def tool(*args, **kwargs) -> Union[Function, Callable[[F], Function]]:
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return await func(*args, **kwargs)
-            except Exception as e:
+            except BaseException as e:
                 logger.error(
                     f"Error in async tool {func.__name__!r}: {e!r}",
                     exc_info=True,
@@ -128,7 +130,7 @@ def tool(*args, **kwargs) -> Union[Function, Callable[[F], Function]]:
         async def async_gen_wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 return func(*args, **kwargs)
-            except Exception as e:
+            except BaseException as e:
                 logger.error(
                     f"Error in async generator tool {func.__name__!r}: {e!r}",
                     exc_info=True,

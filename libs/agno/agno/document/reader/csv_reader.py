@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import csv
 import io
 import os
 from pathlib import Path
-from typing import IO, Any, List, Optional, Union
+from typing import IO, Any, Union
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -22,7 +24,7 @@ from agno.utils.log import logger
 class CSVReader(Reader):
     """Reader for CSV files"""
 
-    def read(self, file: Union[Path, IO[Any]], delimiter: str = ",", quotechar: str = '"') -> List[Document]:
+    def read(self, file: Union[Path, IO[Any]], delimiter: str = ",", quotechar: str = '"') -> list[Document]:
         try:
             if isinstance(file, Path):
                 if not file.exists():
@@ -44,7 +46,7 @@ class CSVReader(Reader):
             documents = [
                 Document(
                     name=csv_name,
-                    id=str(uuid4()),
+                    id=f"{csv_name}_1",
                     content=csv_content,
                 )
             ]
@@ -54,13 +56,13 @@ class CSVReader(Reader):
                     chunked_documents.extend(self.chunk_document(document))
                 return chunked_documents
             return documents
-        except Exception as e:
+        except (FileNotFoundError, IOError) as e:
             logger.error(f"Error reading: {file.name if isinstance(file, IO) else file}: {e}")
             return []
 
     async def async_read(
         self, file: Union[Path, IO[Any]], delimiter: str = ",", quotechar: str = '"', page_size: int = 1000
-    ) -> List[Document]:
+    ) -> list[Document]:
         """
         Read a CSV file asynchronously, processing batches of rows concurrently.
 
@@ -98,7 +100,7 @@ class CSVReader(Reader):
                 documents = [
                     Document(
                         name=csv_name,
-                        id=str(uuid4()),
+                        id=f"{csv_name}_1",
                         content=csv_content,
                     )
                 ]
@@ -107,14 +109,14 @@ class CSVReader(Reader):
                 for i in range(0, total_rows, page_size):
                     pages.append(rows[i : i + page_size])
 
-                async def _process_page(page_number: int, page_rows: List[List[str]]) -> Document:
+                async def _process_page(page_number: int, page_rows: list[list[str]]) -> Document:
                     """Process a page of rows into a document"""
                     start_row = (page_number - 1) * page_size + 1
                     page_content = " ".join(", ".join(row) for row in page_rows)
 
                     return Document(
                         name=csv_name,
-                        id=str(uuid4()),
+                        id=f"{csv_name}_page{page_number}_{start_row}",
                         meta_data={"page": page_number, "start_row": start_row, "rows": len(page_rows)},
                         content=page_content,
                     )
@@ -127,7 +129,7 @@ class CSVReader(Reader):
                 documents = await self.chunk_documents_async(documents)
 
             return documents
-        except Exception as e:
+        except (FileNotFoundError, IOError) as e:
             logger.error(f"Error reading async: {file.name if isinstance(file, IO) else file}: {e}")
             return []
 

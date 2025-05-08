@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
 import sys
-from typing import Dict, Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
@@ -45,6 +46,8 @@ if sys.version_info >= (3, 12):
             logger.info("Added missing get_config_header function for Docker auth compatibility")
 
         logger.info("Applied comprehensive compatibility patch for Docker client on Python 3.12")
+    except ImportError as e:
+        logger.warning(f"Failed to apply Docker client compatibility patch: {e}")
     except Exception as e:
         logger.warning(f"Failed to apply Docker client compatibility patch: {e}")
 
@@ -80,7 +83,7 @@ class DockerTools(Toolkit):
 
             self.client.ping()
             logger.info("Successfully connected to Docker daemon")
-        except Exception as e:
+        except docker.errors.DockerException as e:
             logger.error(f"Error connecting to Docker: {e}")
 
         # Register tools based on enabled features
@@ -292,13 +295,13 @@ class DockerTools(Toolkit):
     def run_container(
         self,
         image: str,
-        command: Optional[str] = None,
-        name: Optional[str] = None,
+        command: str | None = None,
+        name: str | None = None,
         detach: bool = True,
-        ports: Optional[Dict[str, Union[str, int]]] = None,  # Updated type hint
-        volumes: Optional[Dict[str, Dict[str, str]]] = None,
-        environment: Optional[Dict[str, str]] = None,
-        network: Optional[str] = None,
+        ports: dict[str, str | int] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
+        environment: dict[str, str] | None = None,
+        network: str | None = None,
     ) -> str:
         """
         Run a Docker container.
@@ -397,7 +400,7 @@ class DockerTools(Toolkit):
         except DockerException as e:
             error_msg = f"Error listing images: {str(e)}"
             logger.error(error_msg)
-            return error_msg  # type: ignore
+            return error_msg
 
     def pull_image(self, image_name: str, tag: str = "latest") -> str:
         """

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -125,10 +127,9 @@ class ChromaDb(VectorDb):
             bool: True if document exists, False otherwise."""
         if self.client:
             try:
-                collections: Collection = self.client.get_collection(name=self.collection_name)
-                for collection in collections:  # type: ignore
-                    if name in collection:
-                        return True
+                collection: Collection = self.client.get_collection(name=self.collection_name)
+                if name in collection.name:
+                    return True
             except Exception as e:
                 logger.error(f"Document with given name does not exist: {e}")
         return False
@@ -215,15 +216,15 @@ class ChromaDb(VectorDb):
         """Upsert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.upsert, documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """Search the collection for a query.
 
         Args:
             query (str): Query to search for.
             limit (int): Number of results to return.
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching.
+            filters (dict[str, Any] | None): Filters to apply while searching.
         Returns:
-            List[Document]: List of search results.
+            list[Document]: List of search results.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -240,7 +241,7 @@ class ChromaDb(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
 
         ids = result.get("ids", [[]])[0]
         metadata = result.get("metadatas", [{}])[0]  # type: ignore
@@ -272,8 +273,8 @@ class ChromaDb(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """Search asynchronously by running in a thread."""
         return await asyncio.to_thread(self.search, query, limit, filters)
 
