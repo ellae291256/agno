@@ -10,28 +10,29 @@ from agno.tools.agentql import AgentQLTools
 @pytest.fixture
 def mock_playwright():
     """Create a mock Playwright instance."""
+    mock_browser = Mock()
+    mock_page = Mock()
+    mock_browser.new_page.return_value = mock_page
     with patch("agno.tools.agentql.sync_playwright") as mock_pw:
-        mock_browser = Mock()
-        mock_page = Mock()
-        mock_browser.new_page.return_value = mock_page
         mock_pw.return_value.__enter__.return_value.chromium.launch.return_value = mock_browser
-        return mock_pw
+    return mock_pw
 
 
 @pytest.fixture
 def mock_agentql():
     """Create a mock AgentQL wrapper."""
+    wrapped_page = Mock()
     with patch("agno.tools.agentql.agentql") as mock_agentql:
-        wrapped_page = Mock()
         mock_agentql.wrap.return_value = wrapped_page
-        return mock_agentql, wrapped_page
+    return mock_agentql, wrapped_page
 
 
 @pytest.fixture
 def agentql_tools():
     """Create AgentQLTools instance with test API key."""
     with patch.dict("os.environ", {"AGENTQL_API_KEY": "test_key"}):
-        return AgentQLTools()
+        tools = AgentQLTools()
+    return tools
 
 
 def test_init_with_api_key():

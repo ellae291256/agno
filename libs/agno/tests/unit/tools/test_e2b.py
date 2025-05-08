@@ -29,7 +29,7 @@ def mock_agent():
 def mock_e2b_tools():
     """Create a mocked E2BTools instance with patched methods."""
     # First, create a mock for the Sandbox class
-    with patch("agno.tools.e2b.Sandbox") as mock_sandbox_class:
+    with patch("agno.tools.e2b.Sandbox") as mock_sandbox_class, patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
         # Set up our mock sandbox instance
         mock_sandbox = Mock()
         mock_sandbox_class.return_value = mock_sandbox
@@ -41,12 +41,11 @@ def mock_e2b_tools():
         mock_sandbox.kill = Mock()
 
         # Create the E2BTools instance with our patched Sandbox
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools()
+        tools = E2BTools()
 
-            # Set the sandbox attribute explicitly
+        # Set the sandbox attribute explicitly
 
-            # Mock the methods we'll test with return values matching actual implementation
+        # Mock the methods we'll test with return values matching actual implementation
             tools.run_python_code = Mock(return_value='["Logs:\\nHello, World!"]')
             tools.upload_file = Mock(return_value="/sandbox/file.txt")
             tools.download_png_result = Mock(return_value="Image added as artifact with ID test-image-id")
@@ -90,11 +89,10 @@ def test_init_with_api_key():
 
 def test_init_with_env_var():
     """Test initialization with environment variable."""
-    with patch("agno.tools.e2b.Sandbox"):
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools()
-            # Instead of checking if the mock was called, just verify the API key is set
-            assert tools.api_key == TEST_API_KEY
+    with patch("agno.tools.e2b.Sandbox"), patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
+        tools = E2BTools()
+        # Instead of checking if the mock was called, just verify the API key is set
+        assert tools.api_key == TEST_API_KEY
 
 
 def test_init_without_api_key():
@@ -106,13 +104,12 @@ def test_init_without_api_key():
 
 def test_init_with_selective_tools():
     """Test initialization with only selected tools enabled."""
-    with patch("agno.tools.e2b.Sandbox"):
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools(
-                run_code=True,
-                upload_file=False,
-                download_result=False,
-                filesystem=True,
+    with patch("agno.tools.e2b.Sandbox"), patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
+        tools = E2BTools(
+            run_code=True,
+            upload_file=False,
+            download_result=False,
+            filesystem=True,
                 internet_access=False,
                 sandbox_management=False,
                 command_execution=True,

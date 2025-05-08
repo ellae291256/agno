@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -66,10 +65,9 @@ def mock_qdrant_async_client():
 
 
 @pytest.fixture
-def qdrant_db(mock_qdrant_client, mock_embedder):
+def qdrant_db(mock_embedder):
     """Fixture to create a Qdrant instance with mocked client"""
     db = Qdrant(embedder=mock_embedder, collection="test_collection")
-    db._client = mock_qdrant_client
     yield db
 
 
