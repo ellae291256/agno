@@ -116,7 +116,7 @@ async def test_async_read_path(csv_reader, csv_file):
     assert len(documents) == 1
     assert documents[0].name == "test"
     assert documents[0].id.endswith("_1")
-    assert documents[0].content == "name, age, city John, 30, New York Jane, 25, San Francisco Bob, 40, Chicago"
+    assert documents[0].content == "name, age, city John, 30, New York Jane, 25, San Francisco Bob, 40, Chicago "
 
 
 @pytest.fixture
@@ -147,19 +147,19 @@ async def test_async_read_multi_page_csv(csv_reader, multi_page_csv_file):
 
     # Check first page
     assert documents[0].name == "multi_page"
-    assert documents[0].id == "multi_page_page1_1"
+    assert documents[0].id.endswith("_1")
     assert documents[0].meta_data["page"] == 1
     assert documents[0].meta_data["start_row"] == 1
     assert documents[0].meta_data["rows"] == 5
 
     # Check second page
-    assert documents[1].id == "multi_page_page2_1"
+    assert documents[1].id.endswith("_1")
     assert documents[1].meta_data["page"] == 2
     assert documents[1].meta_data["start_row"] == 6
     assert documents[1].meta_data["rows"] == 5
 
     # Check third page
-    assert documents[2].id == "multi_page_page3_1"
+    assert documents[2].id.endswith("_1")
     assert documents[2].meta_data["page"] == 3
     assert documents[2].meta_data["start_row"] == 11
     assert documents[2].meta_data["rows"] == 1

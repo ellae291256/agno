@@ -306,7 +306,7 @@ class MultiMCPTools(Toolkit):
 
         self._client = client
 
-    async def __aenter__(self) -> "MultiMCPTools":
+    async def __aenter__(self) -> Self:
         """Enter the async context manager."""
 
         for server_params in self.server_params_list:
@@ -321,7 +321,7 @@ class MultiMCPTools(Toolkit):
                 await self.initialize(session)
 
             # Handle SSE connections
-            if isinstance(server_params, SSEClientParams):
+            elif isinstance(server_params, SSEClientParams):
                 sse_args = asdict(server_params)
                 sse_transport = await self._async_exit_stack.enter_async_context(sse_client(**sse_args))
                 read, write = sse_transport
@@ -384,4 +384,4 @@ class MultiMCPTools(Toolkit):
             self._initialized = True
         except Exception as e:
             logger.error(f"Failed to get MCP tools: {e}")
-            raise
+            raise RuntimeError(f"Failed to get MCP tools: {e}") from e

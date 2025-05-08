@@ -48,7 +48,7 @@ import json
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 
@@ -84,11 +84,11 @@ class GoogleSheetsTools(Toolkit):
         "write": "https://www.googleapis.com/auth/spreadsheets",
     }
 
-    service: Optional[Resource]
+    service: Optional[Resource] = None
 
     def __init__(
         self,
-        scopes: Optional[List[str]] = None,
+        scopes: Optional[list[str]] = None,
         spreadsheet_id: Optional[str] = None,
         spreadsheet_range: Optional[str] = None,
         creds: Optional[Credentials] = None,

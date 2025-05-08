@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.vectordb.clickhouse.index import HNSW
 
@@ -107,7 +109,7 @@ class Clickhouse(VectorDb):
                 )
             )
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Error checking if table exists: {e}")
             return False
 
     async def async_table_exists(self) -> bool:
@@ -405,7 +407,7 @@ class Clickhouse(VectorDb):
             parameters=parameters,
         )
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None) -> list[Document]:
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
@@ -414,8 +416,8 @@ class Clickhouse(VectorDb):
         parameters = self._get_base_parameters()
         where_query = ""
         if filters:
-            query_filters: List[str] = []
-            for key, value in filters.values():
+            query_filters: list[str] = []
+            for key, value in filters.items():
                 query_filters.append(f"{{{key}_key:String}} = {{{key}_value:String}}")
                 parameters[f"{key}_key"] = key
                 parameters[f"{key}_value"] = value
@@ -449,7 +451,7 @@ class Clickhouse(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results.result_rows:
             search_results.append(
                 Document(
@@ -465,8 +467,8 @@ class Clickhouse(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None
+    ) -> list[Document]:
         """Search for documents asynchronously."""
         async_client = await self._ensure_async_client()
 
@@ -478,8 +480,8 @@ class Clickhouse(VectorDb):
         parameters = self._get_base_parameters()
         where_query = ""
         if filters:
-            query_filters: List[str] = []
-            for key, value in filters.values():
+            query_filters: list[str] = []
+            for key, value in filters.items():
                 query_filters.append(f"{{{key}_key:String}} = {{{key}_value:String}}")
                 parameters[f"{key}_key"] = key
                 parameters[f"{key}_value"] = value
@@ -513,7 +515,7 @@ class Clickhouse(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results.result_rows:
             search_results.append(
                 Document(
