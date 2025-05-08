@@ -14,6 +14,11 @@ def mock_confluence():
     """Create a mock Confluence client."""
     with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
         mock_client = MagicMock(spec=Confluence)
+        mock_client.get_all_spaces.return_value = {"results": []}
+        mock_client.get_page_by_title.return_value = {"id": "123", "title": "Test Page"}
+        mock_client.get_all_pages_from_space.return_value = {"results": []}
+        mock_client.create_page.return_value = {"id": "123", "title": "New Page"}
+        mock_client.update_page.return_value = {"id": "123", "title": "Updated Page"}
         mock_confluence_class.return_value = mock_client
         yield mock_client
 

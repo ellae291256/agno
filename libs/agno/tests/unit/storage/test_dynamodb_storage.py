@@ -36,7 +36,7 @@ def agent_storage(mock_dynamodb_resource):
 @pytest.fixture
 def workflow_storage(mock_dynamodb_resource):
     """Create a DynamoDbStorage instance for workflow mode with mocked components."""
-    mock_resource, mock_table = mock_dynamodb_resource
+    _, mock_table = mock_dynamodb_resource
 
     # Mock table.wait_until_exists to avoid actual waiting
     mock_table.wait_until_exists = MagicMock()
