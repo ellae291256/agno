@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from agno.tools.function import Function
 from agno.utils.log import log_debug, logger
@@ -9,11 +11,11 @@ class Toolkit:
     def __init__(
         self,
         name: str = "toolkit",
-        tools: List[Callable] = [],
-        instructions: Optional[str] = None,
+        tools: list[Callable] | None = None,
+        instructions: str | None = None,
         add_instructions: bool = False,
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
+        include_tools: list[str] | None = None,
+        exclude_tools: list[str] | None = None,
         cache_results: bool = False,
         cache_ttl: int = 3600,
         cache_dir: Optional[str] = None,
@@ -105,9 +107,9 @@ class Toolkit:
             )
             self.functions[f.name] = f
             log_debug(f"Function: {f.name} registered with {self.name}")
-        except Exception as e:
+        except Exception:
             logger.warning(f"Failed to create Function for: {function.__name__}")
-            raise e
+            raise
 
     def __repr__(self):
         return f"<{self.__class__.__name__} name={self.name} functions={list(self.functions.keys())}>"

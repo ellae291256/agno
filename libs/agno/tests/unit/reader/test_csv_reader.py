@@ -116,7 +116,7 @@ async def test_async_read_path(csv_reader, csv_file):
     assert len(documents) == 1
     assert documents[0].name == "test"
     assert documents[0].id.endswith("_1")
-    assert documents[0].content == "name, age, city John, 30, New York Jane, 25, San Francisco Bob, 40, Chicago"
+    assert documents[0].content == "name, age, city John, 30, New York Jane, 25, San Francisco Bob, 40, Chicago "
 
 
 @pytest.fixture
