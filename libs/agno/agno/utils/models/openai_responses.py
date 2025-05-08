@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any
 
 from agno.media import Image
 from agno.utils.log import logger
@@ -62,7 +64,7 @@ def _process_image(image: Image) -> Optional[Dict[str, Any]]:
     return image_payload
 
 
-def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
+def images_to_message(images: Sequence[Image]) -> list[dict[str, Any]]:
     """
     Add images to a message for the model. By default, we use the OpenAI image format but other Models
     can override this method to use a different image format.
@@ -78,7 +80,7 @@ def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
     """
 
     # Create a default message content with text
-    image_messages: List[Dict[str, Any]] = []
+    image_messages: list[dict[str, Any]] = []
 
     # Add images to the message content
     for image in images:

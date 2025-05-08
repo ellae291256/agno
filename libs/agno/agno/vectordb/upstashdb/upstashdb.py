@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any, Optional
 
 try:
     from upstash_vector import Index, Vector
@@ -104,7 +106,7 @@ class UpstashVectorDb(VectorDb):
             self.index.info()
             return True
         except Exception as e:
-            logger.error(f"Error checking index existence: {str(e)}")
+            logger.error(f"Error checking index existence: {e}")
             return False
 
     def create(self) -> None:

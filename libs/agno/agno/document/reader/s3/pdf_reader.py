@@ -1,5 +1,4 @@
 from io import BytesIO
-from typing import List
 from uuid import uuid4
 
 from agno.document.base import Document
@@ -20,7 +19,7 @@ except ImportError:
 class S3PDFReader(Reader):
     """Reader for PDF files on S3"""
 
-    def read(self, s3_object: S3Object) -> List[Document]:
+    def read(self, s3_object: S3Object) -> list[Document]:
         try:
             log_info(f"Reading: {s3_object.uri}")
 
@@ -43,5 +42,5 @@ class S3PDFReader(Reader):
                     chunked_documents.extend(self.chunk_document(document))
                 return chunked_documents
             return documents
-        except Exception:
+        except Exception as e:
             raise

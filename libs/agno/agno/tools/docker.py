@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
 import sys
-from typing import Dict, Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
@@ -45,14 +46,14 @@ if sys.version_info >= (3, 12):
             logger.info("Added missing get_config_header function for Docker auth compatibility")
 
         logger.info("Applied comprehensive compatibility patch for Docker client on Python 3.12")
-    except Exception as e:
+    except ImportError as e:
         logger.warning(f"Failed to apply Docker client compatibility patch: {e}")
 
 try:
     import docker
     from docker.errors import DockerException, ImageNotFound
-except ImportError:
-    raise ImportError("The `docker` package is not installed. Please install it via `pip install docker`.")
+except ImportError as e:
+    raise ImportError("The `docker` package is not installed. Please install it via `pip install docker`.") from e
 
 
 class DockerTools(Toolkit):
@@ -80,7 +81,7 @@ class DockerTools(Toolkit):
 
             self.client.ping()
             logger.info("Successfully connected to Docker daemon")
-        except Exception as e:
+        except docker.errors.DockerException as e:
             logger.error(f"Error connecting to Docker: {e}")
 
         # Register tools based on enabled features
@@ -292,13 +293,13 @@ class DockerTools(Toolkit):
     def run_container(
         self,
         image: str,
-        command: Optional[str] = None,
-        name: Optional[str] = None,
+        command: str | None = None,
+        name: str | None = None,
         detach: bool = True,
-        ports: Optional[Dict[str, Union[str, int]]] = None,  # Updated type hint
-        volumes: Optional[Dict[str, Dict[str, str]]] = None,
-        environment: Optional[Dict[str, str]] = None,
-        network: Optional[str] = None,
+        ports: dict[str, str | int] | None = None,  # Updated type hint
+        volumes: dict[str, dict[str, str]] | None = None,
+        environment: dict[str, str] | None = None,
+        network: str | None = None,
     ) -> str:
         """
         Run a Docker container.
@@ -420,7 +421,7 @@ class DockerTools(Toolkit):
 
             logger.info(f"Successfully pulled image {image_name}:{tag}")
             return f"Image {image_name}:{tag} pulled successfully"
-        except Exception as e:
+        except DockerException as e:
             error_msg = f"Error pulling image: {str(e)}"
             logger.error(error_msg)
             return error_msg
@@ -460,7 +461,7 @@ class DockerTools(Toolkit):
             str: A success message or error message.
         """
         try:
-            image, logs = self.client.images.build(path=path, tag=tag, dockerfile=dockerfile, rm=rm)
+            image, _ = self.client.images.build(path=path, tag=tag, dockerfile=dockerfile, rm=rm)
             return f"Image built successfully with ID: {image.id}"
         except DockerException as e:
             error_msg = f"Error building image: {str(e)}"
@@ -534,7 +535,7 @@ class DockerTools(Toolkit):
             logger.error(error_msg)
             return error_msg
 
-    def create_volume(self, volume_name: str, driver: str = "local", labels: Optional[Dict[str, str]] = None) -> str:
+    def create_volume(self, volume_name: str, driver: str = "local", labels: dict[str, str] | None = None) -> str:
         """
         Create a Docker volume.
 
@@ -623,7 +624,7 @@ class DockerTools(Toolkit):
             return error_msg
 
     def create_network(
-        self, network_name: str, driver: str = "bridge", internal: bool = False, labels: Optional[Dict[str, str]] = None
+        self, network_name: str, driver: str = "bridge", internal: bool = False, labels: dict[str, str] | None = None
     ) -> str:
         """
         Create a Docker network.

@@ -254,15 +254,8 @@ class Workflow:
             set_log_level_to_info()
 
     def set_monitoring(self) -> None:
-        if self.monitoring or getenv("AGNO_MONITOR", "false").lower() == "true":
-            self.monitoring = True
-        else:
-            self.monitoring = False
-
-        if self.telemetry or getenv("AGNO_TELEMETRY", "true").lower() == "true":
-            self.telemetry = True
-        else:
-            self.telemetry = False
+        self.monitoring = self.monitoring or getenv("AGNO_MONITOR", "false").lower() == "true"
+        self.telemetry = self.telemetry or getenv("AGNO_TELEMETRY", "true").lower() == "true"
 
     def initialize_memory(self) -> None:
         if self.memory is None:
@@ -329,8 +322,8 @@ class Workflow:
                 field_value = getattr(self, f.name)
                 field_value.session_id = self.session_id
 
-    def get_workflow_data(self) -> Dict[str, Any]:
-        workflow_data: Dict[str, Any] = {}
+    def get_workflow_data(self) -> dict[str, Any]:
+        workflow_data: dict[str, Any] = {}
         if self.name is not None:
             workflow_data["name"] = self.name
         if self.workflow_id is not None:
@@ -339,8 +332,8 @@ class Workflow:
             workflow_data["description"] = self.description
         return workflow_data
 
-    def get_session_data(self) -> Dict[str, Any]:
-        session_data: Dict[str, Any] = {}
+    def get_session_data(self) -> dict[str, Any]:
+        session_data: dict[str, Any] = {}
         if self.session_name is not None:
             session_data["session_name"] = self.session_name
         if self.session_state and len(self.session_state) > 0:
@@ -465,16 +458,16 @@ class Workflow:
                     for run in session.memory["runs"]:
                         run_session_id = run["session_id"]
                         self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
-                except Exception as e:
+                except (KeyError, TypeError, ValueError) as e:
                     log_warning(f"Failed to load runs from memory: {e}")
             else:
                 try:
                     if "runs" in session.memory:
                         try:
                             self.memory.runs = [WorkflowRun(**m) for m in session.memory["runs"]]
-                        except Exception as e:
+                        except (KeyError, TypeError, ValueError) as e:
                             logger.warning(f"Failed to load runs from memory: {e}")
-                except Exception as e:
+                except (KeyError, TypeError, ValueError) as e:
                     logger.warning(f"Failed to load WorkflowMemory: {e}")
 
         log_debug(f"-*- WorkflowSession loaded: {session.session_id}")
@@ -577,17 +570,17 @@ class Workflow:
         # -*- Delete session
         self.storage.delete_session(session_id=session_id)
 
-    def deep_copy(self, *, update: Optional[Dict[str, Any]] = None) -> Workflow:
+    def deep_copy(self, *, update: dict[str, Any] | None = None) -> Workflow:
         """Create and return a deep copy of this Workflow, optionally updating fields.
 
         Args:
-            update (Optional[Dict[str, Any]]): Optional dictionary of fields for the new Workflow.
+            update (dict[str, Any] | None): Optional dictionary of fields for the new Workflow.
 
         Returns:
             Workflow: A new Workflow instance.
         """
         # Extract the fields to set for the new Workflow
-        fields_for_new_workflow: Dict[str, Any] = {}
+        fields_for_new_workflow: dict[str, Any] = {}
 
         for f in fields(self):
             field_value = getattr(self, f.name)

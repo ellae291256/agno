@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from os import getenv
 from typing import Literal, Optional
 from uuid import uuid4
@@ -61,13 +63,12 @@ class OpenAITools(Toolkit):
         """
         log_debug(f"Transcribing audio from {audio_path}")
         try:
-            audio_file = open(audio_path, "rb")
-
-            transcript = OpenAIClient().audio.transcriptions.create(
-                model=self.transcription_model,
-                file=audio_file,
-                response_format="text",
-            )
+            with open(audio_path, "rb") as audio_file:
+                transcript = OpenAIClient().audio.transcriptions.create(
+                    model=self.transcription_model,
+                    file=audio_file,
+                    response_format="text",
+                )
         except Exception as e:  # type: ignore[return]
             log_error(f"Failed to transcribe audio: {str(e)}")
             return f"Failed to transcribe audio: {str(e)}"

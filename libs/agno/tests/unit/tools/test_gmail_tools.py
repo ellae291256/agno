@@ -1,8 +1,9 @@
 """Unit tests for GmailTools class."""
 
+from __future__ import annotations
+
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -110,17 +111,15 @@ def test_auth_with_expired_credentials():
     mock_creds.expired = True
     mock_creds.refresh_token = True
 
-    with patch("agno.tools.gmail.build") as mock_build:
+    with patch("agno.tools.gmail.build") as mock_build, patch.object(mock_creds, "refresh") as mock_refresh, patch("pathlib.Path.exists") as mock_exists:
         mock_service = MagicMock()
         mock_build.return_value = mock_service
 
         tools = GmailTools(creds=mock_creds)
 
-        with patch.object(mock_creds, "refresh") as mock_refresh:
-            with patch("pathlib.Path.exists") as mock_exists:
-                mock_exists.return_value = False  # Force refresh path
-                tools._auth()
-                mock_refresh.assert_called_once()
+        mock_exists.return_value = False  # Force refresh path
+        tools._auth()
+        mock_refresh.assert_called_once()
 
 
 def test_auth_with_custom_paths():
@@ -128,12 +127,11 @@ def test_auth_with_custom_paths():
     custom_creds_path = "custom_creds.json"
     custom_token_path = "custom_token.json"
 
-    with patch("pathlib.Path.exists") as mock_exists:
+    with patch("pathlib.Path.exists") as mock_exists, patch("agno.tools.gmail.Credentials.from_authorized_user_file") as mock_from_file:
         mock_exists.return_value = True
-        with patch("agno.tools.gmail.Credentials.from_authorized_user_file") as mock_from_file:
-            tools = GmailTools(credentials_path=custom_creds_path, token_path=custom_token_path)
-            tools._auth()
-            mock_from_file.assert_called_once_with(custom_token_path, tools.scopes)
+        tools = GmailTools(credentials_path=custom_creds_path, token_path=custom_token_path)
+        tools._auth()
+        mock_from_file.assert_called_once_with(custom_token_path, tools.scopes)
 
 
 def test_get_latest_emails(gmail_tools, mock_gmail_service):
@@ -221,7 +219,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result
@@ -477,14 +475,12 @@ def test_service_initialization():
     mock_creds = Mock(spec=Credentials)
     mock_creds.valid = True
 
-    with patch("agno.tools.gmail.build") as mock_build:
+    with patch("agno.tools.gmail.build") as mock_build, patch.object(tools := GmailTools(creds=mock_creds), "_auth"):
         mock_service = MagicMock()
         mock_build.return_value = mock_service
 
-        tools = GmailTools(creds=mock_creds)
         assert tools.service is None  # Service should not be initialized in __init__
 
         # Call a method that requires authentication
-        with patch.object(tools, "_auth"):
-            tools.get_latest_emails(count=1)
-            mock_build.assert_called_once_with("gmail", "v1", credentials=mock_creds)
+        tools.get_latest_emails(count=1)
+        mock_build.assert_called_once_with("gmail", "v1", credentials=mock_creds)

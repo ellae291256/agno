@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from urllib.parse import parse_qs, urlencode, urlparse
 from urllib.request import urlopen
 
@@ -20,14 +22,14 @@ class YouTubeTools(Toolkit):
         get_video_captions: bool = True,
         get_video_data: bool = True,
         get_video_timestamps: bool = True,
-        languages: Optional[List[str]] = None,
-        proxies: Optional[Dict[str, Any]] = None,
+        languages: Optional[list[str]] = None,
+        proxies: Optional[dict[str, Any]] = None,
         **kwargs,
     ):
         super().__init__(name="youtube_tools", **kwargs)
 
-        self.languages: Optional[List[str]] = languages
-        self.proxies: Optional[Dict[str, Any]] = proxies
+        self.languages: Optional[list[str]] = languages
+        self.proxies: Optional[dict[str, Any]] = proxies
         if get_video_captions:
             self.register(self.get_youtube_video_captions)
         if get_video_data:
@@ -101,7 +103,7 @@ class YouTubeTools(Toolkit):
                     "thumbnail_url": video_data.get("thumbnail_url"),
                 }
                 return json.dumps(clean_data, indent=4)
-        except Exception as e:
+        except ValueError as e:
             return f"Error getting video data: {e}"
 
     def get_youtube_video_captions(self, url: str) -> str:
@@ -125,7 +127,7 @@ class YouTubeTools(Toolkit):
 
         try:
             captions = None
-            kwargs: Dict = {}
+            kwargs: dict = {}
             if self.languages:
                 kwargs["languages"] = self.languages or ["en"]
             if self.proxies:
@@ -158,7 +160,7 @@ class YouTubeTools(Toolkit):
             return "Error getting video ID from URL, please provide a valid YouTube url"
 
         try:
-            kwargs: Dict = {}
+            kwargs: dict = {}
             if self.languages:
                 kwargs["languages"] = self.languages or ["en"]
             if self.proxies:
