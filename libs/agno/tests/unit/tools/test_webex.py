@@ -29,12 +29,13 @@ def mock_webex_api():
 
 
 @pytest.fixture
+@pytest.fixture
 def webex_tools(mock_webex_api):
     """Create WebexTools instance with mocked API."""
     with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "test_token"}):
         tools = WebexTools()
         tools.client = mock_webex_api
-        return tools
+        yield tools
 
 
 def test_init_with_api_token():

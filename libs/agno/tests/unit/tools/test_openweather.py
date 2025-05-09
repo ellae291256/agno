@@ -48,6 +48,84 @@ def test_init_with_selective_tools():
 def test_get_current_weather_success(openweather_tools, mock_openweather_api):
     """Test successful current weather retrieval."""
     # First mock the geocode response
+    geocode_response = {
+        "results": [
+            {
+                "name": "London",
+                "lat": 51.5074,
+                "lon": -0.1278,
+                "country": "GB",
+                "state": "England",
+            }
+        ]
+    }
+    weather_response = {
+        "coord": {"lon": -0.1278, "lat": 51.5074},
+        "weather": [{"id": 800, "main": "Clear", "description": "clear sky", "icon": "01d"}],
+        "base": "stations",
+        "main": {
+            "temp": 20.5,
+            "feels_like": 19.8,
+            "temp_min": 19.0,
+            "temp_max": 22.0,
+            "pressure": 1015,
+            "humidity": 65,
+        },
+        "visibility": 10000,
+        "wind": {"speed": 3.6, "deg": 240},
+        "clouds": {"all": 0},
+        "dt": 1609459200,
+        "sys": {"type": 1, "id": 1414, "country": "GB", "sunrise": 1609420800, "sunset": 1609459200},
+        "timezone": 0,
+        "id": 2643743,
+        "name": "London",
+        "cod": 200,
+    }
+
+    # Set up the mock to return different responses for different calls
+    mock_openweather_api.side_effect = [geocode_response, weather_response]
+
+    # Call the tool
+    result = openweather_tools.get_current_weather(city="London")
+
+    # Verify the result
+    assert result is not None
+    assert result["city"] == "London"
+    assert result["temperature"] == 20.5
+    assert result["description"] == "clear sky"
+
+    # Verify the mock was called with the correct arguments
+    mock_openweather_api.assert_called()
+    calls = mock_openweather_api.call_args_list
+    assert len(calls) == 2
+    # First call is for geocoding
+    assert calls[0][0][0] == "geocode"
+    assert calls[0][1]["q"] == "London"
+    # Second call is for weather
+    assert calls[1][0][0] == "weather"
+    assert calls[1][1]["lat"] == 51.5074
+    assert calls[1][1]["lon"] == -0.1278
+
+
+def test_init_with_selective_tools():
+    """Test initialization with only selected tools."""
+    with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
+        tools = OpenWeatherTools(
+            current_weather=True,
+            forecast=False,
+            air_pollution=True,
+            geocoding=False,
+        )
+
+        assert "get_current_weather" in [func.name for func in tools.functions.values()]
+        assert "get_forecast" not in [func.name for func in tools.functions.values()]
+        assert "get_air_pollution" in [func.name for func in tools.functions.values()]
+        assert "geocode_location" not in [func.name for func in tools.functions.values()]
+
+
+def test_get_current_weather_success(openweather_tools, mock_openweather_api):
+    """Test successful current weather retrieval."""
+    # First mock the geocode response
     geocode_response = Mock()
     geocode_response.status_code = 200
     geocode_response.json.return_value = [{"name": "New York", "lat": 40.7128, "lon": -74.0060, "country": "US"}]
