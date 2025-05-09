@@ -13,14 +13,14 @@ from agno.tools.confluence import ConfluenceTools
 def mock_confluence():
     """Create a mock Confluence client."""
     with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
-        mock_client = MagicMock(spec=Confluence)
+        mock_client = MagicMock()
         mock_confluence_class.return_value = mock_client
         yield mock_client
 
 
 @pytest.fixture
 def confluence_tools(mock_confluence):
-    """Create ConfluenceTools instance with mocked dependencies."""
+    """Create ConfluenceTools instance with mocked dependencies.""
     with patch.dict(
         "os.environ",
         {
