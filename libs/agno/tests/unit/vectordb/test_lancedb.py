@@ -1,6 +1,9 @@
 import os
 import shutil
-from typing import List
+from __future__ import annotations
+
+import os
+import shutil
 
 import pytest
 
@@ -38,7 +41,7 @@ def lance_db(mock_embedder):
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(
