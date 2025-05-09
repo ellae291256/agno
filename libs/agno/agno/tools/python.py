@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import functools
 import runpy
 from pathlib import Path
-from typing import Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -51,7 +52,7 @@ class PythonTools(Toolkit):
             self.register(self.list_files)
 
     def save_to_file_and_run(
-        self, file_name: str, code: str, variable_to_return: Optional[str] = None, overwrite: bool = True
+        self, file_name: str, code: str, variable_to_return: str | None = None, overwrite: bool = True
     ) -> str:
         """This function saves Python code to a file called `file_name` and then runs it.
         If successful, returns the value of `variable_to_return` if provided otherwise returns a success message.
@@ -86,11 +87,11 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return f"successfully ran {str(file_path)}"
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error saving and running code: {e}")
             return f"Error saving and running code: {e}"
 
-    def run_python_file_return_variable(self, file_name: str, variable_to_return: Optional[str] = None) -> str:
+    def run_python_file_return_variable(self, file_name: str, variable_to_return: str | None = None) -> str:
         """This function runs code in a Python file.
         If successful, returns the value of `variable_to_return` if provided otherwise returns a success message.
         If failed, returns an error message.
@@ -113,7 +114,7 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return f"successfully ran {str(file_path)}"
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error running file: {e}")
             return f"Error running file: {e}"
 
@@ -128,7 +129,7 @@ class PythonTools(Toolkit):
             file_path = self.base_dir.joinpath(file_name)
             contents = file_path.read_text(encoding="utf-8")
             return str(contents)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error reading file: {e}")
             return f"Error reading file: {e}"
 
@@ -141,11 +142,11 @@ class PythonTools(Toolkit):
             log_info(f"Reading files in : {self.base_dir}")
             files = [str(file_path.name) for file_path in self.base_dir.iterdir()]
             return ", ".join(files)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error reading files: {e}")
             return f"Error reading files: {e}"
 
-    def run_python_code(self, code: str, variable_to_return: Optional[str] = None) -> str:
+    def run_python_code(self, code: str, variable_to_return: str | None = None) -> str:
         """This function to runs Python code in the current environment.
         If successful, returns the value of `variable_to_return` if provided otherwise returns a success message.
         If failed, returns an error message.
@@ -191,7 +192,7 @@ class PythonTools(Toolkit):
 
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"
 
@@ -212,6 +213,6 @@ class PythonTools(Toolkit):
 
             subprocess.check_call([sys.executable, "-m", "uv", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"

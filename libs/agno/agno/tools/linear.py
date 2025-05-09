@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from os import getenv
 from typing import Optional
 
@@ -44,6 +46,29 @@ class LinearTools(Toolkit):
         if get_high_priority_issues:
             self.register(self.get_high_priority_issues)
 
+class LinearToolError(Exception):
+    """Custom exception for Linear tool errors."""
+    pass
+
+
+class LinearTools(Toolkit):
+    """Linear API Tools."""
+
+    def __init__(self, api_key: Optional[str] = None, endpoint: Optional[str] = None):
+        """Initialize Linear Tools.
+
+        Args:
+            api_key (str, optional): The Linear API key. Defaults to None.
+            endpoint (str, optional): The Linear API endpoint. Defaults to None.
+        """
+        super().__init__(name="linear")
+        self.api_key = api_key or getenv("LINEAR_API_KEY")
+        self.endpoint = endpoint or getenv("LINEAR_ENDPOINT", "https://api.linear.app/graphql")
+        self.headers = {
+            "Authorization": self.api_key,
+            "Content-Type": "application/json",
+        }
+
     def _execute_query(self, query, variables=None):
         """Helper method to execute GraphQL queries with optional variables."""
 
@@ -55,18 +80,21 @@ class LinearTools(Toolkit):
 
             if "errors" in data:
                 logger.error(f"GraphQL Error: {data['errors']}")
-                raise Exception(f"GraphQL Error: {data['errors']}")
+                raise LinearToolError(f"GraphQL Error: {data['errors']}")
 
             log_info("GraphQL query executed successfully.")
             return data.get("data")
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request error: {e}")
+            raise LinearToolError(f"Request error: {e}") from e
+
+        except LinearToolError:
             raise
 
         except Exception as e:
             logger.error(f"Unexpected error: {e}")
-            raise
+            raise LinearToolError(f"Unexpected error: {e}") from e
 
     def get_user_details(self) -> Optional[str]:
         """
@@ -217,7 +245,7 @@ class LinearTools(Toolkit):
                   Returns `None` if the update is unsuccessful.
 
         Raises:
-            Exception: If an error occurs during the mutation execution or data retrieval.
+            LinearToolError: If an error occurs during the mutation execution or data retrieval.
         """
 
         query = """
@@ -251,9 +279,12 @@ class LinearTools(Toolkit):
                 logger.error(f"Failed to update issue ID {issue_id}. Success flag was false.")
                 return None
 
+        except LinearToolError:
+            raise
+
         except Exception as e:
             logger.error(f"Error updating issue ID {issue_id}: {e}")
-            raise
+            raise LinearToolError(f"Error updating issue ID {issue_id}: {e}") from e
 
     def get_user_assigned_issues(self, user_id: str) -> Optional[str]:
         """
@@ -268,7 +299,7 @@ class LinearTools(Toolkit):
             Returns None if the user or issues cannot be retrieved.
 
         Raises:
-            Exception: If an error occurs while querying for the user's assigned issues.
+            LinearToolError: If an error occurs while querying for the user's assigned issues.
         """
 
         query = """
@@ -299,9 +330,12 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve user or issues.")
                 return None
 
+        except LinearToolError:
+            raise
+
         except Exception as e:
             logger.error(f"Error retrieving issues for user ID {user_id}: {e}")
-            raise
+            raise LinearToolError(f"Error retrieving issues for user ID {user_id}: {e}") from e
 
     def get_workflow_issues(self, workflow_id: str) -> Optional[str]:
         """
@@ -316,7 +350,7 @@ class LinearTools(Toolkit):
             Returns None if no issues are found or if the workflow state cannot be retrieved.
 
         Raises:
-            Exception: If an error occurs while querying issues for the specified workflow state.
+            LinearToolError: If an error occurs while querying issues for the specified workflow state.
         """
 
         query = """
@@ -342,9 +376,12 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve issues for the specified workflow state.")
                 return None
 
+        except LinearToolError:
+            raise
+
         except Exception as e:
             logger.error(f"Error retrieving issues for workflow state ID {workflow_id}: {e}")
-            raise
+            raise LinearToolError(f"Error retrieving issues for workflow state ID {workflow_id}: {e}") from e
 
     def get_high_priority_issues(self) -> Optional[str]:
         """
@@ -356,7 +393,7 @@ class LinearTools(Toolkit):
             Returns None if no issues are retrieved.
 
         Raises:
-            Exception: If an error occurs during the query process.
+            LinearToolError: If an error occurs during the query process.
         """
 
         query = """
@@ -383,6 +420,9 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve high-priority issues.")
                 return None
 
+        except LinearToolError:
+            raise
+
         except Exception as e:
             logger.error(f"Error retrieving high-priority issues: {e}")
-            raise
+            raise LinearToolError(f"Error retrieving high-priority issues: {e}") from e

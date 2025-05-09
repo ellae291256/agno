@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from upstash_vector import Index, Vector
@@ -104,7 +104,7 @@ class UpstashVectorDb(VectorDb):
             self.index.info()
             return True
         except Exception as e:
-            logger.error(f"Error checking index existence: {str(e)}")
+            logger.error(f"Error checking index existence: {e}")
             return False
 
     def create(self) -> None:
@@ -328,7 +328,6 @@ class UpstashVectorDb(VectorDb):
         """Optimize the index.
         This method is empty as Upstash automatically optimizes indexes.
         """
-        pass
 
     async def async_name_exists(self, name: str) -> bool:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
