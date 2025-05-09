@@ -1,7 +1,7 @@
 import pytest
 from pydantic import BaseModel, Field
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.models.ibm import WatsonX
 from agno.storage.sqlite import SqliteStorage
 
@@ -44,7 +44,7 @@ def test_basic_stream():
         assert isinstance(response, RunResponse)
         assert response.content is not None
 
-    _assert_metrics(agent.run_response)
+    _assert_metrics(agent.run(..., stream=True))
 
 
 @pytest.mark.asyncio
@@ -69,7 +69,7 @@ async def test_async_basic_stream():
         assert isinstance(response, RunResponse)
         assert response.content is not None
 
-    _assert_metrics(agent.run_response)
+    _assert_metrics(await agent.arun(..., stream=True))
 
 
 def test_with_memory():

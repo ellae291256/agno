@@ -209,7 +209,7 @@ def test_get_timezone(google_maps_tools):
     """Test the get_timezone method."""
     with patch.object(google_maps_tools.client, "timezone") as mock_timezone:
         mock_timezone.return_value = MOCK_TIMEZONE_RESPONSE
-        test_time = datetime(2024, 1, 1, 12, 0)
+        test_time = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
 
         result = eval(google_maps_tools.get_timezone(40.7128, -74.0060, test_time))
 
@@ -219,13 +219,12 @@ def test_get_timezone(google_maps_tools):
 
 def test_error_handling(google_maps_tools):
     """Test error handling in various methods."""
-    with patch.object(google_maps_tools.client, "places") as mock_places:
+    with patch.object(google_maps_tools.client, "places") as mock_places, patch.object(google_maps_tools.client, "directions") as mock_directions:
         mock_places.side_effect = Exception("API Error")
 
         result = google_maps_tools.search_places("test query")
         assert result == "[]"
 
-    with patch.object(google_maps_tools.client, "directions") as mock_directions:
         mock_directions.side_effect = Exception("API Error")
 
         result = google_maps_tools.get_directions("origin", "destination")

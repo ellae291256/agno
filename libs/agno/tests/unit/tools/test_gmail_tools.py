@@ -1,8 +1,7 @@
 """Unit tests for GmailTools class."""
 
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -37,7 +36,7 @@ def gmail_tools(mock_credentials, mock_gmail_service):
         return tools
 
 
-def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body: str) -> Dict[str, Any]:
+def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body: str) -> dict[str, Any]:
     """Helper function to create mock message data."""
     return {
         "id": msg_id,
@@ -221,7 +220,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result

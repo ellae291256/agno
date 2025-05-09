@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -30,8 +29,9 @@ def lance_db(mock_embedder):
     # Cleanup after test
     try:
         db.drop()
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.error(f"Failed to drop LanceDB table: {e}")
 
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)

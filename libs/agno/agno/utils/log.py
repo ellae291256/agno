@@ -96,18 +96,18 @@ debug_on: bool = False
 
 
 def set_log_level_to_debug(source_type: Optional[str] = None):
+    global debug_on
     _logger = logging.getLogger(LOGGER_NAME if source_type is None else f"{LOGGER_NAME}-{source_type}")
     _logger.setLevel(logging.DEBUG)
 
-    global debug_on
     debug_on = True
 
 
 def set_log_level_to_info(source_type: Optional[str] = None):
+    global debug_on
     _logger = logging.getLogger(LOGGER_NAME if source_type is None else f"{LOGGER_NAME}-{source_type}")
     _logger.setLevel(logging.INFO)
 
-    global debug_on
     debug_on = False
 
 
@@ -116,7 +116,7 @@ def center_header(message: str, symbol: str = "*") -> str:
         import shutil
 
         terminal_width = shutil.get_terminal_size().columns
-    except Exception:
+    except OSError:
         terminal_width = 80  # fallback width
 
     header = f" {message} "
