@@ -14,16 +14,16 @@ from agno.tools.webex import WebexTools
 @pytest.fixture
 def mock_webex_api():
     """Create a mock Webex API client."""
+    # Create mock for nested attributes
+    mock_client = Mock(spec=WebexAPI)
+    mock_messages = Mock()
+    mock_rooms = Mock()
+
+    # Set up the nested structure
+    mock_client.messages = mock_messages
+    mock_client.rooms = mock_rooms
+
     with patch("agno.tools.webex.WebexAPI") as mock_api:
-        # Create mock for nested attributes
-        mock_client = Mock(spec=WebexAPI)
-        mock_messages = Mock()
-        mock_rooms = Mock()
-
-        # Set up the nested structure
-        mock_client.messages = mock_messages
-        mock_client.rooms = mock_rooms
-
         mock_api.return_value = mock_client
         return mock_client
 
@@ -33,15 +33,15 @@ def webex_tools(mock_webex_api):
     """Create WebexTools instance with mocked API."""
     with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "test_token"}):
         tools = WebexTools()
-        tools.client = mock_webex_api
-        return tools
+    tools.client = mock_webex_api
+    return tools
 
 
 def test_init_with_api_token():
     """Test initialization with provided API token."""
     with patch("agno.tools.webex.WebexAPI") as mock_api:
         WebexTools(access_token="test_token")
-        mock_api.assert_called_once_with(access_token="test_token")
+    mock_api.assert_called_once_with(access_token="test_token")
 
 
 def test_init_with_env_var():
@@ -49,7 +49,7 @@ def test_init_with_env_var():
     with patch("agno.tools.webex.WebexAPI") as mock_api:
         with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "env_token"}):
             WebexTools()
-            mock_api.assert_called_once_with(access_token="env_token")
+    mock_api.assert_called_once_with(access_token="env_token")
 
 
 def test_init_without_token():

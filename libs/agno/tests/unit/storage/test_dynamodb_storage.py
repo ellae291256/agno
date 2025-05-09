@@ -255,11 +255,11 @@ def test_get_all_sessions(agent_storage):
 
 def test_get_all_session_ids(agent_storage):
     """Test retrieving all session IDs."""
-    storage, mock_table = agent_storage
+    storage, _ = agent_storage
 
     # Mock the scan method to return session IDs
     mock_response = {"Items": [{"session_id": "session-1"}, {"session_id": "session-2"}, {"session_id": "session-3"}]}
-    mock_table.scan.return_value = mock_response
+    storage.table.scan.return_value = mock_response
 
     # Test get_all_session_ids without filters
     result = storage.get_all_session_ids()
@@ -358,13 +358,13 @@ def test_serialization_deserialization(agent_storage):
     from decimal import Decimal
 
     decimal_item = {
-        "int_value": Decimal("42"),
-        "float_value": Decimal("3.14"),
+        "int_value": Decimal(42),
+        "float_value": Decimal(3.14),
         "str_value": "test",
         "bool_value": True,
-        "list_value": [Decimal("1"), Decimal("2"), Decimal("3")],
+        "list_value": [Decimal(1), Decimal(2), Decimal(3)],
         "dict_value": {"key": "value"},
-        "nested_dict": {"nested": {"float": Decimal("1.23"), "list": [Decimal("4"), Decimal("5"), Decimal("6")]}},
+        "nested_dict": {"nested": {"float": Decimal(1.23), "list": [Decimal(4), Decimal(5), Decimal(6)]}},
     }
 
     deserialized = storage._deserialize_item(decimal_item)

@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -271,16 +271,16 @@ def test_get_all_session_ids(agent_storage):
 
 def test_drop_collection(agent_storage):
     """Test dropping a collection."""
-    storage, mock_collection = agent_storage
+    storage, _ = agent_storage
 
     # Mock the drop method
-    mock_collection.drop = MagicMock()
+    storage.collection.drop = MagicMock()
 
     # Call drop
     storage.drop()
 
     # Verify drop was called
-    mock_collection.drop.assert_called_once()
+    storage.collection.drop.assert_called_once()
 
 
 def test_mode_switching():

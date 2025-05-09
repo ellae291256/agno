@@ -1,8 +1,8 @@
 """Unit tests for GmailTools class."""
 
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -37,6 +37,7 @@ def gmail_tools(mock_credentials, mock_gmail_service):
         return tools
 
 
+
 def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body: str) -> Dict[str, Any]:
     """Helper function to create mock message data."""
     return {
@@ -47,7 +48,8 @@ def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body:
                 {"name": "From", "value": sender},
                 {"name": "Date", "value": date},
             ],
-            "body": {"data": base64.urlsafe_b64encode(body.encode()).decode()},
+            "body": {"data": base64.urlsafe_b64encode(body).decode()},
+
         },
     }
 
@@ -221,7 +223,8 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
+
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result
@@ -259,8 +262,9 @@ def test_search_emails(gmail_tools, mock_gmail_service):
     """Test searching emails."""
     mock_messages = {"messages": [{"id": "123"}]}
     mock_message_data = create_mock_message(
-        "123", "Search Result", "sender@test.com", "2024-01-01", "Searchable content"
+        "123", "Search Result", "sender@test.com", "2024-01-01T00:00:00Z", "Searchable content"
     )
+
 
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
@@ -293,13 +297,14 @@ def test_message_with_attachments(gmail_tools, mock_gmail_service):
             "headers": [
                 {"name": "Subject", "value": "With Attachment"},
                 {"name": "From", "value": "sender@test.com"},
-                {"name": "Date", "value": "2024-01-01"},
+                {"name": "Date", "value": "2024-01-01T00:00:00Z"},
             ],
             "parts": [
                 {
                     "mimeType": "text/plain",
-                    "body": {"data": base64.urlsafe_b64encode("Message with attachment".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("Message with attachment").decode()},
                 },
+
                 {"filename": "test.pdf", "mimeType": "application/pdf"},
             ],
         },
@@ -359,12 +364,13 @@ def test_html_message_content(gmail_tools, mock_gmail_service):
             "headers": [
                 {"name": "Subject", "value": "HTML Email"},
                 {"name": "From", "value": "sender@test.com"},
-                {"name": "Date", "value": "2024-01-01"},
+                {"name": "Date", "value": "2024-01-01T00:00:00Z"},
             ],
             "mimeType": "text/html",
-            "body": {"data": base64.urlsafe_b64encode(html_content.encode()).decode()},
+            "body": {"data": base64.urlsafe_b64encode(html_content).decode()},
         },
     }
+
 
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
@@ -416,17 +422,18 @@ def test_multipart_complex_message(gmail_tools, mock_gmail_service):
             "headers": [
                 {"name": "Subject", "value": "Complex Message"},
                 {"name": "From", "value": "sender@test.com"},
-                {"name": "Date", "value": "2024-01-01"},
+                {"name": "Date", "value": "2024-01-01T00:00:00Z"},
             ],
             "parts": [
                 {
                     "mimeType": "text/plain",
-                    "body": {"data": base64.urlsafe_b64encode("Plain text version".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("Plain text version").decode()},
                 },
                 {
                     "mimeType": "text/html",
-                    "body": {"data": base64.urlsafe_b64encode("<p>HTML version</p>".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("<p>HTML version</p>").decode()},
                 },
+
                 {"filename": "test.pdf", "mimeType": "application/pdf"},
             ],
         },
@@ -450,26 +457,27 @@ def test_invalid_email_parameters():
         mock_build.return_value = mock_service
         tools.service = mock_service  # Set service to avoid authentication
 
-        with pytest.raises(ValueError, match="Invalid recipient email format"):
-            tools.send_email(
-                to="invalid-email",  # Invalid email format
-                subject="Test",
-                body="Test body",
-            )
+    with pytest.raises(ValueError, match="Invalid recipient email format"):
+        tools.send_email(
+            to="invalid-email",  # Invalid email format
+            subject="Test",
+            body="Test body",
+        )
 
-        with pytest.raises(ValueError, match="Subject cannot be empty"):
-            tools.send_email(
-                to="valid@email.com",
-                subject="",  # Empty subject
-                body="Test body",
-            )
+    with pytest.raises(ValueError, match="Subject cannot be empty"):
+        tools.send_email(
+            to="valid@email.com",
+            subject="",  # Empty subject
+            body="Test body",
+        )
 
-        with pytest.raises(ValueError, match="Email body cannot be None"):
-            tools.send_email(
-                to="valid@email.com",
-                subject="Test",
-                body=None,  # None body
-            )
+    with pytest.raises(ValueError, match="Email body cannot be None"):
+        tools.send_email(
+            to="valid@email.com",
+            subject="Test",
+            body=None,  # None body
+        )
+
 
 
 def test_service_initialization():
