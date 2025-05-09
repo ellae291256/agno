@@ -492,7 +492,7 @@ class Weaviate(VectorDb):
 
         return search_results
 
-    def keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a keyword search in Weaviate.
 
@@ -501,7 +501,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         collection = self.get_client().collections.get(self.collection)
         response = collection.query.bm25(
@@ -512,7 +512,7 @@ class Weaviate(VectorDb):
             include_vector=True,
         )
 
-        search_results: List[Document] = self.get_search_results(response)
+        search_results: list[Document] = self.get_search_results(response)
 
         if self.reranker:
             search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -520,7 +520,7 @@ class Weaviate(VectorDb):
         self.get_client().close()
         return search_results
 
-    async def async_keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    async def async_keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a keyword search in Weaviate asynchronously.
 
@@ -529,7 +529,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         search_results = []
         client = await self.get_async_client()
@@ -552,7 +552,7 @@ class Weaviate(VectorDb):
 
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a hybrid search combining vector and keyword search in Weaviate.
 
@@ -561,7 +561,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -579,7 +579,7 @@ class Weaviate(VectorDb):
             alpha=self.hybrid_search_alpha,
         )
 
-        search_results: List[Document] = self.get_search_results(response)
+        search_results: list[Document] = self.get_search_results(response)
 
         if self.reranker:
             search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -587,7 +587,7 @@ class Weaviate(VectorDb):
         self.get_client().close()
         return search_results
 
-    async def async_hybrid_search(self, query: str, limit: int = 5) -> List[Document]:
+    async def async_hybrid_search(self, query: str, limit: int = 5) -> list[Document]:
         """
         Perform a hybrid search combining vector and keyword search in Weaviate asynchronously.
 
@@ -596,7 +596,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -686,7 +686,7 @@ class Weaviate(VectorDb):
 
         return configs[index_type]
 
-    def get_search_results(self, response: Any) -> List[Document]:
+    def get_search_results(self, response: Any) -> list[Document]:
         """
         Create search results from the Weaviate response.
 
@@ -694,9 +694,9 @@ class Weaviate(VectorDb):
             response (Any): The Weaviate response object.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for obj in response.objects:
             properties = obj.properties
             meta_data = json.loads(properties["meta_data"]) if properties.get("meta_data") else None

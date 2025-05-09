@@ -46,7 +46,8 @@ def knowledge_base():
     # Only load if it doesn't exist yet (saves time in repeat tests)
     try:
         url_kb.load(recreate=False)
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Failed to load knowledge base without recreation: {e}. Recreating...")
         url_kb.load(recreate=True)
 
     return url_kb

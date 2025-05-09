@@ -218,12 +218,13 @@ class MCPTools(Toolkit):
                     log_debug(f"Function: {f.name} registered with {self.name}")
                 except Exception as e:
                     logger.error(f"Failed to register tool {tool.name}: {e}")
+                    continue
 
             log_debug(f"{self.name} initialized with {len(filtered_tools)} tools")
             self._initialized = True
         except Exception as e:
             logger.error(f"Failed to get MCP tools: {e}")
-            raise
+            raise RuntimeError(f"Failed to get MCP tools: {e}") from e
 
 
 class MultiMCPTools(Toolkit):
@@ -273,10 +274,10 @@ class MultiMCPTools(Toolkit):
         if server_params_list is None and commands is None and urls is None:
             raise ValueError("Either server_params_list or commands or urls must be provided")
 
-        self.server_params_list: List[Union[SSEClientParams, StdioServerParameters]] = server_params_list or []
+        self.server_params_list: list[SSEClientParams | StdioServerParameters] = server_params_list or []
         self.timeout_seconds = timeout_seconds
-        self.commands: Optional[List[str]] = commands
-        self.urls: Optional[List[str]] = urls
+        self.commands: list[str] | None = commands
+        self.urls: list[str] | None = urls
 
         # Merge provided env with system env
         if env is not None:
@@ -333,9 +334,9 @@ class MultiMCPTools(Toolkit):
 
     async def __aexit__(
         self,
-        exc_type: Union[type[BaseException], None],
-        exc_val: Union[BaseException, None],
-        exc_tb: Union[TracebackType, None],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ):
         """Exit the async context manager."""
         await self._async_exit_stack.aclose()

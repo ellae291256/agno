@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional, Tuple
+from __future__ import annotations
+
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -12,11 +14,11 @@ except ImportError:
 class DuckDbTools(Toolkit):
     def __init__(
         self,
-        db_path: Optional[str] = None,
-        connection: Optional[duckdb.DuckDBPyConnection] = None,
-        init_commands: Optional[List] = None,
+        db_path: str | None = None,
+        connection: duckdb.DuckDBPyConnection | None = None,
+        init_commands: list | None = None,
         read_only: bool = False,
-        config: Optional[dict] = None,
+        config: dict | None = None,
         run_queries: bool = True,
         inspect_queries: bool = False,
         create_tables: bool = True,
@@ -26,11 +28,11 @@ class DuckDbTools(Toolkit):
     ):
         super().__init__(name="duckdb_tools", **kwargs)
 
-        self.db_path: Optional[str] = db_path
+        self.db_path: str | None = db_path
         self.read_only: bool = read_only
-        self.config: Optional[dict] = config
-        self._connection: Optional[duckdb.DuckDBPyConnection] = connection
-        self.init_commands: Optional[List] = init_commands
+        self.config: dict | None = config
+        self._connection: duckdb.DuckDBPyConnection | None = connection
+        self.init_commands: list | None = init_commands
 
         self.register(self.show_tables)
         self.register(self.describe_table)
@@ -53,7 +55,7 @@ class DuckDbTools(Toolkit):
         :return duckdb.DuckDBPyConnection: duckdb connection
         """
         if self._connection is None:
-            connection_kwargs: Dict[str, Any] = {}
+            connection_kwargs: dict[str, Any] = {}
             if self.db_path is not None:
                 connection_kwargs["database"] = self.db_path
             if self.read_only:
@@ -65,7 +67,7 @@ class DuckDbTools(Toolkit):
                 if self.init_commands is not None:
                     for command in self.init_commands:
                         self._connection.sql(command)
-            except Exception as e:
+            except duckdb.Error as e:
                 logger.exception(e)
                 logger.warning("Failed to run duckdb init commands")
 
@@ -146,8 +148,6 @@ class DuckDbTools(Toolkit):
         except duckdb.ProgrammingError as e:
             return str(e)
         except duckdb.Error as e:
-            return str(e)
-        except Exception as e:
             return str(e)
 
     def summarize_table(self, table: str) -> str:
@@ -252,8 +252,8 @@ class DuckDbTools(Toolkit):
         return table, create_statement
 
     def load_local_csv_to_table(
-        self, path: str, table: Optional[str] = None, delimiter: Optional[str] = None
-    ) -> Tuple[str, str]:
+        self, path: str, table: str | None = None, delimiter: str | None = None
+    ) -> tuple[str, str]:
         """Load a local CSV file into duckdb
 
         :param path: Path to load
@@ -285,7 +285,7 @@ class DuckDbTools(Toolkit):
         log_debug(f"Loaded CSV {path} into duckdb as {table}")
         return table, create_statement
 
-    def load_s3_path_to_table(self, path: str, table: Optional[str] = None) -> Tuple[str, str]:
+    def load_s3_path_to_table(self, path: str, table: str | None = None) -> tuple[str, str]:
         """Load a file from S3 into duckdb
 
         :param path: S3 path to load
@@ -311,8 +311,8 @@ class DuckDbTools(Toolkit):
         return table, create_statement
 
     def load_s3_csv_to_table(
-        self, path: str, table: Optional[str] = None, delimiter: Optional[str] = None
-    ) -> Tuple[str, str]:
+        self, path: str, table: str | None = None, delimiter: str | None = None
+    ) -> tuple[str, str]:
         """Load a CSV file from S3 into duckdb
 
         :param path: S3 path to load

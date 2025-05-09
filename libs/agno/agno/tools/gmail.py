@@ -40,13 +40,15 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import base64
 import re
 from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -87,11 +89,11 @@ def validate_email(email: str) -> bool:
 
 class GmailTools(Toolkit):
     # Default scopes for Gmail API access
-    DEFAULT_SCOPES = [
+    DEFAULT_SCOPES: tuple[str, ...] = (
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.modify",
         "https://www.googleapis.com/auth/gmail.compose",
-    ]
+    )
 
     def __init__(
         self,
@@ -379,7 +381,7 @@ class GmailTools(Toolkit):
             str: Formatted string containing email details
         """
         try:
-            start_date_dt = datetime.fromtimestamp(start_date)
+            start_date_dt = datetime.fromtimestamp(start_date, tz=datetime.timezone.utc)
             if range_in_days:
                 end_date = start_date_dt + timedelta(days=range_in_days)
                 query = f"after:{start_date_dt.strftime('%Y/%m/%d')} before:{end_date.strftime('%Y/%m/%d')}"
@@ -503,10 +505,10 @@ class GmailTools(Toolkit):
 
     def _create_message(
         self,
-        to: List[str],
+        to: list[str],
         subject: str,
         body: str,
-        cc: Optional[List[str]] = None,
+        cc: Optional[list[str]] = None,
         thread_id: Optional[str] = None,
         message_id: Optional[str] = None,
     ) -> dict:
@@ -586,8 +588,8 @@ class GmailTools(Toolkit):
                         attachments.append(part["filename"])
             elif "body" in msg_data["payload"] and "data" in msg_data["payload"]["body"]:
                 body = base64.urlsafe_b64decode(msg_data["payload"]["body"]["data"]).decode()
-        except Exception:
-            return "Unable to decode message body"
+        except Exception as e:
+            return f"Unable to decode message body: {e}"
 
         if attachments:
             return f"{body}\n\nAttachments: {', '.join(attachments)}"

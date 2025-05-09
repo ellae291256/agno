@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from rich.prompt import Prompt
 
@@ -52,7 +54,7 @@ def create_workspace(
     from agno.utils.git import GitCloneProgress
     from agno.workspace.helpers import get_workspace_dir_path
 
-    current_dir: Path = Path(".").resolve()
+    current_dir: Path = Path.cwd()
 
     # Initialize Agno before creating a workspace
     agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
@@ -75,7 +77,7 @@ def create_workspace(
             # Display available starter templates and ask user to select one
             print_info("Select starter template or press Enter for default (agent-app)")
             for template_id, template_name in enumerate(templates, start=1):
-                print_info("  [b][{}][/b] {}".format(template_id, WorkspaceStarterTemplate(template_name).value))
+                print_info(f"  [b][{template_id}][/b] {WorkspaceStarterTemplate(template_name).value}")
 
             # Get starter template from the user
             template_choices = [str(idx) for idx, _ in enumerate(templates, start=1)]
@@ -120,7 +122,7 @@ def create_workspace(
         return None
 
     print_info(f"Creating {str(ws_root_path)}")
-    logger.debug("Cloning: {}".format(repo_to_clone))
+    logger.debug(f"Cloning: {repo_to_clone}")
     try:
         _cloned_git_repo: git.Repo = git.Repo.clone_from(
             repo_to_clone,
@@ -195,7 +197,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
     # 1.1 Check ws_root_path exists and is a directory
     ws_is_valid: bool = ws_root_path is not None and ws_root_path.exists() and ws_root_path.is_dir()
     if not ws_is_valid:
-        logger.error("Invalid directory: {}".format(ws_root_path))
+        logger.error(f"Invalid directory: {ws_root_path}")
         return None
 
     # 1.2 Create AgnoCliConfig if needed
@@ -231,7 +233,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
 
     # 1.5 Get the git remote origin url
     git_remote_origin_url: Optional[str] = get_remote_origin_for_dir(ws_root_path)
-    logger.debug("Git origin: {}".format(git_remote_origin_url))
+    logger.debug(f"Git origin: {git_remote_origin_url}")
 
     # 1.6 Create anon user if the user is not logged in
     if agno_config.user is None:
@@ -275,7 +277,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
                 print_info("Which account would you like to create this workspace in?")
                 print_info("  [b][1][/b] Personal (default)")
                 for team_idx, team_schema in enumerate(teams, start=2):
-                    print_info("  [b][{}][/b] {}".format(team_idx, team_schema.name))
+                    print_info(f"  [b][{team_idx}][/b] {team_schema.name}")
 
                 account_choices = ["1"] + [str(idx) for idx, _ in enumerate(teams, start=2)]
                 account_inp_raw = Prompt.ask("Account Number", choices=account_choices, default="1", show_choices=False)
@@ -387,7 +389,7 @@ def start_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Starting workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Starting workspace: {ws_config.ws_root_path.stem}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -494,7 +496,7 @@ def stop_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Stopping workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Stopping workspace: {ws_config.ws_root_path.stem}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -600,7 +602,7 @@ def update_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Updating workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Updating workspace: {ws_config.ws_root_path.stem}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -722,7 +724,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
     if ws_dir_name is None:
         # If the user does not provide a ws_name, that implies `ag set` is ran from
         # the workspace directory.
-        ws_root_path = Path(".").resolve()
+        ws_root_path = Path.cwd()
     else:
         # If the user provides a workspace name manually, we find the dir for that ws
         ws_config: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_dir_name(ws_dir_name)
@@ -733,7 +735,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
 
     ws_dir_is_valid: bool = ws_root_path is not None and ws_root_path.exists() and ws_root_path.is_dir()
     if not ws_dir_is_valid:
-        logger.error("Invalid workspace directory: {}".format(ws_root_path))
+        logger.error(f"Invalid workspace directory: {ws_root_path}")
         return
 
     ######################################################
