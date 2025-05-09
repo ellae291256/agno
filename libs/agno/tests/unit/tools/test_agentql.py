@@ -42,9 +42,8 @@ def test_init_with_api_key():
 
 def test_init_without_api_key():
     """Test initialization without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
-            AgentQLTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
+        AgentQLTools()
 
 
 def test_scrape_website_no_url(agentql_tools):
