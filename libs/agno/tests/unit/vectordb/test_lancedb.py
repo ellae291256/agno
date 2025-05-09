@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -30,7 +29,7 @@ def lance_db(mock_embedder):
     # Cleanup after test
     try:
         db.drop()
-    except Exception:
+    except OSError:
         pass
 
     if os.path.exists(TEST_PATH):
@@ -165,6 +164,9 @@ def test_bad_vectors_handling(mock_embedder):
         db.insert([doc])
         assert db.get_count() == 1
     finally:
-        db.drop()
+        try:
+            db.drop()
+        except OSError:
+            pass
         if os.path.exists(TEST_PATH):
             shutil.rmtree(TEST_PATH)

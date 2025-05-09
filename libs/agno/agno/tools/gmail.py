@@ -46,7 +46,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -87,11 +87,11 @@ def validate_email(email: str) -> bool:
 
 class GmailTools(Toolkit):
     # Default scopes for Gmail API access
-    DEFAULT_SCOPES = [
+    DEFAULT_SCOPES = (
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.modify",
         "https://www.googleapis.com/auth/gmail.compose",
-    ]
+    )
 
     def __init__(
         self,
@@ -586,8 +586,8 @@ class GmailTools(Toolkit):
                         attachments.append(part["filename"])
             elif "body" in msg_data["payload"] and "data" in msg_data["payload"]["body"]:
                 body = base64.urlsafe_b64decode(msg_data["payload"]["body"]["data"]).decode()
-        except Exception:
-            return "Unable to decode message body"
+        except Exception as e:
+            return f"Unable to decode message body: {e}"
 
         if attachments:
             return f"{body}\n\nAttachments: {', '.join(attachments)}"
