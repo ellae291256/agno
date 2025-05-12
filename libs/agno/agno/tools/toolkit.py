@@ -9,7 +9,7 @@ class Toolkit:
     def __init__(
         self,
         name: str = "toolkit",
-        tools: List[Callable] = [],
+        tools: Optional[List[Callable]] = None,
         instructions: Optional[str] = None,
         add_instructions: bool = False,
         include_tools: Optional[list[str]] = None,
@@ -105,9 +105,9 @@ class Toolkit:
             )
             self.functions[f.name] = f
             log_debug(f"Function: {f.name} registered with {self.name}")
-        except Exception as e:
+        except Exception:
             logger.warning(f"Failed to create Function for: {function.__name__}")
-            raise e
+            raise
 
     def __repr__(self):
         return f"<{self.__class__.__name__} name={self.name} functions={list(self.functions.keys())}>"
