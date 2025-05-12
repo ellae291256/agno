@@ -1,6 +1,6 @@
 import uuid
 from hashlib import md5
-from typing import Any, Dict, Generator, List
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -23,7 +23,7 @@ def mock_embedder() -> MagicMock:
 
 
 @pytest.fixture(scope="function")
-def mock_mongodb_client() -> Generator[MagicMock, None, None]:
+def mock_mongodb_client() -> Any:
     """Create a mock MongoDB client."""
     with patch("pymongo.MongoClient") as mock_client:
         # Create mock instances for client, db, and collection
@@ -74,7 +74,7 @@ class AsyncCursor:
 
 
 @pytest.fixture(scope="function")
-def mock_async_mongodb_client() -> Generator[AsyncMock, None, None]:
+def mock_async_mongodb_client() -> Any:
     """Create a mock Async MongoDB client."""
     with patch("pymongo.AsyncMongoClient") as mock_client:
         # Create mock instances
@@ -159,7 +159,7 @@ def async_vector_db(mock_async_mongodb_client: AsyncMock, mock_embedder: MagicMo
         yield db
 
 
-def create_test_documents(num_docs: int = 3) -> List[Document]:
+def create_test_documents(num_docs: int = 3) -> list[Document]:
     """Helper function to create test documents."""
     return [
         Document(
