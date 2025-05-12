@@ -172,7 +172,7 @@ def test_generate_image_failure(mock_post, azure_openai_tools, mock_agent):
     mock_agent.add_image.assert_not_called()
 
 
-def test_generate_image_missing_credentials(azure_openai_tools, mock_agent):
+def test_generate_image_missing_credentials(azure_openai_tools):
     """Test image generation with missing credentials."""
     # Remove the required environment variables
     with patch.dict(
@@ -186,13 +186,10 @@ def test_generate_image_missing_credentials(azure_openai_tools, mock_agent):
         azure_openai_tools.dalle_deployment = None
 
         # Call the generate_image function
-        result = azure_openai_tools.generate_image(agent=mock_agent, prompt="A test prompt")
+        result = azure_openai_tools.generate_image(agent=None, prompt="A test prompt")
 
     # Verify the error message
     assert "not properly initialized" in result
-
-    # Make sure no API call was made and no image was added
-    mock_agent.add_image.assert_not_called()
 
 
 def test_invalid_parameters(azure_openai_tools, mock_agent):

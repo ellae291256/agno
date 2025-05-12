@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.media import File, Image
 from agno.models.message import Message
@@ -102,7 +104,7 @@ def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
             },
         }
 
-    except Exception as e:
+    except (IOError, OSError, ValueError) as e:
         log_error(f"Error processing image: {e}")
         return None
 
@@ -144,12 +146,12 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
                 media_type = mimetypes.guess_type(file.filepath)[0] or "application/pdf"
 
             # Map media type to type, default to "base64" if no mapping exists
-            type = mime_mapping.get(media_type, "base64")
+            source_type = mime_mapping.get(media_type, "base64")
 
             return {
                 "type": "document",
                 "source": {
-                    "type": type,
+                    "type": source_type,
                     "media_type": media_type,
                     "data": file_data,
                 },

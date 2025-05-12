@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Sequence
+from __future__ import annotations
+
+from typing import Any
 
 from agno.media import Image
 from agno.models.message import Message
@@ -11,7 +13,7 @@ def format_images_for_message(message: Message, images: Sequence[Image]) -> Mess
     """
 
     # Create a default message content with text
-    message_content_with_image: List[Dict[str, Any]] = [{"type": "text", "text": message.content}]
+    message_content_with_image: list[dict[str, Any]] = [{"type": "text", "text": message.content}]
 
     # Add images to the message content
     for image in images:

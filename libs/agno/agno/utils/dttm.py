@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
 
 
 def current_datetime() -> datetime:
-    return datetime.now()
+    return datetime.now(timezone.utc)
 
 
 def current_datetime_utc() -> datetime:

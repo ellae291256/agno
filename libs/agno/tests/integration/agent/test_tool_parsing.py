@@ -1,8 +1,8 @@
-from typing import List, Optional
+from __future__ import annotations
 
-from git import Union
+from typing import Union
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.models.openai import OpenAIChat
 
 

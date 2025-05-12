@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from rich.prompt import Prompt
 
@@ -25,19 +27,19 @@ from agno.utils.log import logger
 from agno.workspace.config import WorkspaceConfig
 from agno.workspace.enums import WorkspaceStarterTemplate
 
-TEMPLATE_TO_NAME_MAP: Dict[WorkspaceStarterTemplate, str] = {
+TEMPLATE_TO_NAME_MAP: dict[WorkspaceStarterTemplate, str] = {
     WorkspaceStarterTemplate.agent_app: "agent-app",
     WorkspaceStarterTemplate.agent_api: "agent-api",
 }
-TEMPLATE_TO_REPO_MAP: Dict[WorkspaceStarterTemplate, str] = {
+TEMPLATE_TO_REPO_MAP: dict[WorkspaceStarterTemplate, str] = {
     WorkspaceStarterTemplate.agent_app: "https://github.com/agno-agi/agent-app-aws",
     WorkspaceStarterTemplate.agent_api: "https://github.com/agno-agi/agent-api-aws",
 }
 
 
 def create_workspace(
-    name: Optional[str] = None, template: Optional[str] = None, url: Optional[str] = None
-) -> Optional[WorkspaceConfig]:
+    name: str | None = None, template: str | None = None, url: str | None = None
+) -> WorkspaceConfig | None:
     """Creates a new workspace and returns the WorkspaceConfig.
 
     This function clones a template or url on the users machine at the path:
@@ -55,7 +57,7 @@ def create_workspace(
     current_dir: Path = Path(".").resolve()
 
     # Initialize Agno before creating a workspace
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
@@ -120,14 +122,14 @@ def create_workspace(
         return None
 
     print_info(f"Creating {str(ws_root_path)}")
-    logger.debug("Cloning: {}".format(repo_to_clone))
+    logger.debug(f"Cloning: {repo_to_clone}")
     try:
         _cloned_git_repo: git.Repo = git.Repo.clone_from(
             repo_to_clone,
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.GitCommandError as e:
         logger.error(e)
         return None
 
@@ -156,7 +158,7 @@ def create_workspace(
             str(workspace_example_secrets_dir),
             str(workspace_secrets_dir),
         )
-    except Exception as e:
+    except (shutil.Error, OSError) as e:
         logger.warning(f"Could not create workspace/secrets: {e}")
         logger.warning("Please manually copy workspace/example_secrets to workspace/secrets")
 
@@ -164,7 +166,7 @@ def create_workspace(
     return setup_workspace(ws_root_path=ws_root_path)
 
 
-def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
+def setup_workspace(ws_root_path: Path) -> WorkspaceConfig | None:
     """Setup an Agno workspace at `ws_root_path` and return the WorkspaceConfig
 
     1. Pre-requisites
@@ -195,7 +197,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
     # 1.1 Check ws_root_path exists and is a directory
     ws_is_valid: bool = ws_root_path is not None and ws_root_path.exists() and ws_root_path.is_dir()
     if not ws_is_valid:
-        logger.error("Invalid directory: {}".format(ws_root_path))
+        logger.error(f"Invalid directory: {ws_root_path}")
         return None
 
     # 1.2 Create AgnoCliConfig if needed
@@ -208,7 +210,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
 
     # 1.3 Create a WorkspaceConfig if needed
     logger.debug(f"Checking for a workspace at {ws_root_path}")
-    ws_config: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_path(ws_root_path)
+    ws_config: WorkspaceConfig | None = agno_config.get_ws_config_by_path(ws_root_path)
     if ws_config is None:
         # There's no record of this workspace, reasons:
         # - The user is setting up a new workspace
@@ -230,8 +232,8 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
     logger.debug(f"Workspace name: {workspace_name}")
 
     # 1.5 Get the git remote origin url
-    git_remote_origin_url: Optional[str] = get_remote_origin_for_dir(ws_root_path)
-    logger.debug("Git origin: {}".format(git_remote_origin_url))
+    git_remote_origin_url: str | None = get_remote_origin_for_dir(ws_root_path)
+    logger.debug(f"Git origin: {git_remote_origin_url}")
 
     # 1.6 Create anon user if the user is not logged in
     if agno_config.user is None:

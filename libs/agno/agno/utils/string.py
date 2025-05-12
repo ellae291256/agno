@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import hashlib
 import json
 import re
-from typing import Optional, Type
 
 from pydantic import BaseModel, ValidationError
 
@@ -27,7 +28,7 @@ def is_valid_uuid(uuid_str: str) -> bool:
         return False
 
 
-def url_safe_string(input_string):
+def url_safe_string(input_string: str) -> str:
     # Replace spaces with dashes
     safe_string = input_string.replace(" ", "-")
 
@@ -46,7 +47,7 @@ def url_safe_string(input_string):
     return safe_string
 
 
-def hash_string_sha256(input_string):
+def hash_string_sha256(input_string: str) -> str:
     # Encode the input string to bytes
     encoded_string = input_string.encode("utf-8")
 
@@ -62,8 +63,8 @@ def hash_string_sha256(input_string):
     return hex_digest
 
 
-def parse_response_model_str(content: str, response_model: Type[BaseModel]) -> Optional[BaseModel]:
-    structured_output = None
+def parse_response_model_str(content: str, response_model: type[BaseModel]) -> BaseModel | None:
+    structured_output: BaseModel | None = None
     try:
         # First attempt: direct JSON validation
         structured_output = response_model.model_validate_json(content)

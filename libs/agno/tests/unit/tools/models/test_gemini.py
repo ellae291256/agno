@@ -93,15 +93,15 @@ def test_gemini_tools_init_with_env_var():
             return None
         return None
 
-    with patch("agno.tools.models.gemini.getenv", side_effect=mock_getenv_side_effect) as mock_getenv:
-        with patch("agno.tools.models.gemini.Client") as mock_client_cls:
-            mock_client_instance = MagicMock()
-            mock_client_cls.return_value = mock_client_instance
+    with patch("agno.tools.models.gemini.getenv", side_effect=mock_getenv_side_effect) as mock_getenv, patch(
+        "agno.tools.models.gemini.Client") as mock_client_cls:
+        mock_client_instance = MagicMock()
+        mock_client_cls.return_value = mock_client_instance
 
-            gemini_tools = GeminiTools()
+        gemini_tools = GeminiTools()
 
-            assert gemini_tools.api_key == env_api_key
-            mock_client_cls.assert_called_once_with(api_key=env_api_key)
+        assert gemini_tools.api_key == env_api_key
+        mock_client_cls.assert_called_once_with(api_key=env_api_key)
             assert gemini_tools.client == mock_client_instance
             assert mock_getenv.call_count == 2
 
@@ -121,14 +121,14 @@ def test_gemini_tools_init_no_api_key():
 
 def test_gemini_tools_init_client_creation_fails():
     """Test initialization raises ValueError if Client creation fails."""
-    with patch("agno.tools.models.gemini.getenv", return_value="fake_key") as _:
-        with patch("agno.tools.models.gemini.Client") as mock_client_cls:
-            mock_client_cls.side_effect = Exception("Client creation failed")
+    with patch("agno.tools.models.gemini.getenv", return_value="fake_key") as _, patch(
+        "agno.tools.models.gemini.Client") as mock_client_cls:
+        mock_client_cls.side_effect = Exception("Client creation failed")
 
-            with pytest.raises(ValueError, match="Failed to create Google GenAI Client"):
-                GeminiTools()
+        with pytest.raises(ValueError, match="Failed to create Google GenAI Client"):
+            GeminiTools()
 
-            mock_client_cls.assert_called_once_with(api_key="fake_key")
+        mock_client_cls.assert_called_once_with(api_key="fake_key")
 
 
 # Test generate_image method
@@ -163,7 +163,7 @@ def test_generate_image_success(mock_gemini_tools, mock_agent, mock_successful_r
         assert added_artifact.content == expected_base64_bytes  # Compare bytes
 
 
-def test_generate_image_api_error(mock_gemini_tools, mock_agent):
+def test_generate_image_api_error(mock_gemini_tools, mock_agent) -> None:
     """Test image generation when the API call raises an exception."""
     api_error_message = "API unavailable"
     mock_gemini_tools.client.models.generate_images.side_effect = Exception(api_error_message)
@@ -179,9 +179,10 @@ def test_generate_image_api_error(mock_gemini_tools, mock_agent):
         prompt=prompt,
     )
     mock_agent.add_image.assert_not_called()
+    return None
 
 
-def test_generate_image_no_image_bytes(mock_gemini_tools, mock_agent, mock_failed_response_no_bytes):
+def test_generate_image_no_image_bytes(mock_gemini_tools, mock_agent, mock_failed_response_no_bytes) -> None:
     """Test image generation when the API response lacks image bytes."""
     mock_gemini_tools.client.models.generate_images.return_value = mock_failed_response_no_bytes
 
@@ -195,10 +196,11 @@ def test_generate_image_no_image_bytes(mock_gemini_tools, mock_agent, mock_faile
         prompt=prompt,
     )
     mock_agent.add_image.assert_not_called()
+    return None
 
 
 # Tests for generate_video method
-def test_generate_video_requires_vertexai(mock_gemini_tools, mock_agent):
+def test_generate_video_requires_vertexai(mock_gemini_tools, mock_agent) -> None:
     """Test video generation when vertexai mode is disabled."""
     mock_gemini_tools.vertexai = False  # Explicitly set vertexai to False
     prompt = "A sample video prompt"
@@ -209,6 +211,7 @@ def test_generate_video_requires_vertexai(mock_gemini_tools, mock_agent):
     )
     assert result == expected
     mock_agent.add_video.assert_not_called()
+    return None
 
 
 @pytest.fixture
@@ -223,7 +226,7 @@ def mock_video_operation():
     return op
 
 
-def test_generate_video_success(mock_gemini_tools, mock_agent, mock_video_operation):
+def test_generate_video_success(mock_gemini_tools, mock_agent, mock_video_operation) -> None:
     """Test successful video generation."""
     mock_gemini_tools.vertexai = True
     mock_gemini_tools.client.models.generate_videos.return_value = mock_video_operation
@@ -246,6 +249,7 @@ def test_generate_video_success(mock_gemini_tools, mock_agent, mock_video_operat
 
         expected_content = base64.b64encode(b"fake_video_bytes").decode("utf-8")
         assert added.content == expected_content
+    return None
 
 
 def test_generate_video_exception(mock_gemini_tools, mock_agent):

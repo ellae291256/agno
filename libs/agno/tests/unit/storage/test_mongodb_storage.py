@@ -288,6 +288,7 @@ def test_mode_switching():
     with patch("agno.storage.mongodb.MongoClient") as mock_client:
         mock_collection = MagicMock()
         mock_client.return_value.__getitem__.return_value.__getitem__.return_value = mock_collection
+        _ = mock_client.return_value.__getitem__.return_value.__getitem__.return_value
 
         # Create storage in agent mode
         storage = MongoDbStorage(collection_name="test_collection")

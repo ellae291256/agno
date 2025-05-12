@@ -26,25 +26,23 @@ def mock_session():
 @pytest.fixture
 def agent_storage(mock_engine, mock_session):
     """Create a PostgresStorage instance for agent mode with mocked components."""
-    with patch("agno.storage.postgres.scoped_session", return_value=mock_session[0]):
-        with patch("agno.storage.postgres.inspect", return_value=MagicMock()):
-            storage = PostgresStorage(table_name="agent_sessions", schema="ai", db_engine=mock_engine, mode="agent")
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, mock_session[1]
+    with patch("agno.storage.postgres.scoped_session", return_value=mock_session[0]), patch("agno.storage.postgres.inspect", return_value=MagicMock()):
+        storage = PostgresStorage(table_name="agent_sessions", schema="ai", db_engine=mock_engine, mode="agent")
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, mock_session[1]
 
 
 @pytest.fixture
 def workflow_storage(mock_engine, mock_session):
     """Create a PostgresStorage instance for workflow mode with mocked components."""
-    with patch("agno.storage.postgres.scoped_session", return_value=mock_session[0]):
-        with patch("agno.storage.postgres.inspect", return_value=MagicMock()):
-            storage = PostgresStorage(
-                table_name="workflow_sessions", schema="ai", db_engine=mock_engine, mode="workflow"
-            )
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, mock_session[1]
+    with patch("agno.storage.postgres.scoped_session", return_value=mock_session[0]), patch("agno.storage.postgres.inspect", return_value=MagicMock()):
+        storage = PostgresStorage(
+            table_name="workflow_sessions", schema="ai", db_engine=mock_engine, mode="workflow"
+        )
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, mock_session[1]
 
 
 def test_agent_storage_initialization():

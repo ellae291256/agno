@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.media import Image
 from agno.models.message import Message
@@ -103,24 +105,24 @@ def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
             },
         }
 
-    except Exception as e:
+    except (IOError, OSError, ValueError) as e:
         log_error(f"Error processing image: {e}")
         return None
 
 
-def format_messages(messages: List[Message]) -> Tuple[List[Dict[str, str]], str]:
+def format_messages(messages: list[Message]) -> tuple[list[dict[str, str]], str]:
     """
     Process the list of messages and separate them into API messages and system messages.
 
     Args:
-        messages (List[Message]): The list of messages to process.
+        messages (list[Message]): The list of messages to process.
 
     Returns:
-        Tuple[List[Dict[str, str]], str]: A tuple containing the list of API messages and the concatenated system messages.
+        tuple[list[dict[str, str]], str]: A tuple containing the list of API messages and the concatenated system messages.
     """
 
-    chat_messages: List[Dict[str, str]] = []
-    system_messages: List[str] = []
+    chat_messages: list[dict[str, str]] = []
+    system_messages: list[str] = []
 
     for message in messages:
         content = message.content or ""

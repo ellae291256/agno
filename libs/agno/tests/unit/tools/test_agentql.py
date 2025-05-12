@@ -68,7 +68,7 @@ def test_custom_scrape_no_query(agentql_tools):
 
 
 @pytest.mark.skip(reason="This test doesn't mock playwright module correctly.")
-def test_scrape_website_success(mock_playwright, mock_agentql, agentql_tools):
+def test_scrape_website_success(mock_agentql, agentql_tools):
     """Test successful website scraping."""
     # Unpack the mock_agentql fixture
     mock_agentql_module, wrapped_page = mock_agentql

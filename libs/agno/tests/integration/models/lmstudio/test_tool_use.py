@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Optional
 
 import pytest
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.models.lmstudio import LMStudio
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.exa import ExaTools
@@ -177,10 +179,7 @@ def test_tool_call_custom_tool_optional_parameters():
         Args:
             city: The city to get the weather for
         """
-        if city is None:
-            return "It is currently 70 degrees and cloudy in Tokyo"
-        else:
-            return f"It is currently 70 degrees and cloudy in {city}"
+        return f"It is currently 70 degrees and cloudy in {city if city is not None else 'Tokyo'}"
 
     agent = Agent(
         model=LMStudio(id="qwen2.5-7b-instruct-1m"),

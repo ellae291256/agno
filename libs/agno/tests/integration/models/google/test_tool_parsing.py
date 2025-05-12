@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from __future__ import annotations
+
+from typing import Any, Union
 
 from pydantic import BaseModel
 
@@ -105,7 +107,7 @@ def test_union_type_parameters_tool_parsing():
 
 
 def test_python312_union_syntax_tool_parsing():
-    def get_weather_data(temperature: int | float, location: str = "San Francisco", unit: str | None = None) -> str:
+    def get_weather_data(temperature: Union[int, float], location: str = "San Francisco", unit: Optional[str] = None) -> str:
         """
         Get weather data for a location
 

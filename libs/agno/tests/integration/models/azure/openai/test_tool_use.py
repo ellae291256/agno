@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Optional
 
 import pytest
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent, RunResponse
 from agno.models.azure import AzureOpenAI
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.exa import ExaTools
@@ -46,8 +48,7 @@ def test_tool_use_stream():
         assert isinstance(chunk, RunResponse)
         responses.append(chunk)
         if chunk.tools:
-            if any(tc.get("tool_name") for tc in chunk.tools):
-                tool_call_seen = True
+            tool_call_seen = any(tc.get("tool_name") for tc in chunk.tools)
 
     assert len(responses) > 0
     assert tool_call_seen, "No tool calls observed in stream"
@@ -93,8 +94,7 @@ async def test_async_tool_use_stream():
         assert isinstance(chunk, RunResponse)
         responses.append(chunk)
         if chunk.tools:
-            if any(tc.get("tool_name") for tc in chunk.tools):
-                tool_call_seen = True
+            tool_call_seen = any(tc.get("tool_name") for tc in chunk.tools)
 
     assert len(responses) > 0
     assert tool_call_seen, "No tool calls observed in stream"
@@ -177,10 +177,7 @@ def test_tool_call_custom_tool_optional_parameters():
         Args:
             city: The city to get the weather for
         """
-        if city is None:
-            return "It is currently 70 degrees and cloudy in Tokyo"
-        else:
-            return f"It is currently 70 degrees and cloudy in {city}"
+        return "It is currently 70 degrees and cloudy in Tokyo" if city is None else f"It is currently 70 degrees and cloudy in {city}"
 
     agent = Agent(
         model=AzureOpenAI(id="gpt-4o-mini"),

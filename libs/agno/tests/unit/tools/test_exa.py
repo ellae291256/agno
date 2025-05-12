@@ -49,10 +49,9 @@ def create_mock_search_result(
 
 def test_init_with_api_key():
     """Test initialization with provided API key."""
-    with patch("agno.tools.exa.Exa") as mock_exa:
-        with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
-            ExaTools()
-            mock_exa.assert_called_once_with("test_key")
+    with patch("agno.tools.exa.Exa") as mock_exa, patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
+        ExaTools()
+        mock_exa.assert_called_once_with("test_key")
 
 
 def test_init_with_selective_tools():
@@ -281,3 +280,4 @@ def test_exa_answer_with_model_selection(exa_tools, mock_exa_client):
     exa_tools.model = "invalid-model"
     with pytest.raises(ValueError, match="Model must be either 'exa' or 'exa-pro'"):
         exa_tools.exa_answer("test question")
+    return None
