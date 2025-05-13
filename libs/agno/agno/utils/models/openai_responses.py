@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any
 
 from agno.media import Image
 from agno.utils.log import logger
@@ -86,8 +88,8 @@ def images_to_message(images: Sequence[Image]) -> List[Dict[str, Any]]:
             image_data = _process_image(image)
             if image_data:
                 image_messages.append(image_data)
-        except Exception as e:
-            logger.error(f"Failed to process image: {str(e)}")
+        except Exception:
+            logger.error("Failed to process image")
             continue
 
     return image_messages

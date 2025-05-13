@@ -263,7 +263,7 @@ class ChromaDb(VectorDb):
                         embedding=embeddings[idx],  # type: ignore
                     )
                 )
-        except Exception as e:
+        except (KeyError, IndexError, TypeError) as e:
             logger.error(f"Error building search results: {e}")
 
         if self.reranker:
@@ -308,6 +308,7 @@ class ChromaDb(VectorDb):
                 return collection.count()
             except Exception as e:
                 logger.error(f"Error getting count: {e}")
+                return 0
         return 0
 
     def optimize(self) -> None:

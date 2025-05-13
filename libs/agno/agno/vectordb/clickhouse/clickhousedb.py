@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.vectordb.clickhouse.index import HNSW
 
@@ -32,12 +34,13 @@ class Clickhouse(VectorDb):
         asyncclient: Optional[clickhouse_connect.driver.asyncclient.AsyncClient] = None,
         embedder: Optional[Embedder] = None,
         distance: Distance = Distance.cosine,
-        index: Optional[HNSW] = HNSW(),
+        index: Optional[HNSW] = None,
     ):
         # Store connection parameters as instance attributes
         self.host = host
         self.username = username
         self.password = password
+        self.index = index if index is not None else HNSW()
         self.port = port
         self.dsn = dsn
         self.compress = compress
