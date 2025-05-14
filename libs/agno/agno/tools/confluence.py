@@ -40,7 +40,8 @@ class ConfluenceTools(Toolkit):
         super().__init__(name="confluence_tools", **kwargs)
         self.url = url or getenv("CONFLUENCE_URL")
         self.username = username or getenv("CONFLUENCE_USERNAME")
-        self.password = api_key or getenv("CONFLUENCE_API_KEY") or password or getenv("CONFLUENCE_PASSWORD")
+        self.password = password or getenv("CONFLUENCE_PASSWORD")
+        self.api_key = api_key or getenv("CONFLUENCE_API_KEY")
 
         if not self.url:
             raise ValueError(
@@ -95,6 +96,7 @@ class ConfluenceTools(Toolkit):
         except Exception as e:
             logger.error(f"Error retrieving page '{page_title}': {e}")
             return json.dumps({"error": str(e)})
+        # pylint: disable=W0718
 
     def get_all_space_detail(self):
         """Retrieve details about all Confluence spaces.
@@ -163,6 +165,7 @@ class ConfluenceTools(Toolkit):
         except Exception as e:
             logger.error(f"Error creating page '{title}': {e}")
             return json.dumps({"error": str(e)})
+        # pylint: disable=W0718
 
     def update_page(self, page_id: str, title: str, body: str) -> str:
         """Update an existing Confluence page.
@@ -182,3 +185,4 @@ class ConfluenceTools(Toolkit):
         except Exception as e:
             logger.error(f"Error updating page '{title}': {e}")
             return json.dumps({"error": str(e)})
+        # pylint: disable=W0718
