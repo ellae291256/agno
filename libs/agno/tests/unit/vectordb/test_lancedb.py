@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -27,14 +26,15 @@ def lance_db(mock_embedder):
     try:
         db.drop()
     except Exception:
-        pass
+        import logging
+        logging.warning("Failed to drop database")
 
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(
@@ -74,7 +74,7 @@ def test_vector_search(lance_db, sample_documents):
     assert len(results) == 2
     # results is a DataFrame, so check the 'payload' column for content
     # Each payload is a JSON string, so parse it and check for 'coconut'
-    import json
+    import json as _json
 
     found = False
     for _, row in results.iterrows():

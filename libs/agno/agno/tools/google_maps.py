@@ -14,7 +14,7 @@ Prerequisites:
 import json
 from datetime import datetime
 from os import getenv
-from typing import List, Optional
+from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -101,8 +101,8 @@ class GoogleMapTools(Toolkit):
             return json.dumps(places)
 
         except Exception as e:
-            print(f"Error searching Google Maps: {str(e)}")
-            return str([])
+            print(f"Error searching Google Maps: {e}")
+            return "[]"
 
     def get_directions(
         self,
@@ -110,7 +110,7 @@ class GoogleMapTools(Toolkit):
         destination: str,
         mode: str = "driving",
         departure_time: Optional[datetime] = None,
-        avoid: Optional[List[str]] = None,
+        avoid: Optional[list[str]] = None,
     ) -> str:
         """
         Get directions between two locations using Google Maps Directions API.
@@ -120,7 +120,7 @@ class GoogleMapTools(Toolkit):
             destination (str): Destination address or coordinates
             mode (str, optional): Travel mode. Options: "driving", "walking", "bicycling", "transit". Defaults to "driving"
             departure_time (datetime, optional): Desired departure time for transit directions
-            avoid (List[str], optional): Features to avoid: "tolls", "highways", "ferries"
+            avoid (list[str], optional): Features to avoid: "tolls", "highways", "ferries"
 
         Returns:
             str: Stringified dictionary containing route information including steps, distance, duration, etc.
@@ -129,8 +129,8 @@ class GoogleMapTools(Toolkit):
             result = self.client.directions(origin, destination, mode=mode, departure_time=departure_time, avoid=avoid)
             return str(result)
         except Exception as e:
-            print(f"Error getting directions: {str(e)}")
-            return str([])
+            print(f"Error getting directions: {e}")
+            return "[]"
 
     def validate_address(
         self, address: str, region_code: str = "US", locality: Optional[str] = None, enable_usps_cass: bool = False
@@ -153,8 +153,8 @@ class GoogleMapTools(Toolkit):
             )
             return str(result)
         except Exception as e:
-            print(f"Error validating address: {str(e)}")
-            return str({})
+            print(f"Error validating address: {e}")
+            return "{}"
 
     def geocode_address(self, address: str, region: Optional[str] = None) -> str:
         """
@@ -171,11 +171,11 @@ class GoogleMapTools(Toolkit):
             result = self.client.geocode(address, region=region)
             return str(result)
         except Exception as e:
-            print(f"Error geocoding address: {str(e)}")
-            return str([])
+            print(f"Error geocoding address: {e}")
+            return "[]"
 
     def reverse_geocode(
-        self, lat: float, lng: float, result_type: Optional[List[str]] = None, location_type: Optional[List[str]] = None
+        self, lat: float, lng: float, result_type: Optional[list[str]] = None, location_type: Optional[list[str]] = None
     ) -> str:
         """
         Convert geographic coordinates into an address using Google Maps Reverse Geocoding API.
@@ -183,8 +183,8 @@ class GoogleMapTools(Toolkit):
         Args:
             lat (float): Latitude
             lng (float): Longitude
-            result_type (List[str], optional): Array of address types to filter results
-            location_type (List[str], optional): Array of location types to filter results
+            result_type (list[str], optional): Array of address types to filter results
+            location_type (list[str], optional): Array of location types to filter results
 
         Returns:
             str: Stringified list of dictionaries containing address information
@@ -193,26 +193,26 @@ class GoogleMapTools(Toolkit):
             result = self.client.reverse_geocode((lat, lng), result_type=result_type, location_type=location_type)
             return str(result)
         except Exception as e:
-            print(f"Error reverse geocoding: {str(e)}")
-            return str([])
+            print(f"Error reverse geocoding: {e}")
+            return "[]"
 
     def get_distance_matrix(
         self,
-        origins: List[str],
-        destinations: List[str],
+        origins: list[str],
+        destinations: list[str],
         mode: str = "driving",
         departure_time: Optional[datetime] = None,
-        avoid: Optional[List[str]] = None,
+        avoid: Optional[list[str]] = None,
     ) -> str:
         """
         Calculate distance and time for a matrix of origins and destinations.
 
         Args:
-            origins (List[str]): List of addresses or coordinates
-            destinations (List[str]): List of addresses or coordinates
+            origins (list[str]): List of addresses or coordinates
+            destinations (list[str]): List of addresses or coordinates
             mode (str, optional): Travel mode. Options: "driving", "walking", "bicycling", "transit"
             departure_time (datetime, optional): Desired departure time
-            avoid (List[str], optional): Features to avoid: "tolls", "highways", "ferries"
+            avoid (list[str], optional): Features to avoid: "tolls", "highways", "ferries"
 
         Returns:
             str: Stringified dictionary containing distance and duration information
@@ -223,8 +223,8 @@ class GoogleMapTools(Toolkit):
             )
             return str(result)
         except Exception as e:
-            print(f"Error getting distance matrix: {str(e)}")
-            return str({})
+            print(f"Error getting distance matrix: {e}")
+            return "{}"
 
     def get_elevation(self, lat: float, lng: float) -> str:
         """
@@ -241,8 +241,8 @@ class GoogleMapTools(Toolkit):
             result = self.client.elevation((lat, lng))
             return str(result)
         except Exception as e:
-            print(f"Error getting elevation: {str(e)}")
-            return str([])
+            print(f"Error getting elevation: {e}")
+            return "[]"
 
     def get_timezone(self, lat: float, lng: float, timestamp: Optional[datetime] = None) -> str:
         """
@@ -263,5 +263,5 @@ class GoogleMapTools(Toolkit):
             result = self.client.timezone(location=(lat, lng), timestamp=timestamp)
             return str(result)
         except Exception as e:
-            print(f"Error getting timezone: {str(e)}")
-            return str({})
+            print(f"Error getting timezone: {e}")
+            return "{}"

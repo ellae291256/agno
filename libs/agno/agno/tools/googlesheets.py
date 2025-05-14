@@ -44,11 +44,13 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import json
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 
@@ -79,16 +81,16 @@ def authenticate(func):
 
 class GoogleSheetsTools(Toolkit):
     # Default scopes for Google Sheets API access
-    DEFAULT_SCOPES = {
-        "read": "https://www.googleapis.com/auth/spreadsheets.readonly",
-        "write": "https://www.googleapis.com/auth/spreadsheets",
-    }
+    DEFAULT_SCOPES: tuple[tuple[str, str], ...] = (
+        ("read", "https://www.googleapis.com/auth/spreadsheets.readonly"),
+        ("write", "https://www.googleapis.com/auth/spreadsheets"),
+    )
 
     service: Optional[Resource]
 
     def __init__(
         self,
-        scopes: Optional[List[str]] = None,
+        scopes: Optional[list[str]] = None,
         spreadsheet_id: Optional[str] = None,
         spreadsheet_range: Optional[str] = None,
         creds: Optional[Credentials] = None,
@@ -126,23 +128,23 @@ class GoogleSheetsTools(Toolkit):
         if scopes is None:
             self.scopes = []
             if read:
-                self.scopes.append(self.DEFAULT_SCOPES["read"])
+                self.scopes.append(dict(self.DEFAULT_SCOPES)["read"])
             if create or update or duplicate:
-                self.scopes.append(self.DEFAULT_SCOPES["write"])
+                self.scopes.append(dict(self.DEFAULT_SCOPES)["write"])
             # Remove duplicates while preserving order
             self.scopes = list(dict.fromkeys(self.scopes))
         else:
             self.scopes = scopes
             # Validate that required scopes are present for requested operations
-            if (create or update or duplicate) and self.DEFAULT_SCOPES["write"] not in self.scopes:
-                raise ValueError(f"The scope {self.DEFAULT_SCOPES['write']} is required for write operations")
+            if (create or update or duplicate) and dict(self.DEFAULT_SCOPES)["write"] not in self.scopes:
+                raise ValueError(f"The scope {dict(self.DEFAULT_SCOPES)['write']} is required for write operations")
             if (
                 read
-                and self.DEFAULT_SCOPES["read"] not in self.scopes
-                and self.DEFAULT_SCOPES["write"] not in self.scopes
+                and dict(self.DEFAULT_SCOPES)["read"] not in self.scopes
+                and dict(self.DEFAULT_SCOPES)["write"] not in self.scopes
             ):
                 raise ValueError(
-                    f"Either {self.DEFAULT_SCOPES['read']} or {self.DEFAULT_SCOPES['write']} is required for read operations"
+                    f"Either {dict(self.DEFAULT_SCOPES)['read']} or {dict(self.DEFAULT_SCOPES)['write']} is required for read operations"
                 )
 
         if read:
@@ -216,6 +218,8 @@ class GoogleSheetsTools(Toolkit):
             return json.dumps(result.get("values", []))
 
         except Exception as e:
+            import logging
+            logging.error(f"Error reading Google Sheet: {e}")
             return f"Error reading Google Sheet: {e}"
 
     @authenticate
@@ -241,11 +245,13 @@ class GoogleSheetsTools(Toolkit):
             return f"Spreadsheet created: https://docs.google.com/spreadsheets/d/{spreadsheet_id}"
 
         except Exception as e:
+            import logging
+            logging.error(f"Error creating Google Sheet: {e}")
             return f"Error creating Google Sheet: {e}"
 
     @authenticate
     def update_sheet(
-        self, data: List[List[Any]], spreadsheet_id: Optional[str] = None, range_name: Optional[str] = None
+        self, data: list[list[Any]], spreadsheet_id: Optional[str] = None, range_name: Optional[str] = None
     ) -> str:
         """Updates a Google Sheet with the provided data.
 
@@ -278,6 +284,8 @@ class GoogleSheetsTools(Toolkit):
             return f"Sheet updated successfully: {spreadsheet_id}"
 
         except Exception as e:
+            import logging
+            logging.error(f"Error updating Google Sheet: {e}")
             return f"Error updating Google Sheet: {e}"
 
     @authenticate
@@ -347,4 +355,6 @@ class GoogleSheetsTools(Toolkit):
 
             return f"Spreadsheet duplicated successfully: https://docs.google.com/spreadsheets/d/{new_spreadsheet_id}"
         except Exception as e:
+            import logging
+            logging.error(f"Error duplicating spreadsheet via Drive API: {e}")
             return f"Error duplicating spreadsheet via Drive API: {e}"
