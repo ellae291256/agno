@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -139,7 +141,7 @@ class ExaTools(Toolkit):
         try:
             if self.show_results:
                 log_info(f"Searching exa for: {query}")
-            search_kwargs: Dict[str, Any] = {
+            search_kwargs: dict[str, Any] = {
                 "text": self.text,
                 "highlights": self.highlights,
                 "summary": self.summary,
@@ -178,7 +180,7 @@ class ExaTools(Toolkit):
             str: The search results in JSON format.
         """
 
-        query_kwargs: Dict[str, Any] = {
+        query_kwargs: dict[str, Any] = {
             "text": self.text,
             "highlights": self.highlights,
             "summary": self.summary,
@@ -211,7 +213,7 @@ class ExaTools(Toolkit):
             str: The search results in JSON format.
         """
 
-        query_kwargs: Dict[str, Any] = {
+        query_kwargs: dict[str, Any] = {
             "text": self.text,
             "highlights": self.highlights,
             "summary": self.summary,
@@ -255,7 +257,7 @@ class ExaTools(Toolkit):
         try:
             if self.show_results:
                 log_info(f"Generating answer for query: {query}")
-            answer_kwargs: Dict[str, Any] = {
+            answer_kwargs: dict[str, Any] = {
                 "model": self.model,
                 "text": text,
             }
