@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 pip install fal-client
 """
@@ -86,7 +88,7 @@ class FalTools(Toolkit):
             return f"{media_type.capitalize()} generated successfully at {url}"
         except Exception as e:
             logger.error(f"Failed to run model: {e}")
-            return f"Error: {e}"
+            raise e
 
     def image_to_image(self, agent: Union[Agent, Team], prompt: str, image_url: Optional[str] = None) -> str:
         """
@@ -122,4 +124,4 @@ class FalTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to generate image: {e}")
-            return f"Error: {e}"
+            raise e

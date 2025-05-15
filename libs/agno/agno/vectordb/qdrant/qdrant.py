@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
-    from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401
+    from qdrant_client import AsyncQdrantClient, QdrantClient
     from qdrant_client.http import models
 except ImportError:
     raise ImportError(
@@ -375,7 +377,7 @@ class Qdrant(VectorDb):
             results = self.client.search(**search_params)  # type: ignore
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
-            return []
+            raise
 
         # Build search results
         search_results: List[Document] = []
@@ -445,7 +447,7 @@ class Qdrant(VectorDb):
             results = await self.async_client.search(**search_params)  # type: ignore
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
-            return []
+            raise
 
         # Build search results
         search_results: List[Document] = []

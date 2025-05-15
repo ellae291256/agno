@@ -9,7 +9,7 @@ class Toolkit:
     def __init__(
         self,
         name: str = "toolkit",
-        tools: List[Callable] = [],
+        tools: Optional[List[Callable]] = None,
         instructions: Optional[str] = None,
         add_instructions: bool = False,
         include_tools: Optional[list[str]] = None,
@@ -33,6 +33,8 @@ class Toolkit:
             cache_dir (Optional[str]): Directory to store cache files. Defaults to system temp dir.
             auto_register (bool): Whether to automatically register all methods in the class.
         """
+        if tools is None:
+            tools = []
         self.name: str = name
         self.tools: List[Callable] = tools
         self.functions: Dict[str, Function] = OrderedDict()
@@ -105,9 +107,9 @@ class Toolkit:
             )
             self.functions[f.name] = f
             log_debug(f"Function: {f.name} registered with {self.name}")
-        except Exception as e:
+        except Exception:
             logger.warning(f"Failed to create Function for: {function.__name__}")
-            raise e
+            raise
 
     def __repr__(self):
         return f"<{self.__class__.__name__} name={self.name} functions={list(self.functions.keys())}>"
