@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import uuid4
 
 from requests import post
@@ -167,6 +169,6 @@ class AzureOpenAITools(Toolkit):
                 response_str += f"Image has been generated at the URL {image_url}\n"
             return response_str
 
-        except Exception as e:
+        except requests.RequestException as e:
             logger.error(f"Failed to generate image: {e}")
             return f"Error: {e}"

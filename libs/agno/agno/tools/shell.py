@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -30,11 +32,9 @@ class ShellTools(Toolkit):
             log_info(f"Running shell command: {args}")
             if self.base_dir:
                 args = ["cd", str(self.base_dir), ";"] + args
-            result = subprocess.run(args, capture_output=True, text=True)
+            result = subprocess.run(args, capture_output=True, text=True, check=True)
             log_debug(f"Result: {result}")
             log_debug(f"Return code: {result.returncode}")
-            if result.returncode != 0:
-                return f"Error: {result.stderr}"
             # return only the last n lines of the output
             return "\n".join(result.stdout.split("\n")[-tail:])
         except Exception as e:
