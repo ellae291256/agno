@@ -101,7 +101,7 @@ class YouTubeTools(Toolkit):
                     "thumbnail_url": video_data.get("thumbnail_url"),
                 }
                 return json.dumps(clean_data, indent=4)
-        except Exception as e:
+        except (URLError, json.JSONDecodeError, KeyError) as e:
             return f"Error getting video data: {e}"
 
     def get_youtube_video_captions(self, url: str) -> str:

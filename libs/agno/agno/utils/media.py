@@ -62,6 +62,10 @@ def download_video(url: str, output_path: str) -> str:
     return output_path
 
 
+class DownloadError(Exception):
+    """Custom exception for download failures."""
+    pass
+
 def download_file(url: str, output_path: str) -> None:
     """
     Download a file from a given URL and save it to the specified path.
@@ -71,7 +75,7 @@ def download_file(url: str, output_path: str) -> None:
         output_path (str): The local path where the file should be saved
 
     Raises:
-        httpx.HTTPError: If the download fails
+        DownloadError: If the download fails
     """
     try:
         response = httpx.get(url)
@@ -86,7 +90,7 @@ def download_file(url: str, output_path: str) -> None:
                     f.write(chunk)
 
     except httpx.HTTPError as e:
-        raise Exception(f"Failed to download file from {url}: {str(e)}")
+        raise DownloadError(f"Failed to download file from {url}: {str(e)}")
 
 
 def save_base64_data(base64_data: str, output_path: str) -> bool:
@@ -97,7 +101,7 @@ def save_base64_data(base64_data: str, output_path: str) -> bool:
         # Decode the base64 string into bytes
         decoded_data = base64.b64decode(base64_data)
     except Exception as e:
-        raise Exception(f"An unexpected error occurred during base64 decoding: {e}")
+        raise ValueError(f"An unexpected error occurred during base64 decoding: {e}")
 
     try:
         path = Path(output_path)
@@ -110,7 +114,7 @@ def save_base64_data(base64_data: str, output_path: str) -> bool:
         print(f"Data successfully saved to '{path}'.")
         return True
     except Exception as e:
-        raise Exception(f"An unexpected error occurred while saving data to '{output_path}': {e}")
+        raise IOError(f"An unexpected error occurred while saving data to '{output_path}': {e}")
 
 
 def download_knowledge_filters_sample_data(

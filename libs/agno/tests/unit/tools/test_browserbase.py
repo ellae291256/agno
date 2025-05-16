@@ -68,14 +68,13 @@ def browserbase_tools(mock_browserbase):
 
 def test_init_with_env_vars():
     """Test initialization with environment variables."""
-    with patch("agno.tools.browserbase.Browserbase"):
-        with patch.dict(
-            "os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}, clear=True
-        ):  # Clear=True to ensure no other env vars leak in
-            tools = BrowserbaseTools()
-            assert tools.api_key == TEST_API_KEY
-            assert tools.project_id == TEST_PROJECT_ID
-            assert tools.base_url is None
+    with patch("agno.tools.browserbase.Browserbase"), patch.dict(
+        "os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}, clear=True
+    ):  # Clear=True to ensure no other env vars leak in
+        tools = BrowserbaseTools()
+        assert tools.api_key == TEST_API_KEY
+        assert tools.project_id == TEST_PROJECT_ID
+        assert tools.base_url is None
 
 
 def test_init_with_params():
@@ -128,34 +127,33 @@ def test_ensure_session(browserbase_tools, mock_browserbase):
 def test_initialize_browser(browserbase_tools):
     """Test _initialize_browser method with connect_url."""
     # Mock the entire _initialize_browser method to avoid actual browser initialization
-    with patch.object(browserbase_tools, "_ensure_session"):
-        # Set up a mock for the playwright instance
-        mock_playwright = Mock()
-        mock_browser = Mock()
-        mock_context = Mock()
-        mock_page = Mock()
+    # Set up a mock for the playwright instance
+    mock_playwright = Mock()
+    mock_browser = Mock()
+    mock_context = Mock()
+    mock_page = Mock()
 
-        # Set up the mock browser with a list-like contexts attribute
-        mock_browser.contexts = MagicMock()
-        mock_browser.contexts.__getitem__.return_value = mock_context
+    # Set up the mock browser with a list-like contexts attribute
+    mock_browser.contexts = MagicMock()
+    mock_browser.contexts.__getitem__.return_value = mock_context
 
-        # Set up the mock context with a list-like pages attribute
-        mock_context.pages = MagicMock()
-        mock_context.pages.__getitem__.return_value = mock_page
+    # Set up the mock context with a list-like pages attribute
+    mock_context.pages = MagicMock()
+    mock_context.pages.__getitem__.return_value = mock_page
 
-        # Set up the chromium connect_over_cdp method
-        mock_playwright.chromium = Mock()
-        mock_playwright.chromium.connect_over_cdp = Mock(return_value=mock_browser)
+    # Set up the chromium connect_over_cdp method
+    mock_playwright.chromium = Mock()
+    mock_playwright.chromium.connect_over_cdp = Mock(return_value=mock_browser)
 
-        # Set up the sync_playwright().start() chain
-        with patch("agno.tools.browserbase.sync_playwright") as mock_sync_playwright:
-            mock_sync_playwright.return_value = Mock()
-            mock_sync_playwright.return_value.start.return_value = mock_playwright
+    # Set up the sync_playwright().start() chain
+    with patch.object(browserbase_tools, "_ensure_session"), patch("agno.tools.browserbase.sync_playwright") as mock_sync_playwright:
+        mock_sync_playwright.return_value = Mock()
+        mock_sync_playwright.return_value.start.return_value = mock_playwright
 
-            # Call the method with a connect_url
-            browserbase_tools._initialize_browser("ws://test.connect.url")
+        # Call the method with a connect_url
+        browserbase_tools._initialize_browser("ws://test.connect.url")
 
-            # Verify the connect_url was set
+        # Verify the connect_url was set
             assert browserbase_tools._connect_url == "ws://test.connect.url"
             mock_playwright.chromium.connect_over_cdp.assert_called_once_with("ws://test.connect.url")
 
