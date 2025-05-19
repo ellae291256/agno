@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -111,6 +113,7 @@ class ChromaDb(VectorDb):
                 return True
         except Exception as e:
             logger.error(f"Document does not exist: {e}")
+            return False
         return False
 
     async def async_doc_exists(self, document: Document) -> bool:
@@ -131,6 +134,7 @@ class ChromaDb(VectorDb):
                         return True
             except Exception as e:
                 logger.error(f"Document with given name does not exist: {e}")
+                return False
         return False
 
     async def async_name_exists(self, name: str) -> bool:
@@ -221,7 +225,7 @@ class ChromaDb(VectorDb):
         """Upsert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.upsert, documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> list[Document]:
         """Search the collection for a query.
 
         Args:
@@ -234,7 +238,7 @@ class ChromaDb(VectorDb):
                 - $in, $nin: List inclusion/exclusion
                 - $and, $or: Logical operators
         Returns:
-            List[Document]: List of search results.
+            list[Document]: List of search results.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -255,7 +259,7 @@ class ChromaDb(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
 
         ids = result.get("ids", [[]])[0]
         metadata = result.get("metadatas", [{}])[0]
@@ -268,11 +272,11 @@ class ChromaDb(VectorDb):
             metadata[idx]["distances"] = distance
 
         try:
-            for idx, (id_, metadata, document) in enumerate(zip(ids, metadata, documents)):
+            for idx, (id_, meta, document) in enumerate(zip(ids, metadata, documents)):
                 search_results.append(
                     Document(
                         id=id_,
-                        meta_data=metadata,
+                        meta_data=meta,
                         content=document,
                         embedding=embeddings[idx],
                     )
@@ -334,7 +338,7 @@ class ChromaDb(VectorDb):
             return True
         except Exception as e:
             log_debug(f"Collection does not exist: {e}")
-        return False
+            return False
 
     async def async_exists(self) -> bool:
         """Check if collection exists asynchronously by running in a thread."""
@@ -348,6 +352,7 @@ class ChromaDb(VectorDb):
                 return collection.count()
             except Exception as e:
                 logger.error(f"Error getting count: {e}")
+                return 0
         return 0
 
     def optimize(self) -> None:
