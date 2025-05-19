@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401
@@ -41,12 +43,7 @@ class Qdrant(VectorDb):
         self.collection: str = collection
 
         # Embedder for embedding the document contents
-        if embedder is None:
-            from agno.embedder.openai import OpenAIEmbedder
-
-            embedder = OpenAIEmbedder()
-            log_info("Embedder not provided, using OpenAIEmbedder as default.")
-        self.embedder: Embedder = embedder
+        self.embedder: Embedder = self._get_embedder(embedder)
         self.dimensions: Optional[int] = self.embedder.dimensions
 
         # Distance metric
@@ -76,6 +73,14 @@ class Qdrant(VectorDb):
 
         # Qdrant client kwargs
         self.kwargs = kwargs
+
+    def _get_embedder(self, embedder: Optional[Embedder] = None) -> Embedder:
+        if embedder is None:
+            from agno.embedder.openai import OpenAIEmbedder
+
+            embedder = OpenAIEmbedder()
+            log_info("Embedder not provided, using OpenAIEmbedder as default.")
+        return embedder
 
     @property
     def client(self) -> QdrantClient:
@@ -126,12 +131,14 @@ class Qdrant(VectorDb):
         elif self.distance == Distance.max_inner_product:
             _distance = models.Distance.DOT
 
-        if not self.exists():
-            log_debug(f"Creating collection: {self.collection}")
-            self.client.create_collection(
-                collection_name=self.collection,
-                vectors_config=models.VectorParams(size=self.dimensions, distance=_distance),
-            )
+        if self.exists():
+            return
+
+        log_debug(f"Creating collection: {self.collection}")
+        self.client.create_collection(
+            collection_name=self.collection,
+            vectors_config=models.VectorParams(size=self.dimensions, distance=_distance),
+        )
 
     async def async_create(self) -> None:
         """Create the collection asynchronously."""
@@ -142,12 +149,14 @@ class Qdrant(VectorDb):
         elif self.distance == Distance.max_inner_product:
             _distance = models.Distance.DOT
 
-        if not await self.async_exists():
-            log_debug(f"Creating collection asynchronously: {self.collection}")
-            await self.async_client.create_collection(
-                collection_name=self.collection,
-                vectors_config=models.VectorParams(size=self.dimensions, distance=_distance),
-            )
+        if await self.async_exists():
+            return
+
+        log_debug(f"Creating collection asynchronously: {self.collection}")
+        await self.async_client.create_collection(
+            collection_name=self.collection,
+            vectors_config=models.VectorParams(size=self.dimensions, distance=_distance),
+        )
 
     def doc_exists(self, document: Document) -> bool:
         """
@@ -156,15 +165,16 @@ class Qdrant(VectorDb):
         Args:
             document (Document): Document to validate
         """
-        if self.client:
-            cleaned_content = document.content.replace("\x00", "\ufffd")
-            doc_id = md5(cleaned_content.encode()).hexdigest()
-            collection_points = self.client.retrieve(
-                collection_name=self.collection,
-                ids=[doc_id],
-            )
-            return len(collection_points) > 0
-        return False
+        if not self.client:
+            return False
+
+        cleaned_content = document.content.replace("\x00", "\ufffd")
+        doc_id = md5(cleaned_content.encode()).hexdigest()
+        collection_points = self.client.retrieve(
+            collection_name=self.collection,
+            ids=[doc_id],
+        )
+        return len(collection_points) > 0
 
     async def async_doc_exists(self, document: Document) -> bool:
         """Check if a document exists asynchronously."""
@@ -186,16 +196,17 @@ class Qdrant(VectorDb):
         Returns:
             bool: True if a document with the given name exists, False otherwise.
         """
-        if self.client:
-            scroll_result = self.client.scroll(
-                collection_name=self.collection,
-                scroll_filter=models.Filter(
-                    must=[models.FieldCondition(key="name", match=models.MatchValue(value=name))]
-                ),
-                limit=1,
-            )
-            return len(scroll_result[0]) > 0
-        return False
+        if not self.client:
+            return False
+
+        scroll_result = self.client.scroll(
+            collection_name=self.collection,
+            scroll_filter=models.Filter(
+                must=[models.FieldCondition(key="name", match=models.MatchValue(value=name))]
+            ),
+            limit=1,
+        )
+        return len(scroll_result[0]) > 0
 
     async def async_name_exists(self, name: str) -> bool:
         """
@@ -207,24 +218,25 @@ class Qdrant(VectorDb):
         Returns:
             bool: True if a document with the given name exists, False otherwise.
         """
-        if self.async_client:
-            scroll_result = await self.async_client.scroll(
-                collection_name=self.collection,
-                scroll_filter=models.Filter(
-                    must=[models.FieldCondition(key="name", match=models.MatchValue(value=name))]
-                ),
-                limit=1,
-            )
-            return len(scroll_result[0]) > 0
-        return False
+        if not self.async_client:
+            return False
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None, batch_size: int = 10) -> None:
+        scroll_result = await self.async_client.scroll(
+            collection_name=self.collection,
+            scroll_filter=models.Filter(
+                must=[models.FieldCondition(key="name", match=models.MatchValue(value=name))]
+            ),
+            limit=1,
+        )
+        return len(scroll_result[0]) > 0
+
+    def insert(self, documents: list[Document], filters: Optional[dict[str, Any]] = None, batch_size: int = 10) -> None:
         """
         Insert documents into the database.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (Optional[dict[str, Any]]): Filters to apply while inserting documents
             batch_size (int): Batch size for inserting documents
         """
         log_debug(f"Inserting {len(documents)} documents")
@@ -261,13 +273,13 @@ class Qdrant(VectorDb):
             self.client.upsert(collection_name=self.collection, wait=False, points=points)
         log_debug(f"Upsert {len(points)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: Optional[dict[str, Any]] = None) -> None:
         """
         Insert documents asynchronously.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (Optional[dict[str, Any]]): Filters to apply while inserting documents
         """
         log_debug(f"Inserting {len(documents)} documents asynchronously")
 
@@ -307,30 +319,30 @@ class Qdrant(VectorDb):
             await self.async_client.upsert(collection_name=self.collection, wait=False, points=points)
         log_debug(f"Upserted {len(points)} documents asynchronously")
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: Optional[dict[str, Any]] = None) -> None:
         """
         Upsert documents into the database.
 
         Args:
-            documents (List[Document]): List of documents to upsert
-            filters (Optional[Dict[str, Any]]): Filters to apply while upserting
+            documents (list[Document]): List of documents to upsert
+            filters (Optional[dict[str, Any]]): Filters to apply while upserting
         """
         log_debug("Redirecting the request to insert")
         self.insert(documents)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: Optional[dict[str, Any]] = None) -> None:
         """Upsert documents asynchronously."""
         log_debug("Redirecting the async request to async_insert")
         await self.async_insert(documents)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None) -> list[Document]:
         """
         Search for documents in the database.
 
         Args:
             query (str): Query to search for
             limit (int): Number of search results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching
+            filters (Optional[dict[str, Any]]): Filters to apply while searching
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -378,7 +390,7 @@ class Qdrant(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results:
             if result.payload is None:
                 continue
@@ -400,8 +412,8 @@ class Qdrant(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None
+    ) -> list[Document]:
         """Search for documents asynchronously."""
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -449,7 +461,7 @@ class Qdrant(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results:
             if result.payload is None:
                 continue
@@ -484,7 +496,7 @@ class Qdrant(VectorDb):
     def exists(self) -> bool:
         if self.client:
             collections_response: models.CollectionsResponse = self.client.get_collections()
-            collections: List[models.CollectionDescription] = collections_response.collections
+            collections: list[models.CollectionDescription] = collections_response.collections
             for collection in collections:
                 if collection.name == self.collection:
                     # collection.status == models.CollectionStatus.GREEN
@@ -494,7 +506,7 @@ class Qdrant(VectorDb):
     async def async_exists(self) -> bool:
         """Check if the collection exists asynchronously."""
         collections_response = await self.async_client.get_collections()
-        collections: List[models.CollectionDescription] = collections_response.collections
+        collections: list[models.CollectionDescription] = collections_response.collections
         for collection in collections:
             if collection.name == self.collection:
                 return True

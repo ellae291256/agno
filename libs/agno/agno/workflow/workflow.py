@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Optional, Union, cast
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -166,7 +166,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise RuntimeError(f"Workflow.run() failed: {e}") from e
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -254,15 +254,8 @@ class Workflow:
             set_log_level_to_info()
 
     def set_monitoring(self) -> None:
-        if self.monitoring or getenv("AGNO_MONITOR", "false").lower() == "true":
-            self.monitoring = True
-        else:
-            self.monitoring = False
-
-        if self.telemetry or getenv("AGNO_TELEMETRY", "true").lower() == "true":
-            self.telemetry = True
-        else:
-            self.telemetry = False
+        self.monitoring = self.monitoring or getenv("AGNO_MONITOR", "false").lower() == "true"
+        self.telemetry = self.telemetry or getenv("AGNO_TELEMETRY", "true").lower() == "true"
 
     def initialize_memory(self) -> None:
         if self.memory is None:
@@ -358,6 +351,7 @@ class Workflow:
         self.memory = cast(WorkflowMemory, self.memory)
         self.session_id = cast(str, self.session_id)
         self.workflow_id = cast(str, self.workflow_id)
+        memory_dict = None
         if self.memory is not None:
             if isinstance(self.memory, WorkflowMemory):
                 self.memory = cast(WorkflowMemory, self.memory)
@@ -374,8 +368,6 @@ class Workflow:
                 run_responses = self.memory.runs[self.session_id]  # type: ignore
                 memory_dict = self.memory.to_dict()
                 memory_dict["runs"] = [rr.to_dict() for rr in run_responses]
-        else:
-            memory_dict = None
         return WorkflowSession(
             session_id=self.session_id,
             workflow_id=self.workflow_id,
@@ -527,7 +519,7 @@ class Workflow:
                 # and populate self.workflow_session with the new session
                 self.write_to_storage()
                 if self.workflow_session is None:
-                    raise Exception("Failed to create new WorkflowSession in storage")
+                    raise RuntimeError("Failed to create new WorkflowSession in storage")
                 log_debug(f"-*- Created WorkflowSession: {self.workflow_session.session_id}")
                 self.log_workflow_session()
         return self.session_id
@@ -577,17 +569,17 @@ class Workflow:
         # -*- Delete session
         self.storage.delete_session(session_id=session_id)
 
-    def deep_copy(self, *, update: Optional[Dict[str, Any]] = None) -> Workflow:
+    def deep_copy(self, *, update: Optional[dict[str, Any]] = None) -> Workflow:
         """Create and return a deep copy of this Workflow, optionally updating fields.
 
         Args:
-            update (Optional[Dict[str, Any]]): Optional dictionary of fields for the new Workflow.
+            update (Optional[dict[str, Any]]): Optional dictionary of fields for the new Workflow.
 
         Returns:
             Workflow: A new Workflow instance.
         """
         # Extract the fields to set for the new Workflow
-        fields_for_new_workflow: Dict[str, Any] = {}
+        fields_for_new_workflow: dict[str, Any] = {}
 
         for f in fields(self):
             field_value = getattr(self, f.name)

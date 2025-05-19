@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import re
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_info, logger
@@ -106,14 +108,14 @@ class TwilioTools(Toolkit):
         Returns:
             str: Message SID if successful, error message if failed
         """
-        try:
-            if not self.validate_phone_number(to):
-                return "Error: 'to' number must be in E.164 format (e.g., +1234567890)"
-            if not self.validate_phone_number(from_):
-                return "Error: 'from_' number must be in E.164 format (e.g., +1234567890)"
-            if not body or len(body.strip()) == 0:
-                return "Error: Message body cannot be empty"
+        if not self.validate_phone_number(to):
+            return "Error: 'to' number must be in E.164 format (e.g., +1234567890)"
+        if not self.validate_phone_number(from_):
+            return "Error: 'from_' number must be in E.164 format (e.g., +1234567890)"
+        if not body or len(body.strip()) == 0:
+            return "Error: Message body cannot be empty"
 
+        try:
             message = self.client.messages.create(to=to, from_=from_, body=body)
             log_info(f"SMS sent. SID: {message.sid}, to: {to}")
             return f"Message sent successfully. SID: {message.sid}"
@@ -148,7 +150,7 @@ class TwilioTools(Toolkit):
             logger.error(f"Failed to fetch call details for SID {call_sid}: {e}")
             return {"error": str(e)}
 
-    def list_messages(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def list_messages(self, limit: int = 20) -> list[dict[str, Any]]:
         """
         List recent SMS messages.
 
@@ -156,21 +158,20 @@ class TwilioTools(Toolkit):
             limit: Maximum number of messages to return
 
         Returns:
-            List[Dict]: List of message details
+            list[dict]: List of message details
         """
         try:
-            messages = []
-            for message in self.client.messages.list(limit=limit):
-                messages.append(
-                    {
-                        "sid": message.sid,
-                        "to": message.to,
-                        "from": message.from_,
-                        "body": message.body,
-                        "status": message.status,
-                        "date_sent": str(message.date_sent),
-                    }
-                )
+            messages = [
+                {
+                    "sid": message.sid,
+                    "to": message.to,
+                    "from": message.from_,
+                    "body": message.body,
+                    "status": message.status,
+                    "date_sent": str(message.date_sent),
+                }
+                for message in self.client.messages.list(limit=limit)
+            ]
             log_info(f"Retrieved {len(messages)} messages")
             return messages
         except TwilioRestException as e:
