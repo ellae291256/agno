@@ -1,8 +1,8 @@
 """Unit tests for GmailTools class."""
 
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -30,8 +30,7 @@ def mock_gmail_service():
 @pytest.fixture
 def gmail_tools(mock_credentials, mock_gmail_service):
     """Create GmailTools instance with mocked dependencies."""
-    with patch("agno.tools.gmail.build") as mock_build:
-        mock_build.return_value = mock_gmail_service
+    with patch("agno.tools.gmail.build", return_value=mock_gmail_service):
         tools = GmailTools(creds=mock_credentials)
         tools.service = mock_gmail_service
         return tools
@@ -92,10 +91,7 @@ def test_authentication_decorator():
     mock_creds = Mock(spec=Credentials)
     mock_creds.valid = False
 
-    with patch("agno.tools.gmail.build") as mock_build:
-        mock_service = MagicMock()
-        mock_build.return_value = mock_service
-
+    with patch("agno.tools.gmail.build", return_value=MagicMock()) as mock_build:
         tools = GmailTools(creds=mock_creds)
 
         with patch.object(tools, "_auth") as mock_auth:
@@ -110,15 +106,11 @@ def test_auth_with_expired_credentials():
     mock_creds.expired = True
     mock_creds.refresh_token = True
 
-    with patch("agno.tools.gmail.build") as mock_build:
-        mock_service = MagicMock()
-        mock_build.return_value = mock_service
-
+    with patch("agno.tools.gmail.build", return_value=MagicMock()) as mock_build:
         tools = GmailTools(creds=mock_creds)
 
         with patch.object(mock_creds, "refresh") as mock_refresh:
-            with patch("pathlib.Path.exists") as mock_exists:
-                mock_exists.return_value = False  # Force refresh path
+            with patch("pathlib.Path.exists", return_value=False):
                 tools._auth()
                 mock_refresh.assert_called_once()
 
@@ -128,8 +120,7 @@ def test_auth_with_custom_paths():
     custom_creds_path = "custom_creds.json"
     custom_token_path = "custom_token.json"
 
-    with patch("pathlib.Path.exists") as mock_exists:
-        mock_exists.return_value = True
+    with patch("pathlib.Path.exists", return_value=True):
         with patch("agno.tools.gmail.Credentials.from_authorized_user_file") as mock_from_file:
             tools = GmailTools(credentials_path=custom_creds_path, token_path=custom_token_path)
             tools._auth()
@@ -221,7 +212,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result
@@ -259,7 +250,7 @@ def test_search_emails(gmail_tools, mock_gmail_service):
     """Test searching emails."""
     mock_messages = {"messages": [{"id": "123"}]}
     mock_message_data = create_mock_message(
-        "123", "Search Result", "sender@test.com", "2024-01-01", "Searchable content"
+        "123", "Search Result", "sender@test.com", "2024-01-01T00:00:00+00:00", "Searchable content"
     )
 
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
@@ -293,7 +284,7 @@ def test_message_with_attachments(gmail_tools, mock_gmail_service):
             "headers": [
                 {"name": "Subject", "value": "With Attachment"},
                 {"name": "From", "value": "sender@test.com"},
-                {"name": "Date", "value": "2024-01-01"},
+                {"name": "Date", "value": "2024-01-01T00:00:00+00:00"},
             ],
             "parts": [
                 {
@@ -359,7 +350,7 @@ def test_html_message_content(gmail_tools, mock_gmail_service):
             "headers": [
                 {"name": "Subject", "value": "HTML Email"},
                 {"name": "From", "value": "sender@test.com"},
-                {"name": "Date", "value": "2024-01-01"},
+                {"name": "Date", "value": "2024-01-01T00:00:00+00:00"},
             ],
             "mimeType": "text/html",
             "body": {"data": base64.urlsafe_b64encode(html_content.encode()).decode()},
@@ -416,7 +407,7 @@ def test_multipart_complex_message(gmail_tools, mock_gmail_service):
             "headers": [
                 {"name": "Subject", "value": "Complex Message"},
                 {"name": "From", "value": "sender@test.com"},
-                {"name": "Date", "value": "2024-01-01"},
+                {"name": "Date", "value": "2024-01-01T00:00:00+00:00"},
             ],
             "parts": [
                 {

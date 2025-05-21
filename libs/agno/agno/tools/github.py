@@ -516,7 +516,7 @@ class GithubTools(Toolkit):
             return json.dumps(issue_info, indent=2)
         except GithubException as e:
             logger.error(f"Error getting issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def comment_on_issue(self, repo_name: str, issue_number: int, comment_body: str) -> str:
         """Add a comment to an issue.
@@ -544,7 +544,7 @@ class GithubTools(Toolkit):
             return json.dumps(comment_info, indent=2)
         except GithubException as e:
             logger.error(f"Error commenting on issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def close_issue(self, repo_name: str, issue_number: int) -> str:
         """Close an issue.
@@ -564,7 +564,7 @@ class GithubTools(Toolkit):
             return json.dumps({"message": f"Issue #{issue_number} closed."}, indent=2)
         except GithubException as e:
             logger.error(f"Error closing issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def reopen_issue(self, repo_name: str, issue_number: int) -> str:
         """Reopen a closed issue.
@@ -584,7 +584,7 @@ class GithubTools(Toolkit):
             return json.dumps({"message": f"Issue #{issue_number} reopened."}, indent=2)
         except GithubException as e:
             logger.error(f"Error reopening issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def assign_issue(self, repo_name: str, issue_number: int, assignees: List[str]) -> str:
         """Assign users to an issue.
@@ -605,7 +605,7 @@ class GithubTools(Toolkit):
             return json.dumps({"message": f"Issue #{issue_number} assigned to {assignees}."}, indent=2)
         except GithubException as e:
             logger.error(f"Error assigning issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def label_issue(self, repo_name: str, issue_number: int, labels: List[str]) -> str:
         """Add labels to an issue.
@@ -629,7 +629,7 @@ class GithubTools(Toolkit):
             )
         except GithubException as e:
             logger.error(f"Error labeling issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def list_issue_comments(self, repo_name: str, issue_number: int) -> str:
         """List comments on an issue.
@@ -659,7 +659,7 @@ class GithubTools(Toolkit):
             return json.dumps(comment_list, indent=2)
         except GithubException as e:
             logger.error(f"Error listing issue comments: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def edit_issue(
         self,
@@ -687,7 +687,7 @@ class GithubTools(Toolkit):
             return json.dumps({"message": f"Issue #{issue_number} updated."}, indent=2)
         except GithubException as e:
             logger.error(f"Error editing issue: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def delete_repository(self, repo_name: str) -> str:
         """Delete a repository (requires admin permissions).
@@ -705,7 +705,7 @@ class GithubTools(Toolkit):
             return json.dumps({"message": f"Repository {repo_name} deleted successfully"}, indent=2)
         except GithubException as e:
             logger.error(f"Error deleting repository: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def list_branches(self, repo_name: str) -> str:
         """List all branches in a repository.
@@ -722,7 +722,7 @@ class GithubTools(Toolkit):
             return json.dumps(branches, indent=2)
         except GithubException as e:
             logger.error(f"Error listing branches: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def get_repository_stars(self, repo_name: str) -> str:
         """Get the number of stars for a repository.
@@ -739,7 +739,7 @@ class GithubTools(Toolkit):
             return json.dumps({"stars": repo.stargazers_count}, indent=2)
         except GithubException as e:
             logger.error(f"Error getting repository stars: {e}")
-            return json.dumps({"error": str(e)})
+            raise
 
     def get_pull_requests(
         self,
