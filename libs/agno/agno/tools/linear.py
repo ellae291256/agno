@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from os import getenv
 from typing import Optional
 
@@ -55,17 +57,13 @@ class LinearTools(Toolkit):
 
             if "errors" in data:
                 logger.error(f"GraphQL Error: {data['errors']}")
-                raise Exception(f"GraphQL Error: {data['errors']}")
+                raise RuntimeError(f"GraphQL Error: {data['errors']}")
 
             log_info("GraphQL query executed successfully.")
             return data.get("data")
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request error: {e}")
-            raise
-
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
             raise
 
     def get_user_details(self) -> Optional[str]:
@@ -105,7 +103,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error fetching authenticated user details: {e}")
-            raise
+            raise RuntimeError(e)
 
     def get_issue_details(self, issue_id: str) -> Optional[str]:
         """
@@ -145,7 +143,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving issue with ID {issue_id}: {e}")
-            raise
+            raise RuntimeError(e)
 
     def create_issue(
         self, title: str, description: str, team_id: str, project_id: str, assignee_id: str
@@ -202,7 +200,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error creating issue '{title}' for team ID {team_id}: {e}")
-            raise
+            raise RuntimeError(e)
 
     def update_issue(self, issue_id: str, title: Optional[str]) -> Optional[str]:
         """
@@ -253,7 +251,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error updating issue ID {issue_id}: {e}")
-            raise
+            raise RuntimeError(e)
 
     def get_user_assigned_issues(self, user_id: str) -> Optional[str]:
         """
@@ -301,7 +299,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving issues for user ID {user_id}: {e}")
-            raise
+            raise RuntimeError(e)
 
     def get_workflow_issues(self, workflow_id: str) -> Optional[str]:
         """
@@ -344,7 +342,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving issues for workflow state ID {workflow_id}: {e}")
-            raise
+            raise RuntimeError(e)
 
     def get_high_priority_issues(self) -> Optional[str]:
         """
@@ -385,4 +383,4 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving high-priority issues: {e}")
-            raise
+            raise RuntimeError(e)

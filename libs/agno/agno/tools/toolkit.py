@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from collections import OrderedDict
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Optional
 
 from agno.tools.function import Function
 from agno.utils.log import log_debug, logger
@@ -9,17 +11,17 @@ class Toolkit:
     def __init__(
         self,
         name: str = "toolkit",
-        tools: List[Callable] = [],
-        instructions: Optional[str] = None,
+        tools: list[Callable] | None = None,
+        instructions: str | None = None,
         add_instructions: bool = False,
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
+        include_tools: list[str] | None = None,
+        exclude_tools: list[str] | None = None,
         cache_results: bool = False,
         cache_ttl: int = 3600,
-        cache_dir: Optional[str] = None,
+        cache_dir: str | None = None,
         auto_register: bool = True,
-        stop_after_tool_call_tools: Optional[List[str]] = None,
-        show_result_tools: Optional[List[str]] = None,
+        stop_after_tool_call_tools: list[str] | None = None,
+        show_result_tools: list[str] | None = None,
     ):
         """Initialize a new Toolkit.
 
@@ -37,10 +39,12 @@ class Toolkit:
             stop_after_tool_call_tools (Optional[List[str]]): List of function names that should stop the agent after execution.
             show_result_tools (Optional[List[str]]): List of function names whose results should be shown.
         """
+        if tools is None:
+            tools = []
         self.name: str = name
-        self.tools: List[Callable] = tools
-        self.functions: Dict[str, Function] = OrderedDict()
-        self.instructions: Optional[str] = instructions
+        self.tools: list[Callable] = tools
+        self.functions: dict[str, Function] = OrderedDict()
+        self.instructions: str | None = instructions
         self.add_instructions: bool = add_instructions
         self.stop_after_tool_call_tools = stop_after_tool_call_tools or []
         self.show_result_tools = show_result_tools or []
@@ -54,7 +58,7 @@ class Toolkit:
 
         self.cache_results: bool = cache_results
         self.cache_ttl: int = cache_ttl
-        self.cache_dir: Optional[str] = cache_dir
+        self.cache_dir: str | None = cache_dir
 
         # Automatically register all methods if auto_register is True
         if auto_register and self.tools:
@@ -83,7 +87,7 @@ class Toolkit:
         for tool in self.tools:
             self.register(tool)
 
-    def register(self, function: Callable[..., Any], sanitize_arguments: bool = True, name: Optional[str] = None):
+    def register(self, function: Callable[..., Any], sanitize_arguments: bool = True, name: str | None = None):
         """Register a function with the toolkit.
 
         Args:

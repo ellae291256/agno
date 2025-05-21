@@ -40,13 +40,15 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import base64
 import re
 from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -87,11 +89,11 @@ def validate_email(email: str) -> bool:
 
 class GmailTools(Toolkit):
     # Default scopes for Gmail API access
-    DEFAULT_SCOPES = [
+    DEFAULT_SCOPES: tuple[str, ...] = (
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.modify",
         "https://www.googleapis.com/auth/gmail.compose",
-    ]
+    )
 
     def __init__(
         self,
@@ -503,10 +505,10 @@ class GmailTools(Toolkit):
 
     def _create_message(
         self,
-        to: List[str],
+        to: list[str],
         subject: str,
         body: str,
-        cc: Optional[List[str]] = None,
+        cc: Optional[list[str]] = None,
         thread_id: Optional[str] = None,
         message_id: Optional[str] = None,
     ) -> dict:
@@ -532,7 +534,7 @@ class GmailTools(Toolkit):
 
         return email_data
 
-    def _get_message_details(self, messages: List[dict]) -> List[dict]:
+    def _get_message_details(self, messages: list[dict]) -> list[dict]:
         """Get details for list of messages"""
         details = []
         for msg in messages:
@@ -586,7 +588,7 @@ class GmailTools(Toolkit):
                         attachments.append(part["filename"])
             elif "body" in msg_data["payload"] and "data" in msg_data["payload"]["body"]:
                 body = base64.urlsafe_b64decode(msg_data["payload"]["body"]["data"]).decode()
-        except Exception:
+        except Exception as e:
             return "Unable to decode message body"
 
         if attachments:
