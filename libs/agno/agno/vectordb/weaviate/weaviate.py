@@ -504,11 +504,13 @@ class Weaviate(VectorDb):
 
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
+            await client.close()
             return []
 
     def keyword_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+        client = self.get_client()
         try:
-            collection = self.get_client().collections.get(self.collection)
+            collection = client.collections.get(self.collection)
             filter_expr = self._build_filter_expression(filters)
 
             response = collection.query.bm25(
@@ -527,11 +529,12 @@ class Weaviate(VectorDb):
 
             log_info(f"Found {len(search_results)} documents")
 
-            self.get_client().close()
+            client.close()
             return search_results
 
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
+            client.close()
             return []
 
     async def async_keyword_search(
@@ -574,16 +577,18 @@ class Weaviate(VectorDb):
 
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
+            await client.close()
             return []
 
     def hybrid_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+        client = self.get_client()
         try:
             query_embedding = self.embedder.get_embedding(query)
             if query_embedding is None:
                 logger.error(f"Error getting embedding for query: {query}")
                 return []
 
-            collection = self.get_client().collections.get(self.collection)
+            collection = client.collections.get(self.collection)
             filter_expr = self._build_filter_expression(filters)
 
             response = collection.query.hybrid(
@@ -604,11 +609,12 @@ class Weaviate(VectorDb):
 
             log_info(f"Found {len(search_results)} documents")
 
-            self.get_client().close()
+            client.close()
             return search_results
 
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
+            client.close()
             return []
 
     async def async_hybrid_search(
@@ -658,6 +664,7 @@ class Weaviate(VectorDb):
 
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
+            await client.close()
             return []
 
     def exists(self) -> bool:

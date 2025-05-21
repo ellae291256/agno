@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
 from typing import Any, Dict, List, Optional
@@ -325,7 +327,7 @@ class SingleStore(VectorDb):
             if neighbor.embedding:
                 try:
                     embedding_list = json.loads(neighbor.embedding)
-                except Exception as e:
+                except json.JSONDecodeError as e:
                     logger.error(f"Error extracting vector: {e}")
                     embedding_list = []
 
