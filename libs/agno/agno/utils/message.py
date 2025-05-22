@@ -1,18 +1,20 @@
-from typing import Dict, List, Union
+from __future__ import annotations
+
+from typing import Union
 
 from agno.models.message import Message
 
 
-def get_text_from_message(message: Union[List, Dict, str, Message]) -> str:
+def get_text_from_message(message: Union[list, dict, str, Message]) -> str:
     """Return the user texts from the message"""
 
     if isinstance(message, str):
         return message
     if isinstance(message, list):
-        text_messages = []
         if len(message) == 0:
             return ""
 
+        text_messages = []
         if "type" in message[0]:
             for m in message:
                 m_type = m.get("type")

@@ -17,16 +17,15 @@ from agno.tools.github import GithubTools
 @pytest.fixture
 def mock_github():
     """Create a mock GitHub client."""
-    with patch("agno.tools.github.Github") as mock_github, patch.dict(
-        "os.environ", {"GITHUB_ACCESS_TOKEN": "dummy_token"}
-    ):
-        mock_client = MagicMock(spec=Github)
-        mock_github.return_value = mock_client
-        mock_repo = MagicMock(spec=Repository)
-        mock_repo.full_name = "test-org/test-repo"
-        mock_client.get_repo.return_value = mock_repo
+    with patch("agno.tools.github.Github") as mock_github:
+        with patch.dict("os.environ", {"GITHUB_ACCESS_TOKEN": "dummy_token"}):
+            mock_client = MagicMock(spec=Github)
+            mock_github.return_value = mock_client
+            mock_repo = MagicMock(spec=Repository)
+            mock_repo.full_name = "test-org/test-repo"
+            mock_client.get_repo.return_value = mock_repo
 
-        yield mock_client, mock_repo
+            yield mock_client, mock_repo
 
 
 @pytest.fixture
@@ -137,8 +136,8 @@ def test_get_pull_request_with_details(mock_github):
     mock_pr.user.login = "test-user"
     mock_pr.user.avatar_url = "https://github.com/avatars/test-user.png"
     mock_pr.created_at.isoformat.return_value = "2024-03-01T12:00:00"
-    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0)
-    mock_pr.updated_at = datetime(2024, 3, 2, 12, 0, 0)
+    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0, tzinfo=timezone.utc)
+    mock_pr.updated_at = datetime(2024, 3, 2, 12, 0, 0, tzinfo=timezone.utc)
     mock_pr.mergeable = True
     mock_pr.mergeable_state = "clean"
     mock_pr.additions = 100
@@ -1007,7 +1006,7 @@ def test_create_pull_request(mock_github):
     mock_pr.body = "This implements the new feature"
     mock_pr.user.login = "test-user"
     mock_pr.state = "open"
-    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0)
+    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0, tzinfo=timezone.utc)
     mock_pr.html_url = "https://github.com/test-org/test-repo/pull/123"
     mock_pr.base = MagicMock()
     mock_pr.base.ref = "main"
@@ -1062,7 +1061,7 @@ def test_create_pull_request(mock_github):
 
 def test_create_review_request(mock_github):
     """Test creating a review request for a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -1097,7 +1096,7 @@ def test_create_review_request(mock_github):
 
 def test_create_file(mock_github):
     """Test creating a file in a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file creation result
@@ -1151,7 +1150,7 @@ def test_create_file(mock_github):
 
 def test_get_file_content(mock_github):
     """Test getting file content from a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file content
@@ -1182,7 +1181,9 @@ def test_get_file_content(mock_github):
 
     # Test handling of binary files - better approach that doesn't try to patch bytes.decode
     # Instead, directly patch the get_file_content method to simulate a UnicodeDecodeError
-    with patch.object(github_tools, "get_file_content") as mock_get_file:
+    with patch.object(github_tools, "get_file_content") as mock_get_file, patch.dict(
+        "os.environ", {"GITHUB_ACCESS_TOKEN": "dummy_token"}
+    ):
         mock_get_file.return_value = json.dumps(
             {
                 "name": "binary-file.bin",

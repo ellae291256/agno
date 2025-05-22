@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
 
 try:
     from sqlalchemy.dialects import mysql
@@ -399,15 +400,15 @@ class SingleStore(VectorDb):
     async def async_doc_exists(self, document: Document) -> bool:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict | None = None) -> None:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict | None = None) -> None:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict | None = None
+    ) -> list[Document]:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
 
     async def async_drop(self) -> None:

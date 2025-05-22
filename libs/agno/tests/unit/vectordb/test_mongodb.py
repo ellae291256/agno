@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from hashlib import md5
-from typing import Any, Dict, Generator, List
+from typing import Any, Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -159,7 +161,7 @@ def async_vector_db(mock_async_mongodb_client: AsyncMock, mock_embedder: MagicMo
         yield db
 
 
-def create_test_documents(num_docs: int = 3) -> List[Document]:
+def create_test_documents(num_docs: int = 3) -> list[Document]:
     """Helper function to create test documents."""
     return [
         Document(

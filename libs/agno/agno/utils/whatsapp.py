@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 from typing import Optional
 
@@ -116,8 +118,6 @@ def upload_media(media_data: bytes, mime_type: str, filename: str = "file"):
         return media_id
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
-    except Exception as e:
-        return {"error": str(e)}
 
 
 async def upload_media_async(media_data: bytes, mime_type: str, filename: str = "file"):
@@ -153,8 +153,6 @@ async def upload_media_async(media_data: bytes, mime_type: str, filename: str = 
                 return {"error": "Media ID not found in response", "response": json_resp}
             return media_id
     except httpx.HTTPStatusError as e:
-        return {"error": str(e)}
-    except Exception as e:
         return {"error": str(e)}
 
 

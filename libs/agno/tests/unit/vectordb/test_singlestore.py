@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import json
-from typing import List
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -38,6 +39,14 @@ def mock_session():
 
 
 @pytest.fixture
+@pytest.fixture
+def mock_embedder():
+    """Fixture to create a mock embedder"""
+    embedder = MagicMock()
+    embedder.embed.return_value = [0.1, 0.2, 0.3]
+    return embedder
+
+
 def singlestore_db(mock_engine, mock_session, mock_embedder):
     """Fixture to create a SingleStore instance with mocked components"""
     with patch("agno.vectordb.singlestore.singlestore.sessionmaker") as mock_sessionmaker:
@@ -149,7 +158,7 @@ def test_doc_exists(singlestore_db, sample_documents, mock_session):
 
 
 @pytest.mark.asyncio
-async def test_error_handling(singlestore_db, mock_session):
+def test_error_handling(singlestore_db, mock_session):
     """Test error handling scenarios"""
     # Mock empty search results
     mock_session.execute.return_value.fetchall.return_value = []

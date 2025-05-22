@@ -2,15 +2,15 @@
 
 
 def get_default_ns_name(app_name: str) -> str:
-    return "{}-ns".format(app_name)
+    return f"{app_name}-ns"
 
 
 def get_default_ctx_name(app_name: str) -> str:
-    return "{}-ctx".format(app_name)
+    return f"{app_name}-ctx"
 
 
 def get_default_sa_name(app_name: str) -> str:
-    return "{}-sa".format(app_name)
+    return f"{app_name}-sa"
 
 
 def get_default_cr_name(app_name: str) -> str:

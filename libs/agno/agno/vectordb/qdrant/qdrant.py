@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401
@@ -261,13 +263,13 @@ class Qdrant(VectorDb):
             self.client.upsert(collection_name=self.collection, wait=False, points=points)
         log_debug(f"Upsert {len(points)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Insert documents asynchronously.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (dict[str, Any] | None): Filters to apply while inserting documents
         """
         log_debug(f"Inserting {len(documents)} documents asynchronously")
 
@@ -323,14 +325,14 @@ class Qdrant(VectorDb):
         log_debug("Redirecting the async request to async_insert")
         await self.async_insert(documents)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents in the database.
 
         Args:
             query (str): Query to search for
             limit (int): Number of search results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching
+            filters (dict[str, Any] | None): Filters to apply while searching
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -378,7 +380,7 @@ class Qdrant(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results:
             if result.payload is None:
                 continue
@@ -400,8 +402,8 @@ class Qdrant(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """Search for documents asynchronously."""
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -449,7 +451,7 @@ class Qdrant(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results:
             if result.payload is None:
                 continue

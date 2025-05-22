@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 try:
     from packaging import version
@@ -68,10 +70,10 @@ class PineconeDb(VectorDb):
         self,
         name: str,
         dimension: int,
-        spec: Union[Dict, ServerlessSpec, PodSpec],
+        spec: Union[dict, ServerlessSpec, PodSpec],
         embedder: Optional[Embedder] = None,
         metric: Optional[str] = "cosine",
-        additional_headers: Optional[Dict[str, str]] = None,
+        additional_headers: Optional[dict[str, str]] = None,
         pool_threads: Optional[int] = 1,
         namespace: Optional[str] = None,
         timeout: Optional[int] = None,
@@ -89,16 +91,16 @@ class PineconeDb(VectorDb):
         self.api_key: Optional[str] = api_key
         self.host: Optional[str] = host
         self.config: Optional[Config] = config
-        self.additional_headers: Dict[str, str] = additional_headers or {}
+        self.additional_headers: dict[str, str] = additional_headers or {}
         self.pool_threads: Optional[int] = pool_threads
         self.namespace: Optional[str] = namespace
         self.index_api: Optional[Any] = index_api
         self.name: str = name
         self.dimension: Optional[int] = dimension
-        self.spec: Union[Dict, ServerlessSpec, PodSpec] = spec
+        self.spec: Union[dict, ServerlessSpec, PodSpec] = spec
         self.metric: Optional[str] = metric
         self.timeout: Optional[int] = timeout
-        self.kwargs: Optional[Dict[str, str]] = kwargs
+        self.kwargs: Optional[dict[str, str]] = kwargs
         self.use_hybrid_search: bool = use_hybrid_search
         self.hybrid_alpha: float = hybrid_alpha
         if self.use_hybrid_search:
@@ -234,8 +236,8 @@ class PineconeDb(VectorDb):
 
     def upsert(
         self,
-        documents: List[Document],
-        filters: Optional[Dict[str, Any]] = None,
+        documents: list[Document],
+        filters: Optional[dict[str, Any]] = None,
         namespace: Optional[str] = None,
         batch_size: Optional[int] = None,
         show_progress: bool = False,
@@ -243,8 +245,8 @@ class PineconeDb(VectorDb):
         """insert documents into the index.
 
         Args:
-            documents (List[Document]): The documents to upsert.
-            filters (Optional[Dict[str, Any]], optional): The filters for the upsert. Defaults to None.
+            documents (list[Document]): The documents to upsert.
+            filters (Optional[dict[str, Any]], optional): The filters for the upsert. Defaults to None.
             namespace (Optional[str], optional): The namespace for the documents. Defaults to None.
             batch_size (Optional[int], optional): The batch size for upsert. Defaults to None.
             show_progress (bool, optional): Whether to show progress during upsert. Defaults to False.
@@ -462,7 +464,6 @@ class PineconeDb(VectorDb):
         This method can be left empty as Pinecone automatically optimizes indexes.
 
         """
-        pass
 
     def delete(self, namespace: Optional[str] = None) -> bool:
         """Clear the index.

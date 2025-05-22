@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
@@ -96,7 +98,7 @@ class TodoistTools(Toolkit):
         project_id: Optional[str] = None,
         due_string: Optional[str] = None,
         priority: Optional[int] = None,
-        labels: Optional[List[str]] = None,
+        labels: Optional[list[str]] = None,
     ) -> str:
         """
         Create a new task in Todoist.
@@ -137,7 +139,7 @@ class TodoistTools(Toolkit):
         task_id: str,
         content: Optional[str] = None,
         description: Optional[str] = None,
-        labels: Optional[List[str]] = None,
+        labels: Optional[list[str]] = None,
         priority: Optional[int] = None,
         due_string: Optional[str] = None,
         due_date: Optional[str] = None,
@@ -167,7 +169,7 @@ class TodoistTools(Toolkit):
         """
         try:
             # Build updates dictionary with only provided parameters
-            updates: Dict[str, Any] = {}
+            updates: dict[str, Any] = {}
             if content is not None:
                 updates["content"] = content
             if description is not None:
@@ -218,7 +220,10 @@ class TodoistTools(Toolkit):
         """Get all active (not completed) tasks."""
         try:
             tasks = self.api.get_tasks()
-            tasks = list(tasks)[0]
+            tasks = list(tasks)
+            if not tasks:
+                return json.dumps([])
+            tasks = tasks[0]
             tasks_list = []
             for task in tasks:
                 task_dict = self._task_to_dict(task)

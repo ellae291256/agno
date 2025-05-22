@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -111,7 +113,7 @@ class ChromaDb(VectorDb):
                 return True
         except Exception as e:
             logger.error(f"Document does not exist: {e}")
-        return False
+            return False
 
     async def async_doc_exists(self, document: Document) -> bool:
         """Check if a document exists asynchronously."""
@@ -131,6 +133,7 @@ class ChromaDb(VectorDb):
                         return True
             except Exception as e:
                 logger.error(f"Document with given name does not exist: {e}")
+                return False
         return False
 
     async def async_name_exists(self, name: str) -> bool:
@@ -221,20 +224,20 @@ class ChromaDb(VectorDb):
         """Upsert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.upsert, documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None) -> list[Document]:
         """Search the collection for a query.
 
         Args:
             query (str): Query to search for.
             limit (int): Number of results to return.
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching.
+            filters (Optional[dict[str, Any]]): Filters to apply while searching.
                 Supports ChromaDB's filtering operators:
                 - $eq, $ne: Equality/Inequality
                 - $gt, $gte, $lt, $lte: Numeric comparisons
                 - $in, $nin: List inclusion/exclusion
                 - $and, $or: Logical operators
         Returns:
-            List[Document]: List of search results.
+            list[Document]: List of search results.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -255,7 +258,7 @@ class ChromaDb(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
 
         ids = result.get("ids", [[]])[0]
         metadata = result.get("metadatas", [{}])[0]
@@ -268,13 +271,13 @@ class ChromaDb(VectorDb):
             metadata[idx]["distances"] = distance
 
         try:
-            for idx, (id_, metadata, document) in enumerate(zip(ids, metadata, documents)):
+            for i, (id_, metadata, document) in enumerate(zip(ids, metadata, documents)):
                 search_results.append(
                     Document(
                         id=id_,
                         meta_data=metadata,
                         content=document,
-                        embedding=embeddings[idx],
+                        embedding=embeddings[i],
                     )
                 )
         except Exception as e:
@@ -286,7 +289,7 @@ class ChromaDb(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def _convert_filters(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+    def _convert_filters(self, filters: dict[str, Any]) -> dict[str, Any]:
         """Convert simple filters to ChromaDB's filter format.
 
         Handles conversion of simple key-value filters to ChromaDB's operator format
@@ -296,7 +299,7 @@ class ChromaDb(VectorDb):
             return {}
 
         # If filters already use ChromaDB operators ($eq, $ne, etc.), return as is
-        if any(key.startswith("$") for key in filters.keys()):
+        if any(key.startswith("$") for key in filters):
             return filters
 
         # Convert simple key-value pairs to ChromaDB's format
@@ -312,8 +315,8 @@ class ChromaDb(VectorDb):
         return converted
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: Optional[dict[str, Any]] = None
+    ) -> list[Document]:
         """Search asynchronously by running in a thread."""
         return await asyncio.to_thread(self.search, query, limit, filters)
 
@@ -334,7 +337,7 @@ class ChromaDb(VectorDb):
             return True
         except Exception as e:
             log_debug(f"Collection does not exist: {e}")
-        return False
+            return False
 
     async def async_exists(self) -> bool:
         """Check if collection exists asynchronously by running in a thread."""
@@ -348,6 +351,7 @@ class ChromaDb(VectorDb):
                 return collection.count()
             except Exception as e:
                 logger.error(f"Error getting count: {e}")
+                return 0
         return 0
 
     def optimize(self) -> None:

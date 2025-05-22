@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from __future__ import annotations
+
 import collections.abc
 import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Union, cast
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -166,7 +168,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -329,8 +331,8 @@ class Workflow:
                 field_value = getattr(self, f.name)
                 field_value.session_id = self.session_id
 
-    def get_workflow_data(self) -> Dict[str, Any]:
-        workflow_data: Dict[str, Any] = {}
+    def get_workflow_data(self) -> dict[str, Any]:
+        workflow_data: dict[str, Any] = {}
         if self.name is not None:
             workflow_data["name"] = self.name
         if self.workflow_id is not None:
@@ -339,8 +341,8 @@ class Workflow:
             workflow_data["description"] = self.description
         return workflow_data
 
-    def get_session_data(self) -> Dict[str, Any]:
-        session_data: Dict[str, Any] = {}
+    def get_session_data(self) -> dict[str, Any]:
+        session_data: dict[str, Any] = {}
         if self.session_name is not None:
             session_data["session_name"] = self.session_name
         if self.session_state and len(self.session_state) > 0:
@@ -467,6 +469,7 @@ class Workflow:
                         self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
                 except Exception as e:
                     log_warning(f"Failed to load runs from memory: {e}")
+                    logger.debug(f"Stacktrace: {e}", exc_info=True)
             else:
                 try:
                     if "runs" in session.memory:
@@ -474,12 +477,14 @@ class Workflow:
                             self.memory.runs = [WorkflowRun(**m) for m in session.memory["runs"]]
                         except Exception as e:
                             logger.warning(f"Failed to load runs from memory: {e}")
+                            logger.debug(f"Stacktrace: {e}", exc_info=True)
                 except Exception as e:
                     logger.warning(f"Failed to load WorkflowMemory: {e}")
+                    logger.debug(f"Stacktrace: {e}", exc_info=True)
 
         log_debug(f"-*- WorkflowSession loaded: {session.session_id}")
 
-    def read_from_storage(self) -> Optional[WorkflowSession]:
+    def read_from_storage(self) -> WorkflowSession | None:
         """Load the WorkflowSession from storage.
 
         Returns:
@@ -527,7 +532,7 @@ class Workflow:
                 # and populate self.workflow_session with the new session
                 self.write_to_storage()
                 if self.workflow_session is None:
-                    raise Exception("Failed to create new WorkflowSession in storage")
+                    raise RuntimeError("Failed to create new WorkflowSession in storage")
                 log_debug(f"-*- Created WorkflowSession: {self.workflow_session.session_id}")
                 self.log_workflow_session()
         return self.session_id
@@ -577,17 +582,17 @@ class Workflow:
         # -*- Delete session
         self.storage.delete_session(session_id=session_id)
 
-    def deep_copy(self, *, update: Optional[Dict[str, Any]] = None) -> Workflow:
+    def deep_copy(self, *, update: dict[str, Any] | None = None) -> Workflow:
         """Create and return a deep copy of this Workflow, optionally updating fields.
 
         Args:
-            update (Optional[Dict[str, Any]]): Optional dictionary of fields for the new Workflow.
+            update (dict[str, Any] | None): Optional dictionary of fields for the new Workflow.
 
         Returns:
             Workflow: A new Workflow instance.
         """
         # Extract the fields to set for the new Workflow
-        fields_for_new_workflow: Dict[str, Any] = {}
+        fields_for_new_workflow: dict[str, Any] = {}
 
         for f in fields(self):
             field_value = getattr(self, f.name)
@@ -618,11 +623,11 @@ class Workflow:
         if isinstance(field_value, (list, dict, set, Storage)):
             try:
                 return deepcopy(field_value)
-            except Exception as e:
+            except (TypeError, AttributeError) as e:
                 logger.warning(f"Failed to deepcopy field: {field_name} - {e}")
                 try:
                     return copy(field_value)
-                except Exception as e:
+                except (TypeError, AttributeError) as e:
                     logger.warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 

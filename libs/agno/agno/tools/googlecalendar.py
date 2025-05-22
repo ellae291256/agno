@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 import json
 import os.path
@@ -17,7 +19,7 @@ except ImportError:
     raise ImportError(
         "Google client library for Python not found , install it using `pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib`"
     )
-from typing import List, Optional
+from typing import Optional
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
@@ -137,10 +139,12 @@ class GoogleCalendarTools(Toolkit):
         description: Optional[str] = None,
         location: Optional[str] = None,
         timezone: Optional[str] = None,
-        attendees: List[str] = [],
+        attendees: list[str] | None = None,
         send_updates: Optional[str] = "all",
         add_google_meet_link: Optional[bool] = False,
     ) -> str:
+        if attendees is None:
+            attendees = []
         """
         Create a new event in the user's primary calendar.
 
