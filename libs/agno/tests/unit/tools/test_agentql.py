@@ -30,6 +30,7 @@ def mock_agentql():
 @pytest.fixture
 def agentql_tools():
     """Create AgentQLTools instance with test API key."""
+    return AgentQLTools(api_key="test_key")
     with patch.dict("os.environ", {"AGENTQL_API_KEY": "test_key"}):
         return AgentQLTools()
 

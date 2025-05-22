@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import runpy
 from pathlib import Path
@@ -87,6 +89,8 @@ class PythonTools(Toolkit):
             else:
                 return f"successfully ran {str(file_path)}"
         except Exception as e:
+            # Broad exception handling is necessary here as runpy.run_path can raise various exceptions
+            # depending on the code being executed, and we want to catch all execution errors.
             logger.error(f"Error saving and running code: {e}")
             return f"Error saving and running code: {e}"
 
@@ -114,6 +118,8 @@ class PythonTools(Toolkit):
             else:
                 return f"successfully ran {str(file_path)}"
         except Exception as e:
+            # Broad exception handling is necessary here as runpy.run_path can raise various exceptions
+            # depending on the code being executed, and we want to catch all execution errors.
             logger.error(f"Error running file: {e}")
             return f"Error running file: {e}"
 
@@ -129,6 +135,8 @@ class PythonTools(Toolkit):
             contents = file_path.read_text(encoding="utf-8")
             return str(contents)
         except Exception as e:
+            # Broad exception handling is necessary here as file operations can raise various exceptions
+            # (e.g., FileNotFoundError, PermissionError, UnicodeDecodeError) and we want to catch all IO errors.
             logger.error(f"Error reading file: {e}")
             return f"Error reading file: {e}"
 
@@ -142,6 +150,8 @@ class PythonTools(Toolkit):
             files = [str(file_path.name) for file_path in self.base_dir.iterdir()]
             return ", ".join(files)
         except Exception as e:
+            # Broad exception handling is necessary here as directory iteration can raise various exceptions
+            # (e.g., PermissionError, NotADirectoryError) and we want to catch all IO errors.
             logger.error(f"Error reading files: {e}")
             return f"Error reading files: {e}"
 
@@ -171,6 +181,8 @@ class PythonTools(Toolkit):
             else:
                 return "successfully ran python code"
         except Exception as e:
+            # Broad exception handling is necessary here as exec() can raise various exceptions
+            # depending on the code being executed, and we want to catch all execution errors.
             logger.error(f"Error running python code: {e}")
             return f"Error running python code: {e}"
 
@@ -192,6 +204,8 @@ class PythonTools(Toolkit):
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
         except Exception as e:
+            # Broad exception handling is necessary here as subprocess.check_call can raise various exceptions
+            # (e.g., subprocess.CalledProcessError, FileNotFoundError) and we want to catch all installation errors.
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"
 
@@ -213,5 +227,7 @@ class PythonTools(Toolkit):
             subprocess.check_call([sys.executable, "-m", "uv", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
         except Exception as e:
+            # Broad exception handling is necessary here as subprocess.check_call can raise various exceptions
+            # (e.g., subprocess.CalledProcessError, FileNotFoundError) and we want to catch all installation errors.
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"

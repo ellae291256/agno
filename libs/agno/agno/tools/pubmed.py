@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from xml.etree import ElementTree
 
 import httpx
@@ -179,5 +181,9 @@ class PubmedTools(Toolkit):
                 results.append(article_text)
 
             return json.dumps(results)
+        except httpx.HTTPError as e:
+            return f"Could not fetch articles. HTTP Error: {e}"
+        except ElementTree.ParseError as e:
+            return f"Could not fetch articles. Parse Error: {e}"
         except Exception as e:
-            return f"Could not fetch articles. Error: {e}"
+            return f"Could not fetch articles. Unexpected Error: {e}"

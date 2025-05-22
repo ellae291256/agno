@@ -57,18 +57,19 @@ def mock_playwright():
 
 
 @pytest.fixture
+@pytest.fixture
 def browserbase_tools(mock_browserbase):
     """Create a BrowserbaseTools instance with mocked dependencies."""
     with patch.dict("os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}):
         tools = BrowserbaseTools()
         # Directly set the app to our mock to avoid initialization issues
         tools.app = mock_browserbase
-        return tools
+        yield tools
 
 
 def test_init_with_env_vars():
     """Test initialization with environment variables."""
-    with patch("agno.tools.browserbase.Browserbase"):
+    with patch("agno.tools.browserbase.Browserbase") as mock_browserbase_class:
         with patch.dict(
             "os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY, "BROWSERBASE_PROJECT_ID": TEST_PROJECT_ID}, clear=True
         ):  # Clear=True to ensure no other env vars leak in

@@ -13,7 +13,7 @@ from agno.tools.confluence import ConfluenceTools
 def mock_confluence():
     """Create a mock Confluence client."""
     with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
-        mock_client = MagicMock(spec=Confluence)
+        mock_client = MagicMock()
         mock_confluence_class.return_value = mock_client
         yield mock_client
 
@@ -148,7 +148,7 @@ def test_get_page_content_error(confluence_tools, mock_confluence):
     """Test error handling when retrieving page content."""
     # Mock the get_space_key method
     with patch.object(confluence_tools, "get_space_key", return_value="SPACE1"):
-        mock_confluence.get_page_by_title.side_effect = Exception("API Error")
+        mock_confluence.get_page_by_title.side_effect = Exception("API Error")  # noqa: BLE001
 
         result = confluence_tools.get_page_content("Space One", "Test Page")
         assert json.loads(result) == {"error": "API Error"}
@@ -201,7 +201,7 @@ def test_create_page_error(confluence_tools, mock_confluence):
     """Test error handling when creating a page."""
     # Mock the get_space_key method
     with patch.object(confluence_tools, "get_space_key", return_value="SPACE1"):
-        mock_confluence.create_page.side_effect = Exception("API Error")
+        mock_confluence.create_page.side_effect = Exception("API Error")  # noqa: BLE001
 
         result = confluence_tools.create_page("Space One", "New Page", "<p>Content</p>")
         assert json.loads(result) == {"error": "API Error"}
@@ -220,7 +220,7 @@ def test_update_page_success(confluence_tools, mock_confluence):
 
 def test_update_page_error(confluence_tools, mock_confluence):
     """Test error handling when updating a page."""
-    mock_confluence.update_page.side_effect = Exception("API Error")
+    mock_confluence.update_page.side_effect = Exception("API Error")  # noqa: BLE001
 
     result = confluence_tools.update_page("12345", "Updated Page", "<p>Updated content</p>")
     assert json.loads(result) == {"error": "API Error"}
