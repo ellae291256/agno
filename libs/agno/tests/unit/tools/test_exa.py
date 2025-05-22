@@ -13,10 +13,19 @@ from agno.tools.exa import ExaTools
 @pytest.fixture
 def mock_exa_client():
     """Create a mock Exa API client."""
+    mock_client = Mock(spec=Exa)
     with patch("agno.tools.exa.Exa") as mock_exa:
-        mock_client = Mock(spec=Exa)
         mock_exa.return_value = mock_client
-        return mock_client
+    return mock_client
+
+
+@pytest.fixture
+def exa_tools(mock_exa_client):
+    """Create ExaTools instance with mocked API."""
+    with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
+        tools = ExaTools()
+        tools.exa = mock_exa_client
+        return tools
 
 
 @pytest.fixture
@@ -30,11 +39,11 @@ def exa_tools(mock_exa_client):
 
 def create_mock_search_result(
     url: str,
-    title: str = None,
-    author: str = None,
-    published_date: str = None,
-    text: str = None,
-    highlights: list = None,
+    title: str | None = None,
+    author: str | None = None,
+    published_date: str | None = None,
+    text: str | None = None,
+    highlights: list | None = None,
 ):
     """Helper function to create mock search result."""
     result = Mock()
@@ -49,10 +58,9 @@ def create_mock_search_result(
 
 def test_init_with_api_key():
     """Test initialization with provided API key."""
-    with patch("agno.tools.exa.Exa") as mock_exa:
-        with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
-            ExaTools()
-            mock_exa.assert_called_once_with("test_key")
+    with patch("agno.tools.exa.Exa") as mock_exa, patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
+        ExaTools()
+        mock_exa.assert_called_once_with("test_key")
 
 
 def test_init_with_selective_tools():
@@ -257,7 +265,7 @@ def test_text_length_limit(exa_tools, mock_exa_client):
     assert len(result_data[0]["text"]) == 1000
 
 
-def test_exa_answer_with_model_selection(exa_tools, mock_exa_client):
+def test_exa_answer_with_model_selection(exa_tools: ExaTools, mock_exa_client: Mock):
     """Test answer generation with different models."""
     mock_answer = Mock()
     mock_answer.answer = "Generated answer"

@@ -24,7 +24,7 @@ def mock_agentql():
     with patch("agno.tools.agentql.agentql") as mock_agentql:
         wrapped_page = Mock()
         mock_agentql.wrap.return_value = wrapped_page
-        return mock_agentql, wrapped_page
+        yield mock_agentql, wrapped_page
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def test_custom_scrape_no_query(agentql_tools):
 def test_scrape_website_success(mock_playwright, mock_agentql, agentql_tools):
     """Test successful website scraping."""
     # Unpack the mock_agentql fixture
-    mock_agentql_module, wrapped_page = mock_agentql
+    _, wrapped_page = mock_agentql
 
     # Set up the mock response for query_data
     wrapped_page.query_data.return_value = {

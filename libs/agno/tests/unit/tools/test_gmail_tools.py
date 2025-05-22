@@ -1,8 +1,8 @@
 """Unit tests for GmailTools class."""
 
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -221,7 +221,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result
@@ -283,7 +283,6 @@ def test_error_handling(gmail_tools, mock_gmail_service):
     result = gmail_tools.get_latest_emails(count=1)
     assert "Error retrieving latest emails" in result
 
-
 def test_message_with_attachments(gmail_tools, mock_gmail_service):
     """Test handling messages with attachments."""
     mock_messages = {"messages": [{"id": "123"}]}
@@ -314,7 +313,6 @@ def test_message_with_attachments(gmail_tools, mock_gmail_service):
     assert "Message with attachment" in result
     assert "test.pdf" in result
 
-
 def test_empty_message_list(gmail_tools, mock_gmail_service):
     """Test handling of empty message list."""
     mock_messages = {"messages": []}
@@ -322,7 +320,6 @@ def test_empty_message_list(gmail_tools, mock_gmail_service):
 
     result = gmail_tools.get_latest_emails(count=1)
     assert "No emails found" in result
-
 
 def test_malformed_message(gmail_tools, mock_gmail_service):
     """Test handling of malformed message data."""
@@ -340,14 +337,12 @@ def test_malformed_message(gmail_tools, mock_gmail_service):
     result = gmail_tools.get_latest_emails(count=1)
     assert result  # Should handle missing headers gracefully
 
-
 def test_network_error(gmail_tools, mock_gmail_service):
     """Test handling of network errors."""
     mock_gmail_service.users().messages().list.side_effect = ConnectionError("Network unavailable")
 
     result = gmail_tools.get_latest_emails(count=1)
     assert "Error" in result
-
 
 def test_html_message_content(gmail_tools, mock_gmail_service):
     """Test handling of HTML message content."""
@@ -394,7 +389,6 @@ def test_multiple_recipients(gmail_tools, mock_gmail_service):
 
     assert "msg123" in result
 
-
 def test_rate_limit_error(gmail_tools, mock_gmail_service):
     """Test handling of rate limit errors."""
     from googleapiclient.errors import HttpError
@@ -405,7 +399,6 @@ def test_rate_limit_error(gmail_tools, mock_gmail_service):
 
     result = gmail_tools.get_latest_emails(count=1)
     assert "Error retrieving latest emails" in result
-
 
 def test_multipart_complex_message(gmail_tools, mock_gmail_service):
     """Test handling of complex multipart messages."""
@@ -440,7 +433,6 @@ def test_multipart_complex_message(gmail_tools, mock_gmail_service):
     assert "Plain text version" in result
     assert "test.pdf" in result
 
-
 def test_invalid_email_parameters():
     """Test handling of invalid email parameters."""
     tools = GmailTools(creds=Mock(spec=Credentials, valid=True))
@@ -470,7 +462,6 @@ def test_invalid_email_parameters():
                 subject="Test",
                 body=None,  # None body
             )
-
 
 def test_service_initialization():
     """Test that service is initialized only after successful authentication."""

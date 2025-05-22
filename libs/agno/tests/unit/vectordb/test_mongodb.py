@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import uuid
 from hashlib import md5
-from typing import Any, Dict, Generator, List
+from typing import Any, Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -25,14 +27,13 @@ def mock_embedder() -> MagicMock:
 @pytest.fixture(scope="function")
 def mock_mongodb_client() -> Generator[MagicMock, None, None]:
     """Create a mock MongoDB client."""
-    with patch("pymongo.MongoClient") as mock_client:
-        # Create mock instances for client, db, and collection
-        mock_collection = MagicMock(spec=Collection)
-        mock_db = MagicMock(spec=Database)
-        mock_client_instance = MagicMock(spec=MongoClient)
+    # Create mock instances for client, db, and collection
+    mock_collection = MagicMock(spec=Collection)
+    mock_db = MagicMock(spec=Database)
+    mock_client_instance = MagicMock(spec=MongoClient)
 
-        # Setup the mock chain
-        mock_client.return_value = mock_client_instance
+    # Setup the mock chain
+    with patch("pymongo.MongoClient", return_value=mock_client_instance) as mock_client:
         mock_client_instance.__getitem__.return_value = mock_db
         mock_db.__getitem__.return_value = mock_collection
         mock_db.list_collection_names = MagicMock(return_value=["test_vectors"])
@@ -76,14 +77,13 @@ class AsyncCursor:
 @pytest.fixture(scope="function")
 def mock_async_mongodb_client() -> Generator[AsyncMock, None, None]:
     """Create a mock Async MongoDB client."""
-    with patch("pymongo.AsyncMongoClient") as mock_client:
-        # Create mock instances
-        mock_collection = AsyncMock()
-        mock_db = AsyncMock()
-        mock_client_instance = AsyncMock()
+    # Create mock instances
+    mock_collection = AsyncMock()
+    mock_db = AsyncMock()
+    mock_client_instance = AsyncMock()
 
-        # Setup the mock chain
-        mock_client.return_value = mock_client_instance
+    # Setup the mock chain
+    with patch("pymongo.AsyncMongoClient", return_value=mock_client_instance) as mock_client:
         mock_client_instance.__getitem__.return_value = mock_db
         mock_db.__getitem__.return_value = mock_collection
         mock_db.list_collection_names = AsyncMock(return_value=["test_vectors"])
