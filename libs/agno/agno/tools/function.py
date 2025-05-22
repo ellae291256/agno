@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from functools import partial
-from typing import Any, Callable, Dict, List, Literal, Optional, TypeVar, get_type_hints
+from typing import Any, Callable, Literal, TypeVar, get_type_hints
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field, validate_call
@@ -156,7 +158,7 @@ class Function(BaseModel):
                 ]
 
             # log_debug(f"JSON schema for {function_name}: {parameters}")
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             log_warning(f"Could not parse args for {function_name}: {e}", exc_info=True)
 
         # Don't wrap async generator with validate_call

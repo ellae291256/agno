@@ -40,13 +40,15 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import base64
 import re
 from datetime import datetime, timedelta
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 from agno.tools import Toolkit
 
@@ -379,7 +381,7 @@ class GmailTools(Toolkit):
             str: Formatted string containing email details
         """
         try:
-            start_date_dt = datetime.fromtimestamp(start_date)
+            start_date_dt = datetime.fromtimestamp(start_date, tz=timezone.utc)
             if range_in_days:
                 end_date = start_date_dt + timedelta(days=range_in_days)
                 query = f"after:{start_date_dt.strftime('%Y/%m/%d')} before:{end_date.strftime('%Y/%m/%d')}"
@@ -503,10 +505,10 @@ class GmailTools(Toolkit):
 
     def _create_message(
         self,
-        to: List[str],
+        to: list[str],
         subject: str,
         body: str,
-        cc: Optional[List[str]] = None,
+        cc: Optional[list[str]] = None,
         thread_id: Optional[str] = None,
         message_id: Optional[str] = None,
     ) -> dict:
@@ -532,7 +534,7 @@ class GmailTools(Toolkit):
 
         return email_data
 
-    def _get_message_details(self, messages: List[dict]) -> List[dict]:
+    def _get_message_details(self, messages: list[dict]) -> list[dict]:
         """Get details for list of messages"""
         details = []
         for msg in messages:

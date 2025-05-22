@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, AsyncIterator, Dict, Iterator, Optional, Tuple, Type, Union
 
 from pydantic import BaseModel
 
@@ -139,6 +141,8 @@ class Cohere(Model):
 
         try:
             return self.get_client().chat(model=self.id, messages=format_messages(messages), **request_kwargs)  # type: ignore
+        except ModelProviderError:
+            raise
         except Exception as e:
             log_error(f"Unexpected error calling Cohere API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
@@ -161,6 +165,8 @@ class Cohere(Model):
                 messages=format_messages(messages),  # type: ignore
                 **request_kwargs,
             )
+        except ModelProviderError:
+            raise
         except Exception as e:
             log_error(f"Unexpected error calling Cohere API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
@@ -183,6 +189,8 @@ class Cohere(Model):
                 messages=format_messages(messages),  # type: ignore
                 **request_kwargs,
             )
+        except ModelProviderError:
+            raise
         except Exception as e:
             log_error(f"Unexpected error calling Cohere API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
@@ -206,6 +214,8 @@ class Cohere(Model):
                 **request_kwargs,
             ):
                 yield response
+        except ModelProviderError:
+            raise
         except Exception as e:
             log_error(f"Unexpected error calling Cohere API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e

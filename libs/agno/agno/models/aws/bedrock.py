@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, Iterator, Tuple
 
 from pydantic import BaseModel
 
@@ -232,11 +234,11 @@ class AwsBedrock(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Dict[str, Any]:
+        messages: list[Message],
+        response_format: dict | Type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """
         Invoke the Bedrock API.
         """
@@ -267,11 +269,11 @@ class AwsBedrock(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
-    ) -> Iterator[Dict[str, Any]]:
+        messages: list[Message],
+        response_format: dict | Type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> Iterator[dict[str, Any]]:
         """
         Invoke the Bedrock API with streaming.
         """
@@ -302,7 +304,7 @@ class AwsBedrock(Model):
 
     # Overwrite the default from the base model
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], tool_ids: List[str]
+        self, messages: list[Message], function_call_results: list[Message], tool_ids: list[str]
     ) -> None:
         """
         Handle the results of function calls.
@@ -313,7 +315,7 @@ class AwsBedrock(Model):
             tool_ids (List[str]): The tool ids.
         """
         if function_call_results:
-            tool_result_content: List = []
+            tool_result_content: list = []
 
             for _fc_message_index, _fc_message in enumerate(function_call_results):
                 tool_result = {
@@ -381,12 +383,12 @@ class AwsBedrock(Model):
 
     def process_response_stream(
         self,
-        messages: List[Message],
+        messages: list[Message],
         assistant_message: Message,
         stream_data: MessageData,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        response_format: dict | Type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ModelResponse]:
         """
         Process the synchronous response stream.
@@ -396,7 +398,7 @@ class AwsBedrock(Model):
             assistant_message (Message): The assistant message.
             stream_data (MessageData): The stream data.
         """
-        tool_use: Dict[str, Any] = {}
+        tool_use: dict[str, Any] = {}
         content = []
         tool_ids = []
 

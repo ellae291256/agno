@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import collections.abc
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from types import AsyncGeneratorType, GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Dict, Iterator, List, Literal, Optional, Tuple, Type, Union
+from typing import Any, AsyncGenerator, AsyncIterator, Iterator, Literal, Tuple, Type, Union
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -187,7 +189,7 @@ def _handle_agent_exception(a_exc: AgentRunException, additional_messages: Optio
             elif isinstance(m, dict):
                 try:
                     additional_messages.append(Message(**m))
-                except Exception as e:
+                except Exception:
                     log_warning(f"Failed to convert dict to Message: {e}")
 
     if a_exc.stop_execution:

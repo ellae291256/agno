@@ -541,8 +541,8 @@ def test_get_pull_request_comments(mock_github):
     mock_comment1.id = 1057297855
     mock_comment1.body = "This is a comment"
     mock_comment1.user.login = "test-user"
-    mock_comment1.created_at = datetime(2023, 1, 1)
-    mock_comment1.updated_at = datetime(2023, 1, 2)
+    mock_comment1.created_at = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    mock_comment1.updated_at = datetime(2023, 1, 2, tzinfo=timezone.utc)
     mock_comment1.path = "file.txt"
     mock_comment1.position = 0
     mock_comment1.commit_id = "abc123"
@@ -600,7 +600,7 @@ def test_create_pull_request_comment(mock_github):
     mock_comment.id = 1057297855
     mock_comment.body = "This is a comment"
     mock_comment.user.login = "test-user"
-    mock_comment.created_at = datetime(2023, 1, 1)
+    mock_comment.created_at = datetime(2023, 1, 1, tzinfo=timezone.utc)
     mock_comment.path = "file.txt"
     mock_comment.position = 0
     mock_comment.commit_id = "abc123"
@@ -643,7 +643,7 @@ def test_edit_pull_request_comment(mock_github):
     mock_comment.id = 1057297855
     mock_comment.user = MagicMock()
     mock_comment.user.login = "test-user"
-    mock_comment.updated_at = datetime(2023, 1, 2)
+    mock_comment.updated_at = datetime(2023, 1, 2, tzinfo=timezone.utc)
     mock_comment.path = "file.txt"
     mock_comment.position = 5
     mock_comment.commit_id = "abc123"
@@ -657,7 +657,7 @@ def test_edit_pull_request_comment(mock_github):
                 "id": 1057297855,
                 "body": "This is a modified comment",
                 "user": "test-user",
-                "updated_at": datetime(2023, 1, 2).isoformat(),
+                "updated_at": datetime(2023, 1, 2, tzinfo=timezone.utc).isoformat(),
                 "path": "file.txt",
                 "position": 5,
                 "commit_id": "abc123",
