@@ -10,7 +10,7 @@ from agno.tools.agentql import AgentQLTools
 @pytest.fixture
 def mock_playwright():
     """Create a mock Playwright instance."""
-    with patch("agno.tools.agentql.sync_playwright") as mock_pw:
+    with patch("agno.tools.agentql.sync_playwright") as mock_pw, patch.dict("os.environ", clear=True):
         mock_browser = Mock()
         mock_page = Mock()
         mock_browser.new_page.return_value = mock_page
@@ -21,7 +21,7 @@ def mock_playwright():
 @pytest.fixture
 def mock_agentql():
     """Create a mock AgentQL wrapper."""
-    with patch("agno.tools.agentql.agentql") as mock_agentql:
+    with patch("agno.tools.agentql.agentql") as mock_agentql, patch.dict("os.environ", clear=True):
         wrapped_page = Mock()
         mock_agentql.wrap.return_value = wrapped_page
         return mock_agentql, wrapped_page
@@ -42,9 +42,8 @@ def test_init_with_api_key():
 
 def test_init_without_api_key():
     """Test initialization without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
-            AgentQLTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
+        AgentQLTools()
 
 
 def test_scrape_website_no_url(agentql_tools):
@@ -55,10 +54,9 @@ def test_scrape_website_no_url(agentql_tools):
 
 def test_scrape_website_no_api_key():
     """Test scraping without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
-            tools = AgentQLTools()
-            tools.scrape_website("https://example.com")
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="AGENTQL_API_KEY not set"):
+        tools = AgentQLTools()
+        tools.scrape_website("https://example.com")
 
 
 def test_custom_scrape_no_query(agentql_tools):
