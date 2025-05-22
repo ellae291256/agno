@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -111,6 +113,7 @@ class ChromaDb(VectorDb):
                 return True
         except Exception as e:
             logger.error(f"Document does not exist: {e}")
+            return False
         return False
 
     async def async_doc_exists(self, document: Document) -> bool:
@@ -131,6 +134,7 @@ class ChromaDb(VectorDb):
                         return True
             except Exception as e:
                 logger.error(f"Document with given name does not exist: {e}")
+                return False
         return False
 
     async def async_name_exists(self, name: str) -> bool:
@@ -268,11 +272,11 @@ class ChromaDb(VectorDb):
             metadata[idx]["distances"] = distance
 
         try:
-            for idx, (id_, metadata, document) in enumerate(zip(ids, metadata, documents)):
+            for idx, (id_, meta_item, document) in enumerate(zip(ids, metadata, documents)):
                 search_results.append(
                     Document(
                         id=id_,
-                        meta_data=metadata,
+                        meta_data=meta_item,
                         content=document,
                         embedding=embeddings[idx],
                     )
@@ -334,7 +338,7 @@ class ChromaDb(VectorDb):
             return True
         except Exception as e:
             log_debug(f"Collection does not exist: {e}")
-        return False
+            return False
 
     async def async_exists(self) -> bool:
         """Check if collection exists asynchronously by running in a thread."""
@@ -348,6 +352,7 @@ class ChromaDb(VectorDb):
                 return collection.count()
             except Exception as e:
                 logger.error(f"Error getting count: {e}")
+                return 0
         return 0
 
     def optimize(self) -> None:

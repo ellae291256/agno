@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from rich.prompt import Prompt
 
@@ -127,7 +129,7 @@ def create_workspace(
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.GitError as e:
         logger.error(e)
         return None
 
@@ -138,7 +140,7 @@ def create_workspace(
         logger.debug(f"Deleting {_dot_git_folder}")
         try:
             _dot_git_exists = not rmdir_recursive(_dot_git_folder)
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"Failed to delete {_dot_git_folder}: {e}")
             logger.info("Please delete the .git folder manually")
             pass
@@ -156,7 +158,7 @@ def create_workspace(
             str(workspace_example_secrets_dir),
             str(workspace_secrets_dir),
         )
-    except Exception as e:
+    except OSError as e:
         logger.warning(f"Could not create workspace/secrets: {e}")
         logger.warning("Please manually copy workspace/example_secrets to workspace/secrets")
 
@@ -372,15 +374,15 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
 def start_workspace(
     agno_config: AgnoCliConfig,
     ws_config: WorkspaceConfig,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
-    pull: Optional[bool] = False,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool = False,
+    auto_confirm: bool = False,
+    force: bool | None = None,
+    pull: bool = False,
 ) -> None:
     """Start an Agno Workspace. This is called from `ag ws up`"""
     if ws_config is None:
@@ -480,14 +482,14 @@ def start_workspace(
 def stop_workspace(
     agno_config: AgnoCliConfig,
     ws_config: WorkspaceConfig,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool = False,
+    auto_confirm: bool = False,
+    force: bool | None = None,
 ) -> None:
     """Stop an Agno Workspace. This is called from `ag ws down`"""
     if ws_config is None:
@@ -585,15 +587,15 @@ def stop_workspace(
 def update_workspace(
     agno_config: AgnoCliConfig,
     ws_config: WorkspaceConfig,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
-    pull: Optional[bool] = False,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool = False,
+    auto_confirm: bool = False,
+    force: bool | None = None,
+    pull: bool = False,
 ) -> None:
     """Update an Agno Workspace. This is called from `ag ws patch`"""
     if ws_config is None:
@@ -689,7 +691,7 @@ def update_workspace(
         )
 
 
-def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[List[Path]]) -> None:
+def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: list[Path] | None) -> None:
     if ws_to_delete is None or len(ws_to_delete) == 0:
         print_heading("No workspaces to delete")
         return
@@ -698,7 +700,7 @@ def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[List[Pat
         agno_config.delete_ws(ws_root_path=ws_root)
 
 
-def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
+def set_workspace_as_active(ws_dir_name: str | None) -> None:
     from agno.cli.operator import initialize_agno
 
     ######################################################

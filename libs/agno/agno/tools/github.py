@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import List, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -586,7 +587,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error reopening issue: {e}")
             return json.dumps({"error": str(e)})
 
-    def assign_issue(self, repo_name: str, issue_number: int, assignees: List[str]) -> str:
+    def assign_issue(self, repo_name: str, issue_number: int, assignees: list[str]) -> str:
         """Assign users to an issue.
 
         Args:
@@ -607,7 +608,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error assigning issue: {e}")
             return json.dumps({"error": str(e)})
 
-    def label_issue(self, repo_name: str, issue_number: int, labels: List[str]) -> str:
+    def label_issue(self, repo_name: str, issue_number: int, labels: list[str]) -> str:
         """Add labels to an issue.
 
         Args:
@@ -665,8 +666,8 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         issue_number: int,
-        title: Optional[str] = None,
-        body: Optional[str] = None,
+        title: str | None = None,
+        body: str | None = None,
     ) -> str:
         """Edit the title or body of an issue.
 
@@ -1090,7 +1091,7 @@ class GithubTools(Toolkit):
                     if not issue.pull_request:
                         open_issues_count += 1
                 repo_info["actual_open_issues"] = open_issues_count
-            except Exception as e:
+            except GithubException as e:
                 log_debug(f"Error getting actual open issues: {e}")
                 repo_info["actual_open_issues"] = None
 
@@ -1098,7 +1099,7 @@ class GithubTools(Toolkit):
             try:
                 open_prs = repo.get_pulls(state="open")
                 repo_info["open_pr_count"] = int(open_prs.totalCount)
-            except Exception as e:
+            except GithubException as e:
                 log_debug(f"Error getting open PRs count: {e}")
                 repo_info["open_pr_count"] = None
 
@@ -1127,11 +1128,11 @@ class GithubTools(Toolkit):
                         }
                         open_prs_list.append(pr_data)
                         count += 1
-                    except Exception as e:
+                    except GithubException as e:
                         log_debug(f"Error processing individual PR: {e}")
 
                 repo_info["recent_open_prs"] = open_prs_list
-            except Exception as e:
+            except GithubException as e:
                 log_debug(f"Error getting recent open PRs: {e}")
                 repo_info["recent_open_prs"] = []
 
@@ -1169,7 +1170,7 @@ class GithubTools(Toolkit):
                     "avg_time_to_merge": (sum(merge_times) / len(merge_times) if merge_times else None),
                 }
                 repo_info["pr_metrics"] = pr_metrics
-            except Exception as e:
+            except GithubException as e:
                 log_debug(f"Error calculating PR metrics: {e}")
                 repo_info["pr_metrics"] = None
 
@@ -1187,7 +1188,7 @@ class GithubTools(Toolkit):
                         }
                     )
                 repo_info["contributors"] = contributors
-            except Exception as e:
+            except GithubException as e:
                 log_debug(f"Error getting contributors: {e}")
                 repo_info["contributors"] = []
 
@@ -1254,8 +1255,8 @@ class GithubTools(Toolkit):
         self,
         repo_name: str,
         pr_number: int,
-        reviewers: List[str],
-        team_reviewers: Optional[List[str]] = None,
+        reviewers: list[str],
+        team_reviewers: list[str] | None = None,
     ) -> str:
         """Create a review request for a pull request.
 
@@ -1292,7 +1293,7 @@ class GithubTools(Toolkit):
         path: str,
         content: str,
         message: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Create a new file in a repository.
 
@@ -1333,7 +1334,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error creating file: {e}")
             return json.dumps({"error": str(e)})
 
-    def get_file_content(self, repo_name: str, path: str, ref: Optional[str] = None) -> str:
+    def get_file_content(self, repo_name: str, path: str, ref: str | None = None) -> str:
         """Get the content of a file in a repository.
 
         Args:
@@ -1396,7 +1397,7 @@ class GithubTools(Toolkit):
         content: str,
         message: str,
         sha: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Update an existing file in a repository.
 
@@ -1450,7 +1451,7 @@ class GithubTools(Toolkit):
         path: str,
         message: str,
         sha: str,
-        branch: Optional[str] = None,
+        branch: str | None = None,
     ) -> str:
         """Delete a file from a repository.
 
@@ -1486,7 +1487,7 @@ class GithubTools(Toolkit):
             logger.error(f"Error deleting file: {e}")
             return json.dumps({"error": str(e)})
 
-    def get_directory_content(self, repo_name: str, path: str, ref: Optional[str] = None) -> str:
+    def get_directory_content(self, repo_name: str, path: str, ref: str | None = None) -> str:
         """Get the contents of a directory in a repository.
 
         Args:

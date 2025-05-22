@@ -12,9 +12,8 @@ from agno.tools.confluence import ConfluenceTools
 @pytest.fixture
 def mock_confluence():
     """Create a mock Confluence client."""
-    with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
-        mock_client = MagicMock(spec=Confluence)
-        mock_confluence_class.return_value = mock_client
+    mock_client = MagicMock(spec=Confluence)
+    with patch("agno.tools.confluence.Confluence", return_value=mock_client):
         yield mock_client
 
 
@@ -37,6 +36,29 @@ def confluence_tools(mock_confluence):
 # Initialization Tests
 def test_init_with_environment_variables():
     """Test initialization with environment variables."""
+    with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
+        mock_client = MagicMock(spec=Confluence)
+        mock_confluence_class.return_value = mock_client
+        with patch.dict(
+            "os.environ",
+            {
+                "CONFLUENCE_URL": "https://example.atlassian.net",
+                "CONFLUENCE_USERNAME": "test_user",
+                "CONFLUENCE_API_KEY": "test_api_key",
+            },
+        ):
+            tools = ConfluenceTools()
+            assert tools.url == "https://example.atlassian.net"
+            assert tools.username == "test_user"
+            assert tools.password == "test_api_key"
+
+
+def test_init_with_constructor_parameters():
+    """Test initialization with constructor parameters."""
+    with patch("agno.tools.confluence.Confluence") as mock_confluence_class:
+        mock_client = MagicMock(spec=Confluence)
+        mock_confluence_class.return_value = mock_client
+        tools = ConfluenceTools(
     with patch.dict(
         "os.environ",
         {
