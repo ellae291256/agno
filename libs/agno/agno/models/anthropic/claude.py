@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
 from pathlib import Path
 
 from pydantic import BaseModel
@@ -191,10 +192,10 @@ class Claude(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AnthropicMessage:
         """
         Send a request to the Anthropic API to generate a response.
@@ -221,15 +222,16 @@ class Claude(Model):
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
+            # ruff: noqa: BLE001
             log_error(f"Unexpected error calling Claude API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Stream a response from the Anthropic API.
@@ -270,15 +272,16 @@ class Claude(Model):
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
+            # ruff: noqa: BLE001
             log_error(f"Unexpected error calling Claude API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AnthropicMessage:
         """
         Send an asynchronous request to the Anthropic API to generate a response.
@@ -304,15 +307,16 @@ class Claude(Model):
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
+            # ruff: noqa: BLE001
             log_error(f"Unexpected error calling Claude API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """
         Stream an asynchronous response from the Anthropic API.
@@ -350,11 +354,12 @@ class Claude(Model):
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
         except Exception as e:
+            # ruff: noqa: BLE001
             log_error(f"Unexpected error calling Claude API: {str(e)}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], tool_ids: List[str]
+        self, messages: list[Message], function_call_results: list[Message], tool_ids: list[str]
     ) -> None:
         """
         Handle the results of function calls.
@@ -365,7 +370,7 @@ class Claude(Model):
             tool_ids (List[str]): The tool ids.
         """
         if len(function_call_results) > 0:
-            fc_responses: List = []
+            fc_responses: list = []
             for _fc_message in function_call_results:
                 fc_responses.append(
                     {
@@ -376,7 +381,7 @@ class Claude(Model):
                 )
             messages.append(Message(role="user", content=fc_responses))
 
-    def get_system_message_for_model(self, tools: Optional[List[Any]] = None) -> Optional[str]:
+    def get_system_message_for_model(self, tools: list[Any] | None = None) -> str | None:
         if tools is not None and len(tools) > 0:
             tool_call_prompt = "Do not reflect on the quality of the returned search results in your response"
             return tool_call_prompt
@@ -460,7 +465,7 @@ class Claude(Model):
         return model_response
 
     def parse_provider_response_delta(
-        self, response: Union[ContentBlockDeltaEvent, ContentBlockStopEvent, MessageDeltaEvent]
+        self, response: ContentBlockDeltaEvent | ContentBlockStopEvent | MessageDeltaEvent
     ) -> ModelResponse:
         """
         Parse the Claude streaming response into ModelProviderResponse objects.

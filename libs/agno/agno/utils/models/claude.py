@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from agno.media import File, Image
 from agno.models.message import Message
@@ -102,7 +104,7 @@ def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
             },
         }
 
-    except Exception as e:
+    except (IOError, ValueError) as e:
         log_error(f"Error processing image: {e}")
         return None
 
@@ -117,9 +119,7 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
         "text/plain": "text",
     }
     # Case 0: File is an Anthropic uploaded file
-    print('file.external:', file.external)
     if file.external is not None and hasattr(file.external, 'id'):
-        print('file.external.id:', file.external.id)
         return {
             "type": "document", 
             "source": {
@@ -140,7 +140,6 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
         }
     # Case 2: Document is a local file path
     elif file.filepath is not None:
-        print('--------')
         import base64
         from pathlib import Path
 

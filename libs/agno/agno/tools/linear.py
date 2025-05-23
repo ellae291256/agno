@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -28,7 +30,7 @@ class LinearTools(Toolkit):
         self.endpoint = "https://api.linear.app/graphql"
         self.headers = {"Authorization": f"{self.api_token}"}
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if get_user_details:
             tools.append(self.get_user_details)
         if get_issue_details:
@@ -57,7 +59,7 @@ class LinearTools(Toolkit):
 
             if "errors" in data:
                 logger.error(f"GraphQL Error: {data['errors']}")
-                raise Exception(f"GraphQL Error: {data['errors']}")
+                raise RuntimeError(f"GraphQL Error: {data['errors']}")
 
             log_info("GraphQL query executed successfully.")
             return data.get("data")
@@ -66,7 +68,7 @@ class LinearTools(Toolkit):
             logger.error(f"Request error: {e}")
             raise
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Unexpected error: {e}")
             raise
 
@@ -105,7 +107,7 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve the current user details")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error fetching authenticated user details: {e}")
             raise
 
@@ -145,7 +147,7 @@ class LinearTools(Toolkit):
                 logger.error(f"Failed to retrieve issue with ID {issue_id}.")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error retrieving issue with ID {issue_id}: {e}")
             raise
 
@@ -202,7 +204,7 @@ class LinearTools(Toolkit):
                 logger.error("Issue creation failed.")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error creating issue '{title}' for team ID {team_id}: {e}")
             raise
 
@@ -253,7 +255,7 @@ class LinearTools(Toolkit):
                 logger.error(f"Failed to update issue ID {issue_id}. Success flag was false.")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error updating issue ID {issue_id}: {e}")
             raise
 
@@ -301,7 +303,7 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve user or issues.")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error retrieving issues for user ID {user_id}: {e}")
             raise
 
@@ -344,7 +346,7 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve issues for the specified workflow state.")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error retrieving issues for workflow state ID {workflow_id}: {e}")
             raise
 
@@ -385,6 +387,6 @@ class LinearTools(Toolkit):
                 logger.error("Failed to retrieve high-priority issues.")
                 return None
 
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error retrieving high-priority issues: {e}")
             raise
