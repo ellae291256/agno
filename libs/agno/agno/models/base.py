@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import asyncio
 import collections.abc
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from types import AsyncGeneratorType, GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Dict, Iterator, List, Literal, Optional, Tuple, Type, Union
+from typing import Any, AsyncGenerator, AsyncIterator, Iterator, Literal, Tuple, Type, Union
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -160,7 +162,7 @@ def _add_usage_metrics_to_assistant_message(assistant_message: Message, response
     )
 
 
-def _handle_agent_exception(a_exc: AgentRunException, additional_messages: Optional[List[Message]] = None) -> None:
+def _handle_agent_exception(a_exc: AgentRunException, additional_messages: list[Message] | None = None) -> None:
     """Handle AgentRunException and collect additional messages."""
     if additional_messages is None:
         additional_messages = []
@@ -1010,7 +1012,7 @@ class Model(ABC):
         if should_yield:
             yield model_response_delta
 
-    def parse_tool_calls(self, tool_calls_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def parse_tool_calls(self, tool_calls_data: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Parse the tool calls from the model provider into a list of tool calls.
         """
@@ -1019,7 +1021,7 @@ class Model(ABC):
     def get_function_call_to_run_from_tool_execution(
         self,
         tool_execution: ToolExecution,
-        functions: Optional[Dict[str, Function]] = None,
+        functions: dict[str, Function] | None = None,
     ) -> FunctionCall:
         function_call = get_function_call_for_tool_execution(
             tool_execution=tool_execution,
@@ -1032,13 +1034,13 @@ class Model(ABC):
     def get_function_calls_to_run(
         self,
         assistant_message: Message,
-        messages: List[Message],
-        functions: Optional[Dict[str, Function]] = None,
-    ) -> List[FunctionCall]:
+        messages: list[Message],
+        functions: dict[str, Function] | None = None,
+    ) -> list[FunctionCall]:
         """
         Prepare function calls for the assistant message.
         """
-        function_calls_to_run: List[FunctionCall] = []
+        function_calls_to_run: list[FunctionCall] = []
         if assistant_message.tool_calls is not None:
             for tool_call in assistant_message.tool_calls:
                 _tool_call_id = tool_call.get("id")
@@ -1064,8 +1066,8 @@ class Model(ABC):
         self,
         function_call: FunctionCall,
         success: bool,
-        output: Optional[Union[List[Any], str]] = None,
-        timer: Optional[Timer] = None,
+        output: list[Any] | str | None = None,
+        timer: Timer | None = None,
     ) -> Message:
         """Create a function call result message."""
         kwargs = {}
@@ -1085,8 +1087,8 @@ class Model(ABC):
     def run_function_call(
         self,
         function_call: FunctionCall,
-        function_call_results: List[Message],
-        additional_messages: Optional[List[Message]] = None,
+        function_call_results: list[Message],
+        additional_messages: list[Message] | None = None,
     ) -> Iterator[ModelResponse]:
         # Start function call
         function_call_timer = Timer()
@@ -1266,13 +1268,13 @@ class Model(ABC):
     async def arun_function_call(
         self,
         function_call: FunctionCall,
-    ) -> Tuple[Union[bool, AgentRunException], Timer, FunctionCall]:
+    ) -> Tuple[bool | AgentRunException, Timer, FunctionCall]:
         """Run a single function call and return its success status, timer, and the FunctionCall object."""
         from inspect import isasyncgenfunction, iscoroutine, iscoroutinefunction
 
         function_call_timer = Timer()
         function_call_timer.start()
-        success: Union[bool, AgentRunException] = False
+        success: bool | AgentRunException = False
 
         try:
             if (
@@ -1304,10 +1306,10 @@ class Model(ABC):
 
     async def arun_function_calls(
         self,
-        function_calls: List[FunctionCall],
-        function_call_results: List[Message],
-        tool_call_limit: Optional[int] = None,
-        additional_messages: Optional[List[Message]] = None,
+        function_calls: list[FunctionCall],
+        function_call_results: list[Message],
+        tool_call_limit: int | None = None,
+        additional_messages: list[Message] | None = None,
         skip_pause_check: bool = False,
     ) -> AsyncIterator[ModelResponse]:
         if self._function_call_stack is None:

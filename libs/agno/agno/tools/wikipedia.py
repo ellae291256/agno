@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import json
-from typing import List, Optional
 
 from agno.document import Document
 from agno.knowledge.wikipedia import WikipediaKnowledgeBase

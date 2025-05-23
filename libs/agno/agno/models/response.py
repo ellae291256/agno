@@ -1,7 +1,7 @@
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.media import AudioResponse, ImageArtifact
 from agno.models.message import Citations, MessageMetrics
@@ -69,14 +69,14 @@ class ModelResponse:
     image: Optional[ImageArtifact] = None
 
     # Model tool calls
-    tool_calls: List[Dict[str, Any]] = field(default_factory=list)
+    tool_calls: list[dict[str, Any]] = field(default_factory=list)
 
     # Actual tool executions
-    tool_executions: Optional[List[ToolExecution]] = field(default_factory=list)
+    tool_executions: Optional[list[ToolExecution]] = field(default_factory=list)
 
     event: str = ModelResponseEvent.assistant_response.value
 
-    provider_data: Optional[Dict[str, Any]] = None
+    provider_data: Optional[dict[str, Any]] = None
 
     thinking: Optional[str] = None
     redacted_thinking: Optional[str] = None
@@ -88,7 +88,7 @@ class ModelResponse:
 
     created_at: int = int(time())
 
-    extra: Optional[Dict[str, Any]] = None
+    extra: Optional[dict[str, Any]] = None
 
 
 class FileType(str, Enum):

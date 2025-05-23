@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from rich.prompt import Prompt
 
@@ -127,7 +129,7 @@ def create_workspace(
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.GitCommandError as e:
         logger.error(e)
         return None
 
@@ -138,10 +140,9 @@ def create_workspace(
         logger.debug(f"Deleting {_dot_git_folder}")
         try:
             _dot_git_exists = not rmdir_recursive(_dot_git_folder)
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"Failed to delete {_dot_git_folder}: {e}")
             logger.info("Please delete the .git folder manually")
-            pass
 
     agno_config.add_new_ws_to_config(ws_root_path=ws_root_path)
 
@@ -156,7 +157,7 @@ def create_workspace(
             str(workspace_example_secrets_dir),
             str(workspace_secrets_dir),
         )
-    except Exception as e:
+    except (OSError, shutil.Error) as e:
         logger.warning(f"Could not create workspace/secrets: {e}")
         logger.warning("Please manually copy workspace/example_secrets to workspace/secrets")
 
@@ -402,7 +403,7 @@ def start_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to deploy
-    resource_groups_to_create: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_create: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="create",
@@ -508,7 +509,7 @@ def stop_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to delete
-    resource_groups_to_delete: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_delete: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="delete",
@@ -615,7 +616,7 @@ def update_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to update
-    resource_groups_to_update: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_update: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="create",
@@ -689,7 +690,7 @@ def update_workspace(
         )
 
 
-def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[List[Path]]) -> None:
+def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: list[Path] | None) -> None:
     if ws_to_delete is None or len(ws_to_delete) == 0:
         print_heading("No workspaces to delete")
         return

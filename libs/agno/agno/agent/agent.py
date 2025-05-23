@@ -2278,7 +2278,7 @@ class Agent:
                         run_response.content_type = self.response_model.__name__
                     else:
                         log_warning("Failed to convert response to response_model")
-                except Exception as e:
+                except (ValueError, TypeError) as e:
                     log_warning(f"Failed to convert response to output model: {e}")
             else:
                 log_warning("Something went wrong. Run response content is not a string")
@@ -2340,11 +2340,9 @@ class Agent:
         self.model = cast(Model, self.model)
         # Execute the tool
         function_call = self.model.get_function_call_to_run_from_tool_execution(tool, self._functions_for_model)
-        function_call_results: List[Message] = []
-
         for call_result in self.model.run_function_call(
             function_call=function_call,
-            function_call_results=function_call_results,
+            function_call_results=[],
         ):
             if call_result.event == ModelResponseEvent.tool_call_started.value:
                 yield self.create_run_response(
@@ -2361,8 +2359,6 @@ class Agent:
                     event=RunEvent.tool_call_completed,
                     session_id=session_id,
                 )
-        if len(function_call_results) > 0:
-            run_messages.messages.extend(function_call_results)
 
     def _reject_tool_call(self, run_messages: RunMessages, tool: ToolExecution):
         self.model = cast(Model, self.model)
@@ -2381,11 +2377,9 @@ class Agent:
         self.model = cast(Model, self.model)
         # Execute the tool
         function_call = self.model.get_function_call_to_run_from_tool_execution(tool, self._functions_for_model)
-        function_call_results: List[Message] = []
-
         async for call_result in self.model.arun_function_calls(
             function_calls=[function_call],
-            function_call_results=function_call_results,
+            function_call_results=[],
             skip_pause_check=True,
         ):
             if call_result.event == ModelResponseEvent.tool_call_started.value:
@@ -2403,8 +2397,6 @@ class Agent:
                     event=RunEvent.tool_call_completed,
                     session_id=session_id,
                 )
-        if len(function_call_results) > 0:
-            run_messages.messages.extend(function_call_results)
 
     def _handle_tool_call_updates(self, run_response: RunResponse, run_messages: RunMessages):
         self.model = cast(Model, self.model)
@@ -2480,7 +2472,7 @@ class Agent:
                 # Tool is confirmed and hasn't been run before
                 if _t.confirmed is not None and _t.confirmed is True and _t.result is None:
                     async for _ in self._arun_tool(run_messages, _t):
-                        pass
+                        pass  # noqa: PERF203
                 else:
                     self._reject_tool_call(run_messages, _t)
                 _t.requires_confirmation = False
@@ -2503,7 +2495,7 @@ class Agent:
                 self._handle_user_input_update(tool=_t)
 
                 async for _ in self._arun_tool(run_messages, _t):
-                    pass
+                    pass  # noqa: PERF203
                 _t.requires_user_input = False
 
     async def _ahandle_tool_call_updates_stream(
@@ -2649,7 +2641,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             mp = Message(**_im)
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message: {e}")
                     else:
                         log_warning(f"Unsupported message type: {type(_im)}")
@@ -2718,7 +2710,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             mp = Message(**_im)
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message during memory update: {e}")
                     else:
                         log_warning(f"Unsupported message type during memory update: {type(_im)}")
@@ -2768,7 +2760,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             mp = Message(**_im)
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message during memory update: {e}")
                     else:
                         log_warning(f"Unsupported message type: {type(_im)}")
@@ -3186,7 +3178,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             parsed_messages.append(Message(**_im))
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message during memory update: {e}")
                     else:
                         log_warning(f"Unsupported message type: {type(_im)}")
@@ -3260,7 +3252,7 @@ class Agent:
             if isinstance(tool, Toolkit):
                 for func in tool.functions:
                     if iscoroutinefunction(tool.functions[func].entrypoint):
-                        raise Exception(
+                        raise RuntimeError(
                             f"Async tool {tool.name} can't be used with synchronous agent.run() or agent.print_response(). "
                             "Use agent.arun() or agent.aprint_response() instead to use this tool."
                         )
@@ -3425,7 +3417,7 @@ class Agent:
                                 self._functions_for_model[func.name] = func
                                 self._tools_for_model.append({"type": "function", "function": func.to_dict()})
                                 log_debug(f"Added tool {func.name}")
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Could not add tool {tool}: {e}")
 
     def _model_should_return_structured_output(self):
@@ -3485,7 +3477,7 @@ class Agent:
                     result = value(agent=self) if "agent" in sig.parameters else value()
                     if result is not None:
                         self.context[key] = result
-                except Exception as e:
+                except (ValueError, TypeError) as e:
                     log_warning(f"Failed to resolve context for '{key}': {e}")
             else:
                 self.context[key] = value
@@ -3511,7 +3503,7 @@ class Agent:
                     result = await result
 
                 self.context[key] = result
-            except Exception as e:
+            except (ValueError, TypeError) as e:
                 log_warning(f"Failed to resolve context for '{key}': {e}")
 
     def get_agent_data(self) -> Dict[str, Any]:
@@ -3700,26 +3692,26 @@ class Agent:
                             self.memory.runs = []
                             for run in session.memory["runs"]:
                                 self.memory.runs.append(AgentRun.model_validate(run))
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load runs from memory: {e}")
                     if "messages" in session.memory:
                         try:
                             self.memory.messages = [Message.model_validate(m) for m in session.memory["messages"]]
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load messages from memory: {e}")
                     if "summary" in session.memory:
                         from agno.memory.summary import SessionSummary
 
                         try:
                             self.memory.summary = SessionSummary.model_validate(session.memory["summary"])
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load session summary from memory: {e}")
                     if "memories" in session.memory:
                         from agno.memory.memory import Memory as UserMemory
 
                         try:
                             self.memory.memories = [UserMemory.model_validate(m) for m in session.memory["memories"]]
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to load user memories: {e}")
                     if self.memory.create_user_memories:
                         if self.user_id is not None and self.memory.user_id is None:
@@ -3730,7 +3722,7 @@ class Agent:
                             log_debug(f"Memories loaded for user: {self.user_id}")
                         else:
                             log_debug("Memories loaded")
-                except Exception as e:
+                except (ValueError, TypeError) as e:
                     log_warning(f"Failed to load AgentMemory: {e}")
             elif isinstance(self.memory, Memory):
                 if "runs" in session.memory:
@@ -3744,7 +3736,7 @@ class Agent:
                                 self.memory.runs[run_session_id].append(TeamRunResponse.from_dict(run))
                             else:
                                 self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to load runs from memory: {e}")
                 if "memories" in session.memory:
                     from agno.memory.v2.memory import UserMemory as UserMemoryV2
@@ -3762,7 +3754,7 @@ class Agent:
                                 }
                                 for user_id, user_memories in session.memory["memories"].items()
                             }
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to load user memories: {e}")
                 if "summaries" in session.memory:
                     from agno.memory.v2.memory import SessionSummary as SessionSummaryV2
@@ -3775,7 +3767,7 @@ class Agent:
                             }
                             for user_id, user_session_summaries in session.memory["summaries"].items()
                         }
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to load session summaries: {e}")
         log_debug(f"-*- AgentSession loaded: {session.session_id}")
 
@@ -3984,7 +3976,7 @@ class Agent:
                 except Exception:
                     log_warning("Invalid timezone identifier")
 
-            time = datetime.now(tz) if tz else datetime.now()
+            time = datetime.now(tz) if tz else datetime.now(tz=datetime.timezone.utc)
 
             additional_information.append(f"The current time is {time}.")
         # 3.2.3 Add agent name if provided
@@ -4367,7 +4359,7 @@ class Agent:
                         messages_to_add_to_run_response.append(_m_parsed)
                         run_messages.messages.append(_m_parsed)
                         run_messages.extra_messages.append(_m_parsed)
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to validate message: {e}")
             # Add the extra messages to the run_response
             if len(messages_to_add_to_run_response) > 0:
@@ -4419,7 +4411,7 @@ class Agent:
         elif isinstance(message, dict):
             try:
                 user_message = Message.model_validate(message)
-            except Exception as e:
+            except (ValueError, TypeError) as e:
                 log_warning(f"Failed to validate message: {e}")
         # Add user message to run_messages
         if user_message is not None:
@@ -4440,7 +4432,7 @@ class Agent:
                         if run_messages.extra_messages is None:
                             run_messages.extra_messages = []
                         run_messages.extra_messages.append(Message.model_validate(_m))
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to validate message: {e}")
 
         return run_messages
@@ -4490,7 +4482,7 @@ class Agent:
                         messages_to_add_to_run_response.append(_m_parsed)
                         run_messages.messages.append(_m_parsed)
                         run_messages.extra_messages.append(_m_parsed)
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to validate message: {e}")
             # Add the extra messages to the run_response
             if len(messages_to_add_to_run_response) > 0:
@@ -4536,7 +4528,7 @@ class Agent:
         elif isinstance(message, dict):
             try:
                 user_message = Message.model_validate(message)
-            except Exception as e:
+            except (ValueError, TypeError) as e:
                 log_warning(f"Failed to validate message: {e}")
 
         # Add user message to run_messages
@@ -4558,7 +4550,7 @@ class Agent:
                         if run_messages.extra_messages is None:
                             run_messages.extra_messages = []
                         run_messages.extra_messages.append(Message.model_validate(_m))
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to validate message: {e}")
 
         return run_messages
@@ -4640,10 +4632,10 @@ class Agent:
         elif field_name in ("storage", "model", "reasoning_model"):
             try:
                 return deepcopy(field_value)
-            except Exception:
+            except (TypeError, ValueError):
                 try:
                     return copy(field_value)
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 
@@ -4651,10 +4643,10 @@ class Agent:
         elif isinstance(field_value, (list, dict, set)):
             try:
                 return deepcopy(field_value)
-            except Exception:
+            except (TypeError, ValueError):
                 try:
                     return copy(field_value)
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 
@@ -4662,10 +4654,10 @@ class Agent:
         elif isinstance(field_value, BaseModel):
             try:
                 return field_value.model_copy(deep=True)
-            except Exception:
+            except (TypeError, ValueError):
                 try:
                     return field_value.model_copy(deep=False)
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 
@@ -4697,7 +4689,7 @@ class Agent:
                     member_agent_task += (
                         f"\n\n<additional_information>\n{additional_information}\n</additional_information>"
                     )
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Failed to add additional information to the member agent: {e}")
 
             member_agent_session_id = member_agent.session_id
@@ -4731,14 +4723,14 @@ class Agent:
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
             yield self.team_response_separator
 
@@ -4838,7 +4830,7 @@ class Agent:
                     retriever_kwargs["filters"] = filters
                 retriever_kwargs.update({"query": query, "num_documents": num_documents, **kwargs})
                 return self.retriever(**retriever_kwargs)
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Retriever failed: {e}")
                 return None
 
@@ -4863,7 +4855,7 @@ class Agent:
                 return None
 
             return [doc.to_dict() for doc in relevant_docs]
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             log_warning(f"Error searching knowledge base: {e}")
             return None
 
@@ -4904,7 +4896,7 @@ class Agent:
                     result = await result
 
                 return result
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Retriever failed: {e}")
                 return None
 
@@ -4929,7 +4921,7 @@ class Agent:
                 return None
 
             return [doc.to_dict() for doc in relevant_docs]
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             log_warning(f"Error searching knowledge base: {e}")
             return None
 
@@ -5010,7 +5002,7 @@ class Agent:
                     import json
 
                     fn_path.write_text(json.dumps(self.run_response.content, indent=2))
-            except Exception as e:
+            except (OSError, IOError) as e:
                 log_warning(f"Failed to save output to file: {e}")
 
     def update_run_response_with_reasoning(
@@ -5123,7 +5115,7 @@ class Agent:
                 for message_pair in message_pairs[:3]:
                     messages_for_generating_session_name.append(message_pair[0])
                     messages_for_generating_session_name.append(message_pair[1])
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Failed to generate name: {e}")
         elif isinstance(self.memory, Memory):
             messages_for_generating_session_name = self.memory.get_messages_for_session(session_id=session_id)
@@ -5480,7 +5472,7 @@ class Agent:
                     next_action = get_next_action(reasoning_steps[-1])
                     if next_action == NextAction.FINAL_ANSWER:
                         break
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_error(f"Reasoning error: {e}")
                     break
 
@@ -5692,7 +5684,7 @@ class Agent:
                     next_action = get_next_action(reasoning_steps[-1])
                     if next_action == NextAction.FINAL_ANSWER:
                         break
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_error(f"Reasoning error: {e}")
                     break
 
@@ -6080,7 +6072,7 @@ class Agent:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             log_debug(f"Could not create agent monitor: {e}")
 
     def _create_run_data(self) -> Dict[str, Any]:
@@ -6140,7 +6132,7 @@ class Agent:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             log_debug(f"Could not create agent event: {e}")
 
     async def _alog_agent_run(self, session_id: str, user_id: Optional[str] = None) -> None:
@@ -6167,7 +6159,7 @@ class Agent:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             log_debug(f"Could not create agent event: {e}")
 
     ###########################################################################
@@ -6193,7 +6185,9 @@ class Agent:
         show_full_reasoning: bool = False,
         console: Optional[Any] = None,
         # Add tags to include in markdown content
-        tags_to_include_in_markdown: Set[str] = {"think", "thinking"},
+        tags_to_include_in_markdown: Optional[Set[str]] = None,
+        if tags_to_include_in_markdown is None:
+            tags_to_include_in_markdown = {"think", "thinking"}
         knowledge_filters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
@@ -6527,12 +6521,12 @@ class Agent:
                             response_content_batch = JSON(
                                 run_response.content.model_dump_json(exclude_none=True), indent=2
                             )
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             log_warning(f"Failed to convert response to JSON: {e}")
                     else:
                         try:
                             response_content_batch = JSON(json.dumps(run_response.content), indent=4)
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             log_warning(f"Failed to convert response to JSON: {e}")
 
                 # Create panel for response
@@ -6939,12 +6933,12 @@ class Agent:
                             response_content_batch = JSON(
                                 run_response.content.model_dump_json(exclude_none=True), indent=2
                             )
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             log_warning(f"Failed to convert response to JSON: {e}")
                     else:
                         try:
                             response_content_batch = JSON(json.dumps(run_response.content), indent=4)
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             log_warning(f"Failed to convert response to JSON: {e}")
 
                 # Create panel for response
@@ -7170,7 +7164,7 @@ class Agent:
                 # Add the metrics message to the reasoning_messages
                 self.run_response.extra_data.reasoning_messages.append(metrics_message)
 
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             # Log the error but don't crash
             from agno.utils.log import log_error
 
