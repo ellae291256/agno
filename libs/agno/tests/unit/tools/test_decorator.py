@@ -1,5 +1,5 @@
 import asyncio
-from typing import AsyncIterator, Generator
+from typing import Generator
 
 import pytest
 
@@ -39,8 +39,7 @@ def test_sync_generator_decorator():
     @tool
     def sync_generator(count: int) -> Generator[int, None, None]:
         """Test sync generator"""
-        for i in range(count):
-            yield i
+        yield from range(count)
 
     assert isinstance(sync_generator, Function)
     assert sync_generator.name == "sync_generator"
@@ -51,7 +50,7 @@ def test_sync_generator_decorator():
 @pytest.mark.asyncio
 async def test_async_generator_decorator():
     @tool
-    async def async_generator(count: int) -> AsyncIterator[int]:
+    async def async_generator(count: int):
         """Test async generator"""
         for i in range(count):
             await asyncio.sleep(0.1)
