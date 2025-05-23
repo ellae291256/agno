@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from contextlib import AsyncExitStack
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from os import environ
 from types import TracebackType
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -102,21 +104,18 @@ class MCPTools(Toolkit):
 
         # Ensure the received server_params are valid for the given transport
         if server_params is not None:
-            if transport == "sse":
-                if not isinstance(server_params, SSEClientParams):
-                    raise ValueError(
-                        "If using the SSE transport, server_params must be an instance of SSEClientParams."
-                    )
-            elif transport == "stdio":
-                if not isinstance(server_params, StdioServerParameters):
-                    raise ValueError(
-                        "If using the stdio transport, server_params must be an instance of StdioServerParameters."
-                    )
-            elif transport == "streamable-http":
-                if not isinstance(server_params, StreamableHTTPClientParams):
-                    raise ValueError(
-                        "If using the streamable-http transport, server_params must be an instance of StreamableHTTPClientParams."
-                    )
+            if transport == "sse" and not isinstance(server_params, SSEClientParams):
+                raise ValueError(
+                    "If using the SSE transport, server_params must be an instance of SSEClientParams."
+                )
+            elif transport == "stdio" and not isinstance(server_params, StdioServerParameters):
+                raise ValueError(
+                    "If using the stdio transport, server_params must be an instance of StdioServerParameters."
+                )
+            elif transport == "streamable-http" and not isinstance(server_params, StreamableHTTPClientParams):
+                raise ValueError(
+                    "If using the streamable-http transport, server_params must be an instance of StreamableHTTPClientParams."
+                )
 
         self.timeout_seconds = timeout_seconds
         self.session: Optional[ClientSession] = session

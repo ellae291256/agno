@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
 from pathlib import Path
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -191,10 +193,10 @@ class Claude(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AnthropicMessage:
         """
         Send a request to the Anthropic API to generate a response.
@@ -226,10 +228,10 @@ class Claude(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Any:
         """
         Stream a response from the Anthropic API.
@@ -275,10 +277,10 @@ class Claude(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AnthropicMessage:
         """
         Send an asynchronous request to the Anthropic API to generate a response.
@@ -309,10 +311,10 @@ class Claude(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: dict | type[BaseModel] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[Any]:
         """
         Stream an asynchronous response from the Anthropic API.

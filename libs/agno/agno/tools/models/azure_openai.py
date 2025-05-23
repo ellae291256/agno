@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 from uuid import uuid4
 
 from requests import post
@@ -18,10 +20,10 @@ class AzureOpenAITools(Toolkit):
     """
 
     # Define valid parameter options as class constants
-    VALID_MODELS = ["dall-e-3", "dall-e-2"]
-    VALID_SIZES = ["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]
-    VALID_QUALITIES = ["standard", "hd"]
-    VALID_STYLES = ["vivid", "natural"]
+    VALID_MODELS: list[str] = ["dall-e-3", "dall-e-2"]
+    VALID_SIZES: list[str] = ["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]
+    VALID_QUALITIES: list[str] = ["standard", "hd"]
+    VALID_STYLES: list[str] = ["vivid", "natural"]
 
     def __init__(
         self,
@@ -65,7 +67,7 @@ class AzureOpenAITools(Toolkit):
             self.image_quality = "standard"
             log_debug(f"Enforcing valid quality: '{self.image_quality}' -> 'standard'")
 
-    def _enforce_valid_image_parameters(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _enforce_valid_image_parameters(self, params: dict[str, Any]) -> dict[str, Any]:
         """Enforce valid parameters by replacing invalid ones with defaults."""
         enforced = params.copy()
 
@@ -169,4 +171,4 @@ class AzureOpenAITools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to generate image: {e}")
-            return f"Error: {e}"
+            raise e

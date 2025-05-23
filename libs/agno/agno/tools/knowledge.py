@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from textwrap import dedent
-from typing import Any, List, Optional, Union
+from typing import Any, Union
 
 from agno.agent import Agent
 from agno.document import Document
@@ -86,7 +88,7 @@ class KnowledgeTools(Toolkit):
             return formatted_thoughts
         except Exception as e:
             logger.error(f"Error recording thought: {e}")
-            return f"Error recording thought: {e}"
+            raise
 
     def search(self, agent: Union[Agent, Team], query: str) -> str:
         """Use this tool to search the knowledge base for relevant information.
@@ -108,7 +110,7 @@ class KnowledgeTools(Toolkit):
             return json.dumps([doc.to_dict() for doc in relevant_docs])
         except Exception as e:
             logger.error(f"Error searching knowledge base: {e}")
-            return f"Error searching knowledge base: {e}"
+            raise
 
     def analyze(self, agent: Union[Agent, Team], analysis: str) -> str:
         """Use this tool to evaluate whether the returned documents are correct and sufficient.
@@ -140,7 +142,7 @@ class KnowledgeTools(Toolkit):
             return formatted_analysis
         except Exception as e:
             logger.error(f"Error recording analysis: {e}")
-            return f"Error recording analysis: {e}"
+            raise
 
     DEFAULT_INSTRUCTIONS = dedent("""\
         You have access to the Think, Search, and Analyze tools that will help you search your knowledge for relevant information. Use these tools as frequently as needed to find the most relevant information.

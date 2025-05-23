@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from agno.media import File, Image
 from agno.models.message import Message
@@ -21,7 +23,7 @@ ROLE_MAP = {
 }
 
 
-def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
+def _format_image_for_message(image: Image) -> dict[str, Any] | None:
     """
     Add an image to a message by converting it to base64 encoded format.
     """
@@ -102,12 +104,12 @@ def _format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
             },
         }
 
-    except Exception as e:
+    except (IOError, OSError) as e:
         log_error(f"Error processing image: {e}")
         return None
 
 
-def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
+def _format_file_for_message(file: File) -> dict[str, Any] | None:
     """
     Add a document url or base64 encoded content to a message.
     """
@@ -117,9 +119,7 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
         "text/plain": "text",
     }
     # Case 0: File is an Anthropic uploaded file
-    print('file.external:', file.external)
     if file.external is not None and hasattr(file.external, 'id'):
-        print('file.external.id:', file.external.id)
         return {
             "type": "document", 
             "source": {
@@ -140,7 +140,6 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
         }
     # Case 2: Document is a local file path
     elif file.filepath is not None:
-        print('--------')
         import base64
         from pathlib import Path
 
@@ -156,12 +155,12 @@ def _format_file_for_message(file: File) -> Optional[Dict[str, Any]]:
                 media_type = mimetypes.guess_type(file.filepath)[0] or "application/pdf"
 
             # Map media type to type, default to "base64" if no mapping exists
-            type = mime_mapping.get(media_type, "base64")
+            doc_type = mime_mapping.get(media_type, "base64")
 
             return {
                 "type": "document",
                 "source": {
-                    "type": type,
+                    "type": doc_type,
                     "media_type": media_type,
                     "data": file_data,
                 },

@@ -30,11 +30,11 @@ def exa_tools(mock_exa_client):
 
 def create_mock_search_result(
     url: str,
-    title: str = None,
-    author: str = None,
-    published_date: str = None,
-    text: str = None,
-    highlights: list = None,
+    title: str | None = None,
+    author: str | None = None,
+    published_date: str | None = None,
+    text: str | None = None,
+    highlights: list | None = None,
 ):
     """Helper function to create mock search result."""
     result = Mock()

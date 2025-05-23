@@ -20,7 +20,7 @@ def mock_dynamodb_resource():
 @pytest.fixture
 def agent_storage(mock_dynamodb_resource):
     """Create a DynamoDbStorage instance for agent mode with mocked components."""
-    mock_resource, mock_table = mock_dynamodb_resource
+    _, mock_table = mock_dynamodb_resource
 
     # Mock table.wait_until_exists to avoid actual waiting
     mock_table.wait_until_exists = MagicMock()
@@ -36,7 +36,7 @@ def agent_storage(mock_dynamodb_resource):
 @pytest.fixture
 def workflow_storage(mock_dynamodb_resource):
     """Create a DynamoDbStorage instance for workflow mode with mocked components."""
-    mock_resource, mock_table = mock_dynamodb_resource
+    _, mock_table = mock_dynamodb_resource
 
     # Mock table.wait_until_exists to avoid actual waiting
     mock_table.wait_until_exists = MagicMock()
@@ -255,36 +255,36 @@ def test_get_all_sessions(agent_storage):
 
 def test_get_all_session_ids(agent_storage):
     """Test retrieving all session IDs."""
-    storage, mock_table = agent_storage
+    storage, _ = agent_storage
 
     # Mock the scan method to return session IDs
     mock_response = {"Items": [{"session_id": "session-1"}, {"session_id": "session-2"}, {"session_id": "session-3"}]}
-    mock_table.scan.return_value = mock_response
+    storage._table.scan.return_value = mock_response
 
     # Test get_all_session_ids without filters
     result = storage.get_all_session_ids()
     assert result == ["session-1", "session-2", "session-3"]
-    mock_table.scan.assert_called_once_with(ProjectionExpression="session_id")
+    storage._table.scan.assert_called_once_with(ProjectionExpression="session_id")
 
     # Test with user_id filter
-    mock_table.scan.reset_mock()
-    mock_table.query.return_value = mock_response
+    storage._table.scan.reset_mock()
+    storage._table.query.return_value = mock_response
 
     result = storage.get_all_session_ids(user_id="test-user")
     assert result == ["session-1", "session-2", "session-3"]
-    mock_table.query.assert_called_once_with(
+    storage._table.query.assert_called_once_with(
         IndexName="user_id-index",
         KeyConditionExpression=Key("user_id").eq("test-user"),
         ProjectionExpression="session_id",
     )
 
     # Test with entity_id filter (agent_id in agent mode)
-    mock_table.query.reset_mock()
-    mock_table.query.return_value = mock_response
+    storage._table.query.reset_mock()
+    storage._table.query.return_value = mock_response
 
     result = storage.get_all_session_ids(entity_id="test-agent")
     assert result == ["session-1", "session-2", "session-3"]
-    mock_table.query.assert_called_once_with(
+    storage._table.query.assert_called_once_with(
         IndexName="agent_id-index",
         KeyConditionExpression=Key("agent_id").eq("test-agent"),
         ProjectionExpression="session_id",
@@ -358,13 +358,13 @@ def test_serialization_deserialization(agent_storage):
     from decimal import Decimal
 
     decimal_item = {
-        "int_value": Decimal("42"),
-        "float_value": Decimal("3.14"),
+        "int_value": Decimal(42),
+        "float_value": Decimal(3.14),
         "str_value": "test",
         "bool_value": True,
-        "list_value": [Decimal("1"), Decimal("2"), Decimal("3")],
+        "list_value": [Decimal(1), Decimal(2), Decimal(3)],
         "dict_value": {"key": "value"},
-        "nested_dict": {"nested": {"float": Decimal("1.23"), "list": [Decimal("4"), Decimal("5"), Decimal("6")]}},
+        "nested_dict": {"nested": {"float": Decimal(1.23), "list": [Decimal(4), Decimal(5), Decimal(6)]}},
     }
 
     deserialized = storage._deserialize_item(decimal_item)
