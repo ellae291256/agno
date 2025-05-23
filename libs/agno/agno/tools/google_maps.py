@@ -11,10 +11,12 @@ Prerequisites:
 
 """
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 
@@ -111,7 +113,7 @@ class GoogleMapTools(Toolkit):
         destination: str,
         mode: str = "driving",
         departure_time: Optional[datetime] = None,
-        avoid: Optional[List[str]] = None,
+        avoid: Optional[list[str]] = None,
     ) -> str:
         """
         Get directions between two locations using Google Maps Directions API.
@@ -121,7 +123,7 @@ class GoogleMapTools(Toolkit):
             destination (str): Destination address or coordinates
             mode (str, optional): Travel mode. Options: "driving", "walking", "bicycling", "transit". Defaults to "driving"
             departure_time (datetime, optional): Desired departure time for transit directions
-            avoid (List[str], optional): Features to avoid: "tolls", "highways", "ferries"
+            avoid (list[str], optional): Features to avoid: "tolls", "highways", "ferries"
 
         Returns:
             str: Stringified dictionary containing route information including steps, distance, duration, etc.
@@ -176,7 +178,7 @@ class GoogleMapTools(Toolkit):
             return str([])
 
     def reverse_geocode(
-        self, lat: float, lng: float, result_type: Optional[List[str]] = None, location_type: Optional[List[str]] = None
+        self, lat: float, lng: float, result_type: Optional[list[str]] = None, location_type: Optional[list[str]] = None
     ) -> str:
         """
         Convert geographic coordinates into an address using Google Maps Reverse Geocoding API.
@@ -184,8 +186,8 @@ class GoogleMapTools(Toolkit):
         Args:
             lat (float): Latitude
             lng (float): Longitude
-            result_type (List[str], optional): Array of address types to filter results
-            location_type (List[str], optional): Array of location types to filter results
+            result_type (list[str], optional): Array of address types to filter results
+            location_type (list[str], optional): Array of location types to filter results
 
         Returns:
             str: Stringified list of dictionaries containing address information
@@ -199,21 +201,21 @@ class GoogleMapTools(Toolkit):
 
     def get_distance_matrix(
         self,
-        origins: List[str],
-        destinations: List[str],
+        origins: list[str],
+        destinations: list[str],
         mode: str = "driving",
         departure_time: Optional[datetime] = None,
-        avoid: Optional[List[str]] = None,
+        avoid: Optional[list[str]] = None,
     ) -> str:
         """
         Calculate distance and time for a matrix of origins and destinations.
 
         Args:
-            origins (List[str]): List of addresses or coordinates
-            destinations (List[str]): List of addresses or coordinates
+            origins (list[str]): List of addresses or coordinates
+            destinations (list[str]): List of addresses or coordinates
             mode (str, optional): Travel mode. Options: "driving", "walking", "bicycling", "transit"
             departure_time (datetime, optional): Desired departure time
-            avoid (List[str], optional): Features to avoid: "tolls", "highways", "ferries"
+            avoid (list[str], optional): Features to avoid: "tolls", "highways", "ferries"
 
         Returns:
             str: Stringified dictionary containing distance and duration information
@@ -259,7 +261,7 @@ class GoogleMapTools(Toolkit):
         """
         try:
             if timestamp is None:
-                timestamp = datetime.now()
+                timestamp = datetime.now(tz=timezone.utc)
 
             result = self.client.timezone(location=(lat, lng), timestamp=timestamp)
             return str(result)

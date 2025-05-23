@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import time
 from os import getenv
-from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -169,3 +170,5 @@ class ModelsLabTools(Toolkit):
             error_msg = f"Unexpected error while generating {self.file_type.value}: {e}"
             logger.error(error_msg)
             return f"Error: {error_msg}"
+        finally:
+            pass

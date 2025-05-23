@@ -1,7 +1,7 @@
 import json
 from base64 import b64encode
 from os import getenv
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -133,7 +133,7 @@ class CartesiaTools(Toolkit):
         voice_id: Optional[str] = None,
     ) -> str:
         """
-        Convert text to speechß.
+        Convert text to speech.
         Args:
             transcript: The text to convert to speech
             voice_id (optional): The ID of the voice to use for the text-to-speech. If None, uses the default voice ID configured in the tool. Defaults to None.
@@ -159,7 +159,7 @@ class CartesiaTools(Toolkit):
                 "encoding": "mp3",
             }
 
-            params: Dict[str, Any] = {
+            params: dict[str, Any] = {
                 "model_id": self.model_id,
                 "transcript": transcript,
                 "voice": {"mode": "id", "id": effective_voice_id},

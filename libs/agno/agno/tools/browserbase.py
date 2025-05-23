@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -78,7 +80,7 @@ class BrowserbaseTools(Toolkit):
                     log_debug(f"Created new session with ID: {self._session.id}")
             except Exception as e:
                 logger.error(f"Failed to create session: {str(e)}")
-                raise
+                raise RuntimeError(f"Failed to create session: {str(e)}") from e
 
     def _initialize_browser(self, connect_url: Optional[str] = None):
         """
@@ -137,7 +139,7 @@ class BrowserbaseTools(Toolkit):
             return json.dumps(result)
         except Exception as e:
             self._cleanup()
-            raise e
+            raise RuntimeError(f"Failed to navigate to {url}: {str(e)}") from e
 
     def screenshot(self, path: str, full_page: bool = True, connect_url: Optional[str] = None) -> str:
         """Takes a screenshot of the current page.
@@ -157,7 +159,7 @@ class BrowserbaseTools(Toolkit):
             return json.dumps({"status": "success", "path": path})
         except Exception as e:
             self._cleanup()
-            raise e
+            raise RuntimeError(f"Failed to take screenshot: {str(e)}") from e
 
     def get_page_content(self, connect_url: Optional[str] = None) -> str:
         """Gets the HTML content of the current page.
@@ -173,7 +175,7 @@ class BrowserbaseTools(Toolkit):
             return self._page.content() if self._page else ""
         except Exception as e:
             self._cleanup()
-            raise e
+            raise RuntimeError(f"Failed to get page content: {str(e)}") from e
 
     def close_session(self) -> str:
         """Closes a browser session.

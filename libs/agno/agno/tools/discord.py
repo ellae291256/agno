@@ -2,7 +2,7 @@
 
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -66,7 +66,7 @@ class DiscordTools(Toolkit):
             data = {"content": message}
             self._make_request("POST", f"/channels/{channel_id}/messages", data)
             return f"Message sent successfully to channel {channel_id}"
-        except Exception as e:
+        except requests.RequestException as e:
             logger.error(f"Error sending message: {e}")
             return f"Error sending message: {str(e)}"
 
@@ -83,7 +83,7 @@ class DiscordTools(Toolkit):
         try:
             response = self._make_request("GET", f"/channels/{channel_id}")
             return json.dumps(response, indent=2)
-        except Exception as e:
+        except requests.RequestException as e:
             logger.error(f"Error getting channel info: {e}")
             return f"Error getting channel info: {str(e)}"
 
@@ -100,7 +100,7 @@ class DiscordTools(Toolkit):
         try:
             response = self._make_request("GET", f"/guilds/{guild_id}/channels")
             return json.dumps(response, indent=2)
-        except Exception as e:
+        except requests.RequestException as e:
             logger.error(f"Error listing channels: {e}")
             return f"Error listing channels: {str(e)}"
 
@@ -118,7 +118,7 @@ class DiscordTools(Toolkit):
         try:
             response = self._make_request("GET", f"/channels/{channel_id}/messages?limit={limit}")
             return json.dumps(response, indent=2)
-        except Exception as e:
+        except requests.RequestException as e:
             logger.error(f"Error getting messages: {e}")
             return f"Error getting messages: {str(e)}"
 
@@ -136,7 +136,7 @@ class DiscordTools(Toolkit):
         try:
             self._make_request("DELETE", f"/channels/{channel_id}/messages/{message_id}")
             return f"Message {message_id} deleted successfully from channel {channel_id}"
-        except Exception as e:
+        except requests.RequestException as e:
             logger.error(f"Error deleting message: {e}")
             return f"Error deleting message: {str(e)}"
 

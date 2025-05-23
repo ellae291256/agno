@@ -1,5 +1,5 @@
 from os import getenv
-from typing import Any, List, Literal, Optional, Union
+from typing import Any, Literal, Optional
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -50,7 +50,7 @@ class DalleTools(Toolkit):
         if not self.api_key:
             logger.error("OPENAI_API_KEY not set. Please set the OPENAI_API_KEY environment variable.")
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.create_image)
 
         super().__init__(name="dalle", tools=tools, **kwargs)
@@ -60,7 +60,7 @@ class DalleTools(Toolkit):
         # - Add support for saving images
         # - Add support for editing images
 
-    def create_image(self, agent: Union[Agent, Team], prompt: str) -> str:
+    def create_image(self, agent: Agent | Team, prompt: str) -> str:
         """Use this function to generate an image for a prompt.
 
         Args:

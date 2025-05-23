@@ -1,6 +1,6 @@
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -116,7 +116,7 @@ class RedditTools(Toolkit):
             log_info(f"Getting info for u/{username}")
 
             user = self.reddit.redditor(username)
-            info: Dict[str, Union[str, int, bool, float]] = {
+            info: dict[str, Any] = {
                 "name": user.name,
                 "comment_karma": user.comment_karma,
                 "link_karma": user.link_karma,
@@ -147,7 +147,7 @@ class RedditTools(Toolkit):
         try:
             log_debug(f"Getting top posts from r/{subreddit}")
             posts = self.reddit.subreddit(subreddit).top(time_filter=time_filter, limit=limit)
-            top_posts: List[Dict[str, Union[str, int, float]]] = [
+            top_posts: list[dict[str, Any]] = [
                 {
                     "id": post.id,
                     "title": post.title,
@@ -182,7 +182,7 @@ class RedditTools(Toolkit):
 
             subreddit = self.reddit.subreddit(subreddit_name)
             flairs = [flair["text"] for flair in subreddit.flair.link_templates]
-            info: Dict[str, Union[str, int, bool, float, List[str]]] = {
+            info: dict[str, Any] = {
                 "display_name": subreddit.display_name,
                 "title": subreddit.title,
                 "description": subreddit.description,
@@ -207,7 +207,7 @@ class RedditTools(Toolkit):
         try:
             log_debug("Getting trending subreddits")
             popular_subreddits = self.reddit.subreddits.popular(limit=5)
-            trending: List[str] = [subreddit.display_name for subreddit in popular_subreddits]
+            trending: list[str] = [subreddit.display_name for subreddit in popular_subreddits]
             return json.dumps({"trending_subreddits": trending})
         except Exception as e:
             return f"Error getting trending subreddits: {e}"
@@ -226,7 +226,7 @@ class RedditTools(Toolkit):
         try:
             log_debug(f"Getting stats for r/{subreddit}")
             sub = self.reddit.subreddit(subreddit)
-            stats: Dict[str, Union[str, int, bool, float]] = {
+            stats: dict[str, Any] = {
                 "display_name": sub.display_name,
                 "subscribers": sub.subscribers,
                 "active_users": sub.active_user_count,
@@ -289,7 +289,7 @@ class RedditTools(Toolkit):
                 )
             log_info(f"Post created: {submission.permalink}")
 
-            post_info: Dict[str, Union[str, int, float]] = {
+            post_info: dict[str, Any] = {
                 "id": submission.id,
                 "title": submission.title,
                 "url": submission.url,
@@ -360,7 +360,7 @@ class RedditTools(Toolkit):
             reply = submission.reply(body=content)
 
             # Prepare the response information
-            reply_info: Dict[str, Union[str, int, float]] = {
+            reply_info: dict[str, Any] = {
                 "id": reply.id,
                 "body": reply.body,
                 "score": reply.score,
@@ -434,7 +434,7 @@ class RedditTools(Toolkit):
             reply = comment.reply(body=content)
 
             # Prepare the response information
-            reply_info: Dict[str, Union[str, int, float]] = {
+            reply_info: dict[str, Any] = {
                 "id": reply.id,
                 "body": reply.body,
                 "score": reply.score,

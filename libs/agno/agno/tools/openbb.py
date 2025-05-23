@@ -1,6 +1,6 @@
 import json
 from os import getenv
-from typing import Any, List, Literal, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -31,7 +31,7 @@ class OpenBBTools(Toolkit):
         except Exception as e:
             logger.error(f"Error logging into OpenBB: {e}")
 
-        self.provider: Literal["benzinga", "fmp", "intrinio", "polygon", "tiingo", "tmx", "yfinance"] = provider
+        self.provider: str = provider
 
         tools: List[Any] = []
         if stock_price:
@@ -116,7 +116,7 @@ class OpenBBTools(Toolkit):
             result = self.obb.equity.estimates.consensus(symbol=symbol, provider=self.provider).to_polars()  # type: ignore
             return json.dumps(result.to_dicts(), indent=2, default=str)
         except Exception as e:
-            return f"Error fetching company news for {symbol}: {e}"
+            return f"Error fetching price targets for {symbol}: {e}"
 
     def get_company_news(self, symbol: str, num_stories: int = 10) -> str:
         """Use this function to get company news for a stock symbol or list of symbols.

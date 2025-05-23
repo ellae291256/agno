@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
-    from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401
+    from qdrant_client import AsyncQdrantClient, QdrantClient
     from qdrant_client.http import models
 except ImportError:
     raise ImportError(
@@ -218,13 +220,13 @@ class Qdrant(VectorDb):
             return len(scroll_result[0]) > 0
         return False
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None, batch_size: int = 10) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None, batch_size: int = 10) -> None:
         """
         Insert documents into the database.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (dict[str, Any] | None): Filters to apply while inserting documents
             batch_size (int): Batch size for inserting documents
         """
         log_debug(f"Inserting {len(documents)} documents")
@@ -247,7 +249,7 @@ class Qdrant(VectorDb):
                 # Merge filters with existing metadata
                 if "meta_data" not in payload:
                     payload["meta_data"] = {}
-                payload["meta_data"].update(filters)  # type: ignore
+                payload["meta_data"].update(filters)
 
             points.append(
                 models.PointStruct(
@@ -323,14 +325,14 @@ class Qdrant(VectorDb):
         log_debug("Redirecting the async request to async_insert")
         await self.async_insert(documents)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents in the database.
 
         Args:
             query (str): Query to search for
             limit (int): Number of search results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching
+            filters (dict[str, Any] | None): Filters to apply while searching
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -372,13 +374,13 @@ class Qdrant(VectorDb):
 
         try:
             # Execute search with parameters
-            results = self.client.search(**search_params)  # type: ignore
+            results = self.client.search(**search_params)
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results:
             if result.payload is None:
                 continue
@@ -388,7 +390,7 @@ class Qdrant(VectorDb):
                     meta_data=result.payload["meta_data"],
                     content=result.payload["content"],
                     embedder=self.embedder,
-                    embedding=result.vector,  # type: ignore
+                    embedding=result.vector,
                     usage=result.payload["usage"],
                 )
             )
@@ -400,8 +402,8 @@ class Qdrant(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """Search for documents asynchronously."""
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -443,13 +445,13 @@ class Qdrant(VectorDb):
 
         try:
             # Execute search with parameters
-            results = await self.async_client.search(**search_params)  # type: ignore
+            results = await self.async_client.search(**search_params)
         except Exception as e:
             logger.error(f"Error searching for documents: {e}")
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results:
             if result.payload is None:
                 continue
@@ -459,7 +461,7 @@ class Qdrant(VectorDb):
                     meta_data=result.payload["meta_data"],
                     content=result.payload["content"],
                     embedder=self.embedder,
-                    embedding=result.vector,  # type: ignore
+                    embedding=result.vector,
                     usage=result.payload["usage"],
                 )
             )

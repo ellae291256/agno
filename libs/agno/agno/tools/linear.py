@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import requests
 
@@ -64,10 +66,6 @@ class LinearTools(Toolkit):
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request error: {e}")
-            raise
-
-        except Exception as e:
-            logger.error(f"Unexpected error: {e}")
             raise
 
     def get_user_details(self) -> Optional[str]:

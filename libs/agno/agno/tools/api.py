@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -18,7 +18,7 @@ class CustomApiTools(Toolkit):
         username: Optional[str] = None,
         password: Optional[str] = None,
         api_key: Optional[str] = None,
-        headers: Optional[Dict[str, str]] = None,
+        headers: Optional[dict[str, str]] = None,
         verify_ssl: bool = True,
         timeout: int = 30,
         make_request: bool = True,
@@ -32,7 +32,7 @@ class CustomApiTools(Toolkit):
         self.verify_ssl = verify_ssl
         self.timeout = timeout
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if make_request:
             tools.append(self.make_request)
 
@@ -57,20 +57,20 @@ class CustomApiTools(Toolkit):
         self,
         endpoint: str,
         method: Literal["GET", "POST", "PUT", "DELETE", "PATCH"] = "GET",
-        params: Optional[Dict[str, Any]] = None,
-        data: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-        json_data: Optional[Dict[str, Any]] = None,
+        params: Optional[dict[str, Any]] = None,
+        data: Optional[dict[str, Any]] = None,
+        headers: Optional[dict[str, str]] = None,
+        json_data: Optional[dict[str, Any]] = None,
     ) -> str:
         """Make an HTTP request to the API.
 
         Args:
             method (str): HTTP method (GET, POST, PUT, DELETE, PATCH)
             endpoint (str): API endpoint (will be combined with base_url if set)
-            params (Optional[Dict[str, Any]]): Query parameters
-            data (Optional[Dict[str, Any]]): Form data to send
-            headers (Optional[Dict[str, str]]): Additional headers
-            json_data (Optional[Dict[str, Any]]): JSON data to send
+            params (Optional[dict[str, Any]]): Query parameters
+            data (Optional[dict[str, Any]]): Form data to send
+            headers (Optional[dict[str, str]]): Additional headers
+            json_data (Optional[dict[str, Any]]): JSON data to send
 
         Returns:
             str: JSON string containing response data or error message

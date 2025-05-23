@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import time
 import uuid
 from os import getenv
-from typing import Any, Dict, List, Literal, Optional, TypedDict
+from typing import Any, Literal
 
 from agno.agent import Agent
 from agno.media import VideoArtifact
@@ -116,7 +118,7 @@ class LumaLabTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to generate video: {e}")
-            return f"Error: {e}"
+            raise
 
     def generate_video(
         self,
@@ -168,4 +170,4 @@ class LumaLabTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to generate video: {e}")
-            return f"Error: {e}"
+            raise

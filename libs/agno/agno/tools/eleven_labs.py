@@ -2,7 +2,7 @@ from base64 import b64encode
 from io import BytesIO
 from os import getenv, path
 from pathlib import Path
-from typing import Any, Iterator, List, Literal, Optional, Union
+from typing import Any, Iterator, Literal
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -88,7 +88,7 @@ class ElevenLabsTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to fetch voices: {e}")
-            return f"Error: {e}"
+            raise
 
     def _process_audio(self, audio_generator: Iterator[bytes]) -> str:
         # Step 1: Write audio data to BytesIO
@@ -154,7 +154,7 @@ class ElevenLabsTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to generate audio: {e}")
-            return f"Error: {e}"
+            raise
 
     def text_to_speech(self, agent: Union[Agent, Team], prompt: str) -> str:
         """
@@ -188,4 +188,4 @@ class ElevenLabsTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Failed to generate audio: {e}")
-            return f"Error: {e}"
+            raise

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -56,9 +58,8 @@ class Claude(Model):
 
     # Client parameters
     api_key: Optional[str] = None
-    default_headers: Optional[Dict[str, Any]] = None
-    client_params: Optional[Dict[str, Any]] = None
-    default_headers: Optional[Dict[str, Any]] = None
+    default_headers: Optional[dict[str, Any]] = None
+    client_params: Optional[dict[str, Any]] = None
 
     # Anthropic clients
     client: Optional[AnthropicClient] = None
@@ -230,22 +231,19 @@ class Claude(Model):
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
-        except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
-            raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> Any:
         """
         Stream a response from the Anthropic API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             Any: The streamed response from the model.
@@ -279,16 +277,13 @@ class Claude(Model):
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
-        except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
-            raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> AnthropicMessage:
         """
         Send an asynchronous request to the Anthropic API to generate a response.
@@ -313,22 +308,19 @@ class Claude(Model):
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
-        except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
-            raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> AsyncIterator[Any]:
         """
         Stream an asynchronous response from the Anthropic API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             Any: The streamed response from the model.
@@ -359,9 +351,6 @@ class Claude(Model):
             raise ModelProviderError(
                 message=e.message, status_code=e.status_code, model_name=self.name, model_id=self.id
             ) from e
-        except Exception as e:
-            log_error(f"Unexpected error calling Claude API: {str(e)}")
-            raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def format_function_call_results(
         self, messages: List[Message], function_call_results: List[Message], tool_ids: List[str]

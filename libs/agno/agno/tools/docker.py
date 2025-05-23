@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 import os
 import sys
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
@@ -45,8 +47,8 @@ if sys.version_info >= (3, 12):
             logger.info("Added missing get_config_header function for Docker auth compatibility")
 
         logger.info("Applied comprehensive compatibility patch for Docker client on Python 3.12")
-    except Exception as e:
-        logger.warning(f"Failed to apply Docker client compatibility patch: {e}")
+    except Exception:
+        logger.warning("Failed to apply Docker client compatibility patch")
 
 try:
     import docker
@@ -77,10 +79,10 @@ class DockerTools(Toolkit):
 
             self.client.ping()
             logger.info("Successfully connected to Docker daemon")
-        except Exception as e:
-            logger.error(f"Error connecting to Docker: {e}")
+        except Exception:
+            logger.error("Error connecting to Docker")
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if enable_container_management:
             tools.extend(
                 [
@@ -186,7 +188,7 @@ class DockerTools(Toolkit):
 
             return json.dumps(container_list, indent=2)
         except DockerException as e:
-            error_msg = f"Error listing containers: {str(e)}"
+            error_msg = f"Error listing containers: {e}"
             logger.error(error_msg)
             return error_msg
 
@@ -205,7 +207,7 @@ class DockerTools(Toolkit):
             container.start()
             return f"Container {container_id} started successfully"
         except DockerException as e:
-            error_msg = f"Error starting container: {str(e)}"
+            error_msg = f"Error starting container: {e}"
             logger.error(error_msg)
             return error_msg
 
@@ -225,7 +227,7 @@ class DockerTools(Toolkit):
             container.stop(timeout=timeout)
             return f"Container {container_id} stopped successfully"
         except DockerException as e:
-            error_msg = f"Error stopping container: {str(e)}"
+            error_msg = f"Error stopping container: {e}"
             logger.error(error_msg)
             return error_msg
 

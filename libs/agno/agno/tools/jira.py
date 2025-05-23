@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any, List, Optional, cast
+from typing import Any, cast
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -70,7 +70,7 @@ class JiraTools(Toolkit):
             log_debug(f"Issue details retrieved for {issue_key}: {issue_details}")
             return json.dumps(issue_details)
         except Exception as e:
-            logger.error(f"Error retrieving issue {issue_key}: {e}")
+            logger.error(f"Error retrieving issue {issue_key}: {e}", exc_info=True)
             return json.dumps({"error": str(e)})
 
     def create_issue(self, project_key: str, summary: str, description: str, issuetype: str = "Task") -> str:
@@ -95,7 +95,7 @@ class JiraTools(Toolkit):
             log_debug(f"Issue created with key: {new_issue.key}")
             return json.dumps({"key": new_issue.key, "url": issue_url})
         except Exception as e:
-            logger.error(f"Error creating issue in project {project_key}: {e}")
+            logger.error(f"Error creating issue in project {project_key}: {e}", exc_info=True)
             return json.dumps({"error": str(e)})
 
     def search_issues(self, jql_str: str, max_results: int = 50) -> str:
@@ -121,7 +121,7 @@ class JiraTools(Toolkit):
             log_debug(f"Found {len(results)} issues for JQL '{jql_str}'")
             return json.dumps(results)
         except Exception as e:
-            logger.error(f"Error searching issues with JQL '{jql_str}': {e}")
+            logger.error(f"Error searching issues with JQL '{jql_str}': {e}", exc_info=True)
             return json.dumps([{"error": str(e)}])
 
     def add_comment(self, issue_key: str, comment: str) -> str:
@@ -137,5 +137,5 @@ class JiraTools(Toolkit):
             log_debug(f"Comment added to issue {issue_key}")
             return json.dumps({"status": "success", "issue_key": issue_key})
         except Exception as e:
-            logger.error(f"Error adding comment to issue {issue_key}: {e}")
+            logger.error(f"Error adding comment to issue {issue_key}: {e}", exc_info=True)
             return json.dumps({"error": str(e)})
