@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -181,9 +183,9 @@ def test_insert(couchbase_fts, mock_collection):
 
     # Verify filters were included in the documents
     call_args = mock_collection.insert_multi.call_args[0][0]
-    for doc_id in call_args:
-        assert "filters" in call_args[doc_id]
-        assert call_args[doc_id]["filters"] == filters
+    for doc in call_args:
+        assert "filters" in doc
+        assert doc["filters"] == filters
 
     # Test failed insert
     mock_result.all_ok = False
@@ -212,9 +214,9 @@ def test_upsert(couchbase_fts, mock_collection):
 
     # Verify filters were included in the documents
     call_args = mock_collection.upsert_multi.call_args[0][0]
-    for doc_id in call_args:
-        assert "filters" in call_args[doc_id]
-        assert call_args[doc_id]["filters"] == filters
+    for doc in call_args:
+        assert "filters" in doc
+        assert doc["filters"] == filters
 
     # Test failed upsert
     mock_result.all_ok = False
@@ -255,8 +257,7 @@ def test_search(couchbase_fts, mock_scope, mock_collection):
     assert results[0].content == "test content"
 
     # Test with filters
-    filters = {"category": "test"}
-    couchbase_fts.search("test query", limit=5, filters=filters)
+    couchbase_fts.search("test query", limit=5, filters={"category": "test"})
     # Verify that search was called with the correct arguments
     assert mock_scope.search.call_count == 2
 
@@ -303,7 +304,7 @@ def test_prepare_doc(couchbase_fts, mock_embedder):
     document = Document(name="test doc", content="test content", meta_data={"key": "value"})
 
     # Test
-    prepared_doc = couchbase_fts.prepare_doc(document)
+    prepared_doc = couchbase_fts.prepare_doc(Document(name="test doc", content="test content", meta_data={"key": "value"}))
     assert "_id" in prepared_doc
     assert prepared_doc["name"] == "test doc"
     assert prepared_doc["content"] == "test content"
@@ -313,9 +314,7 @@ def test_prepare_doc(couchbase_fts, mock_embedder):
 
 def test_get_count(mock_scope, couchbase_fts):
     # Setup
-    mock_search_indexes = Mock()
-    mock_search_indexes.get_indexed_documents_count.return_value = 42
-    mock_scope.search_indexes.return_value = mock_search_indexes
+    mock_scope.search_indexes.return_value.get_indexed_documents_count.return_value = 42
 
     # Test
     count = couchbase_fts.get_count()
@@ -478,22 +477,16 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     mock_cluster.search_indexes.return_value = mock_search_indexes
 
     # Mock bucket and collections
-    mock_bucket = Mock(spec=Bucket)
-    mock_cluster.bucket.return_value = mock_bucket
+    mock_cluster.bucket.return_value = Mock(spec=Bucket)
 
     # Mock collections manager
-    collections_manager = Mock()
-    mock_bucket.collections.return_value = collections_manager
+    mock_cluster.bucket.return_value.collections.return_value = Mock()
 
     # Mock scope
-    mock_scope = Mock(spec=Scope)
-    mock_scope.name = "test_scope"
-    mock_bucket.scope.return_value = mock_scope
+    mock_cluster.bucket.return_value.scope.return_value = Mock(spec=Scope, name="test_scope")
 
     # Mock collection
-    mock_collection = Mock(spec=Collection)
-    mock_collection.name = "test_collection"
-    mock_scope.collection.return_value = mock_collection
+    mock_cluster.bucket.return_value.scope.return_value.collection.return_value = Mock(spec=Collection, name="test_collection")
 
     # Set up the scope to have the collection
     mock_scope.collections = [mock_collection]
@@ -845,7 +838,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -921,7 +914,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -944,7 +937,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
