@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -41,6 +43,6 @@ class ShellTools(Toolkit):
             if result.returncode != 0:
                 return f"Error: {result.stderr}"
             return "\n".join(result.stdout.split("\n")[-tail:])
-        except Exception as e:
+        except subprocess.SubprocessError as e:
             logger.warning(f"Failed to run shell command: {e}")
             return f"Error: {e}"

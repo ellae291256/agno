@@ -303,7 +303,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving issues for user ID {user_id}: {e}")
-            raise
+            raise e
 
     def get_workflow_issues(self, workflow_id: str) -> Optional[str]:
         """
@@ -346,7 +346,7 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving issues for workflow state ID {workflow_id}: {e}")
-            raise
+            raise e
 
     def get_high_priority_issues(self) -> Optional[str]:
         """
@@ -387,4 +387,4 @@ class LinearTools(Toolkit):
 
         except Exception as e:
             logger.error(f"Error retrieving high-priority issues: {e}")
-            raise
+            raise e

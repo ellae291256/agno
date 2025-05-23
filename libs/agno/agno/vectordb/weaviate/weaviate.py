@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import uuid
 from hashlib import md5
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from warnings import filterwarnings
@@ -116,7 +118,7 @@ class Weaviate(VectorDb):
             await self.async_client.connect()  # type: ignore
 
         if not await self.async_client.is_ready():  # type: ignore
-            raise Exception("Weaviate async client is not ready")
+            raise RuntimeError("Weaviate async client is not ready")
 
         return self.async_client  # type: ignore
 
@@ -324,6 +326,7 @@ class Weaviate(VectorDb):
 
                 except Exception as e:
                     logger.error(f"Error inserting document {document.name}: {str(e)}")
+                    raise
         finally:
             await client.close()
 

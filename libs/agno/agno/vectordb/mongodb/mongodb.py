@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import time
 from typing import Any, Dict, List, Optional
@@ -146,7 +148,7 @@ class MongoDb(VectorDb):
 
                 except errors.ConnectionFailure as e:
                     raise ConnectionError(f"Failed to connect to Azure Cosmos DB: {e}")
-                except Exception as e:
+                except errors.PyMongoError as e:
                     logger.error(f"An error occurred while connecting to Azure Cosmos DB: {e}")
                     raise
             else:
@@ -160,7 +162,7 @@ class MongoDb(VectorDb):
                 except errors.ConnectionFailure as e:
                     logger.error(f"Failed to connect to MongoDB: {e}")
                     raise ConnectionError(f"Failed to connect to MongoDB: {e}")
-                except Exception as e:
+                except errors.PyMongoError as e:
                     logger.error(f"An error occurred while connecting to MongoDB: {e}")
                     raise
         return self._client
@@ -179,7 +181,7 @@ class MongoDb(VectorDb):
             try:
                 await self._async_client.admin.command("ping")
                 log_info("Connected to MongoDB asynchronously.")
-            except Exception as e:
+            except errors.PyMongoError as e:
                 logger.error(f"Failed to connect to MongoDB asynchronously: {e}")
                 raise
         return self._async_client
@@ -504,7 +506,7 @@ class MongoDb(VectorDb):
                     time.sleep(self.wait_after_insert_in_seconds)
             except errors.BulkWriteError as e:
                 logger.warning(f"Bulk write error while inserting documents: {e.details}")
-            except Exception as e:
+            except errors.PyMongoError as e:
                 logger.error(f"Error inserting documents: {e}")
 
     def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
@@ -521,7 +523,7 @@ class MongoDb(VectorDb):
                     upsert=True,
                 )
                 log_info(f"Upserted document: {doc_data['_id']}")
-            except Exception as e:
+            except errors.PyMongoError as e:
                 logger.error(f"Error upserting document '{document.name}': {e}")
 
     def upsert_available(self) -> bool:
@@ -580,7 +582,7 @@ class MongoDb(VectorDb):
                 log_info(f"Search completed. Found {len(docs)} documents.")
                 return docs
 
-            except Exception as e:
+            except errors.PyMongoError as e:
                 logger.error(f"Error during vector search: {e}")
                 return []
         else:
@@ -637,7 +639,7 @@ class MongoDb(VectorDb):
                 log_info(f"Search completed. Found {len(docs)} documents.")
                 return docs
 
-            except Exception as e:
+            except errors.PyMongoError as e:
                 logger.error(f"Error during search: {e}")
                 raise
 
@@ -665,7 +667,7 @@ class MongoDb(VectorDb):
             ]
             log_debug(f"Keyword search completed. Found {len(results)} documents.")
             return results
-        except Exception as e:
+        except errors.PyMongoError as e:
             logger.error(f"Error during keyword search: {e}")
             return []
 
