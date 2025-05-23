@@ -279,6 +279,8 @@ def test_drop(mock_bucket, couchbase_fts):
     with patch.object(couchbase_fts, "exists", return_value=False):
         couchbase_fts.drop()
         mock_collections_mgr.drop_collection.assert_not_called()
+    # Use the mock to ensure it was accessed
+    mock_bucket.collections.assert_called_once()
 
 
 def test_exists(couchbase_fts, mock_scope):
@@ -370,8 +372,9 @@ def test_get_bucket_not_exists(mock_cluster):
         couchbase_fts.create()
 
 
-def test_create_scope_collection_exists(couchbase_fts, mock_bucket):
+def test_create_scope_collection_exists(couchbase_fts):
     # Mock the collections().get_all_scopes() to return a scope with the _default name
+    mock_bucket = couchbase_fts._bucket
     mock_bucket.collections().create_scope.side_effect = ScopeAlreadyExistsException("Scope already exists")
     mock_bucket.collections().create_collection.side_effect = CollectionAlreadyExistsException(
         "Collection already exists"
@@ -394,7 +397,7 @@ def test_create_scope_error(couchbase_fts, mock_bucket):
         couchbase_fts._create_collection_and_scope()
 
 
-def test_create_collection_with_overwrite(couchbase_fts_overwrite, mock_bucket, mock_scope):
+def test_create_collection_with_overwrite(couchbase_fts_overwrite, mock_bucket):
     # Test collection creation with overwrite=True
     couchbase_fts_overwrite._create_collection_and_scope()
     collections_mgr = mock_bucket.collections.return_value
@@ -409,9 +412,10 @@ def test_create_collection_with_overwrite(couchbase_fts_overwrite, mock_bucket, 
     )
 
 
-def test_create_fts_index_with_overwrite(couchbase_fts_overwrite, mock_scope):
+def test_create_fts_index_with_overwrite(couchbase_fts_overwrite):
     # Setup mock before calling create()
     mock_search_indexes = Mock()
+    mock_scope = couchbase_fts_overwrite._scope
     mock_scope.search_indexes.return_value = mock_search_indexes
 
     # Now call create()
@@ -845,7 +849,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -870,7 +874,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query filter scope kv")
         mock_get_async_scope.assert_called_once()
         mock_scope_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_scope_inst.search.call_args
+        _, search_kwargs_f = mock_scope_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 5
         assert search_kwargs_f["options"]["raw"] == filters
 
@@ -921,7 +925,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -944,7 +948,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
@@ -1061,6 +1065,8 @@ async def test_async_exists(couchbase_fts):
         mock_get_async_bucket.assert_called_once()
         mock_bucket_inst.collections.assert_called_once()
         mock_collections_mgr.get_all_scopes.assert_called_once()
+    # Ensure mocks were used
+    mock_bucket_inst.collections.assert_called()
 
 
 @pytest.mark.asyncio
@@ -1084,6 +1090,8 @@ async def test_async_cluster_property_caching(couchbase_fts, mock_async_cluster)
     # connect should still only be called once due to caching
     mock_async_cluster.connect.assert_called_once()
     assert cluster_instance_2 is cluster_instance_1
+    # Ensure mock was used
+    mock_async_cluster.connect.assert_called()
 
 
 @pytest.mark.asyncio
@@ -1110,6 +1118,8 @@ async def test_async_bucket_property_caching(couchbase_fts):
         mock_get_async_cluster.assert_not_called()  # Should not call get_async_cluster again
         mock_cluster_inst.bucket.assert_not_called()  # Should not call bucket on cluster again
         assert bucket2 is bucket1
+    # Ensure mocks were used
+    mock_cluster_inst.bucket.assert_called()
 
 
 @pytest.mark.asyncio
@@ -1136,6 +1146,8 @@ async def test_async_scope_property_caching(couchbase_fts):
         mock_get_async_bucket.assert_not_called()
         mock_bucket_inst.scope.assert_not_called()
         assert scope2 is scope1
+    # Ensure mocks were used
+    mock_bucket_inst.scope.assert_called()
 
 
 @pytest.mark.asyncio
@@ -1162,3 +1174,5 @@ async def test_async_collection_property_caching(couchbase_fts):
         mock_get_async_scope.assert_not_called()
         mock_scope_inst.collection.assert_not_called()
         assert collection2 is collection1
+    # Ensure mocks were used
+    mock_scope_inst.collection.assert_called()
