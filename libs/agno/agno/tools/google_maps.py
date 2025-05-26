@@ -11,10 +11,12 @@ Prerequisites:
 
 """
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from os import getenv
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -159,6 +161,7 @@ class SingleStoreStorage(Storage):
             log_debug(f"Table does not exist: {self.table.name}")
             log_debug(f"Creating table: {self.table_name}")
             self.create()
+            return session.execute(stmt).first()
         return None
 
     def read(self, session_id: str, user_id: Optional[str] = None) -> Optional[Session]:
@@ -197,6 +200,7 @@ class SingleStoreStorage(Storage):
                         session_ids.append(row.session_id)
         except Exception as e:
             logger.error(f"An unexpected error occurred: {str(e)}")
+            raise
         return session_ids
 
     def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
@@ -234,6 +238,7 @@ class SingleStoreStorage(Storage):
                                 sessions.append(_workflow_session)
         except Exception:
             log_debug(f"Table does not exist: {self.table.name}")
+            raise
         return sessions
 
     def get_recent_sessions(
@@ -241,7 +246,7 @@ class SingleStoreStorage(Storage):
         user_id: Optional[str] = None,
         entity_id: Optional[str] = None,
         limit: Optional[int] = 2,
-    ) -> List[Session]:
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -250,9 +255,9 @@ class SingleStoreStorage(Storage):
             entity_id: Filter by entity ID (agent_id, team_id, or workflow_id)
 
         Returns:
-            List[Session]: List of most recent sessions
+            list[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         try:
             with self.SqlSession.begin() as sess:
                 # Build base query
@@ -296,7 +301,8 @@ class SingleStoreStorage(Storage):
                 log_debug(f"Table does not exist: {self.table.name}")
                 self.create()
             else:
-                logger.error(f"Error getting last {num_history_sessions} sessions: {e}")
+                logger.error(f"Error getting last {limit} sessions: {e}")
+            raise
 
         return sessions
 

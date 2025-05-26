@@ -60,8 +60,8 @@ class Mem0Tools(Toolkit):
                 session_state = getattr(agent, "session_state", None)
                 if isinstance(session_state, dict):
                     resolved_user_id = session_state.get("current_user_id")
-            except Exception:
-                pass
+            except Exception as e:
+                log_error(f"Error resolving user ID: {e}")
         if not resolved_user_id:
             error_msg = f"Error in {method_name}: A user_id must be provided in the method call."
             log_error(error_msg)
@@ -99,6 +99,9 @@ class Mem0Tools(Toolkit):
                 user_id=resolved_user_id,
             )
             return json.dumps(result)
+        except ValueError as ve:
+            log_error(f"Error adding memory: {ve}")
+            return f"Error adding memory: {ve}"
         except Exception as e:
             log_error(f"Error adding memory: {e}")
             return f"Error adding memory: {e}"
@@ -129,8 +132,8 @@ class Mem0Tools(Toolkit):
 
             return json.dumps(search_results_list)
         except ValueError as ve:
-            log_error(str(ve))
-            return str(ve)
+            log_error(f"Error searching memory: {ve}")
+            return f"Error searching memory: {ve}"
         except Exception as e:
             log_error(f"Error searching memory: {e}")
             return f"Error searching memory: {e}"
@@ -155,8 +158,8 @@ class Mem0Tools(Toolkit):
                 memories_list = []
             return json.dumps(memories_list)
         except ValueError as ve:
-            log_error(str(ve))
-            return str(ve)
+            log_error(f"Error getting all memories: {ve}")
+            return f"Error getting all memories: {ve}"
         except Exception as e:
             log_error(f"Error getting all memories: {e}")
             return f"Error getting all memories: {e}"
@@ -172,6 +175,9 @@ class Mem0Tools(Toolkit):
         try:
             self.client.delete_all(user_id=resolved_user_id)
             return f"Successfully deleted all memories for user_id: {resolved_user_id}."
+        except ValueError as ve:
+            log_error(f"Error deleting all memories: {ve}")
+            return f"Error deleting all memories: {ve}"
         except Exception as e:
             log_error(f"Error deleting all memories: {e}")
             return f"Error deleting all memories: {e}"

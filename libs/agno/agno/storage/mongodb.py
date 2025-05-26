@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 from uuid import UUID
 
 from agno.storage.base import Storage

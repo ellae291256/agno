@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import List, Literal, Optional
+from typing import Literal
 
 from agno.storage.session import Session
 

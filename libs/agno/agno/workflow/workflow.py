@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, Callable, Dict, List, Optional, Union, cast
+from typing import Any, Callable, Union, cast
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -166,7 +166,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -465,16 +465,16 @@ class Workflow:
                     for run in session.memory["runs"]:
                         run_session_id = run["session_id"]
                         self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
-                except Exception as e:
+                except (KeyError, TypeError, ValueError) as e:
                     log_warning(f"Failed to load runs from memory: {e}")
             else:
                 try:
                     if "runs" in session.memory:
                         try:
                             self.memory.runs = [WorkflowRun(**m) for m in session.memory["runs"]]
-                        except Exception as e:
+                        except (KeyError, TypeError, ValueError) as e:
                             logger.warning(f"Failed to load runs from memory: {e}")
-                except Exception as e:
+                except (KeyError, TypeError, ValueError) as e:
                     logger.warning(f"Failed to load WorkflowMemory: {e}")
 
         log_debug(f"-*- WorkflowSession loaded: {session.session_id}")
@@ -527,7 +527,7 @@ class Workflow:
                 # and populate self.workflow_session with the new session
                 self.write_to_storage()
                 if self.workflow_session is None:
-                    raise Exception("Failed to create new WorkflowSession in storage")
+                    raise RuntimeError("Failed to create new WorkflowSession in storage")
                 log_debug(f"-*- Created WorkflowSession: {self.workflow_session.session_id}")
                 self.log_workflow_session()
         return self.session_id
