@@ -61,7 +61,7 @@ def get_json_schema_for_arg(t: Any) -> Optional[Dict[str, Any]]:
                     schema = get_json_schema_for_arg(arg)
                     if schema:
                         types.append(schema)
-                except Exception:
+                except (TypeError, AttributeError):
                     continue
             return {"anyOf": types} if types else None
 

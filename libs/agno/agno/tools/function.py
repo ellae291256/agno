@@ -618,7 +618,7 @@ class FunctionCall(BaseModel):
             log_warning(f"Could not run function {self.get_call_str()}")
             log_exception(e)
             self.error = str(e)
-            return FunctionExecutionResult(status="failure", error=str(e))
+            raise
 
         # Execute post-hook if it exists
         self._handle_post_hook()

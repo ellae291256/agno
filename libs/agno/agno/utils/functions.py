@@ -30,10 +30,10 @@ def get_function_call(
         try:
             try:
                 _arguments = json.loads(arguments)
-            except Exception as e:
+            except (json.JSONDecodeError, ValueError) as e:
                 import ast
                 _arguments = ast.literal_eval(arguments)
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError) as e:
             log_error(f"Unable to decode function arguments:\n{arguments}\nError: {e}")
             function_call.error = (
                 f"Error while decoding function arguments: {e}\n\n"
@@ -63,7 +63,7 @@ def get_function_call(
                     clean_arguments[k] = v
 
             function_call.arguments = clean_arguments
-        except Exception as e:
+        except (KeyError, TypeError) as e:
             log_error(f"Unable to parsing function arguments:\n{arguments}\nError: {e}")
             function_call.error = f"Error while parsing function arguments: {e}\n\n Please fix and retry."
             return function_call
@@ -144,7 +144,7 @@ def cache_result(enable_cache: bool = True, cache_dir: Optional[str] = None, cac
 
                     # Remove expired entry
                     os.remove(cache_file)
-                except Exception as e:
+                except (json.JSONDecodeError, IOError) as e:
                     log_error(f"Error reading cache: {e}")
                     # Continue with function execution if cache read fails
 
@@ -154,7 +154,7 @@ def cache_result(enable_cache: bool = True, cache_dir: Optional[str] = None, cac
             try:
                 with open(cache_file, "w") as f:
                     json.dump({"timestamp": time.time(), "result": result}, f)
-            except Exception as e:
+            except (TypeError, IOError) as e:
                 log_error(f"Error writing cache: {e}")
                 # Continue even if cache write fails
 

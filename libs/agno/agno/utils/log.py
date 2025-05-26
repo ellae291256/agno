@@ -116,7 +116,7 @@ def center_header(message: str, symbol: str = "*") -> str:
         import shutil
 
         terminal_width = shutil.get_terminal_size().columns
-    except Exception:
+    except (shutil.Error, OSError):
         terminal_width = 80  # fallback width
 
     header = f" {message} "

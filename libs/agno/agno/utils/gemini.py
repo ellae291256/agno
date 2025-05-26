@@ -29,7 +29,7 @@ def format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
                     "data": base64.b64encode(content_bytes).decode("utf-8"),
                 }
                 return image_data
-            except Exception as e:
+            except (IOError, OSError) as e:
                 log_warning(f"Failed to download image from {image}: {e}")
                 return None
         else:
@@ -50,7 +50,7 @@ def format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
                 "mime_type": "image/jpeg",
                 "data": content_bytes,
             }
-        except Exception as e:
+        except (IOError, OSError) as e:
             log_warning(f"Failed to load image from {image.filepath}: {e}")
             return None
 

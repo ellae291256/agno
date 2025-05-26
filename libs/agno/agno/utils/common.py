@@ -24,7 +24,7 @@ def str_to_int(inp: Optional[str]) -> Optional[int]:
     try:
         val = int(inp)
         return val
-    except Exception:
+    except ValueError:
         return None
 
 

@@ -96,7 +96,7 @@ def save_base64_data(base64_data: str, output_path: str) -> bool:
     try:
         # Decode the base64 string into bytes
         decoded_data = base64.b64decode(base64_data)
-    except Exception as e:
+    except (ValueError, binascii.Error) as e:
         raise Exception(f"An unexpected error occurred during base64 decoding: {e}")
 
     try:
@@ -109,7 +109,7 @@ def save_base64_data(base64_data: str, output_path: str) -> bool:
 
         print(f"Data successfully saved to '{path}'.")
         return True
-    except Exception as e:
+    except (IOError, OSError) as e:
         raise Exception(f"An unexpected error occurred while saving data to '{output_path}': {e}")
 
 
