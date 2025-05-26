@@ -53,7 +53,7 @@ class JinaReaderTools(Toolkit):
             response.raise_for_status()
             content = response.json()
             return self._truncate_content(str(content))
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError) as e:
             error_msg = f"Error reading URL: {str(e)}"
             logger.error(error_msg)
             return error_msg
@@ -67,7 +67,7 @@ class JinaReaderTools(Toolkit):
             response.raise_for_status()
             content = response.json()
             return self._truncate_content(str(content))
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError) as e:
             error_msg = f"Error performing search: {str(e)}"
             logger.error(error_msg)
             return error_msg

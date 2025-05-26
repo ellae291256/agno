@@ -2,7 +2,7 @@
 
 import base64
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -105,6 +105,8 @@ def test_authentication_decorator():
 
 def test_auth_with_expired_credentials():
     """Test authentication with expired credentials."""
+    from contextlib import ExitStack
+
     mock_creds = Mock(spec=Credentials)
     mock_creds.valid = False
     mock_creds.expired = True
@@ -116,11 +118,12 @@ def test_auth_with_expired_credentials():
 
         tools = GmailTools(creds=mock_creds)
 
-        with patch.object(mock_creds, "refresh") as mock_refresh:
-            with patch("pathlib.Path.exists") as mock_exists:
-                mock_exists.return_value = False  # Force refresh path
-                tools._auth()
-                mock_refresh.assert_called_once()
+        with ExitStack() as stack:
+            mock_refresh = stack.enter_context(patch.object(mock_creds, "refresh"))
+            mock_exists = stack.enter_context(patch("pathlib.Path.exists"))
+            mock_exists.return_value = False  # Force refresh path
+            tools._auth()
+            mock_refresh.assert_called_once()
 
 
 def test_auth_with_custom_paths():

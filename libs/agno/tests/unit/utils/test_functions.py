@@ -1,13 +1,13 @@
 import json
 import pytest
-from typing import Dict, Optional
+from typing import Optional
 
 from agno.tools.function import Function, FunctionCall
 from agno.utils.functions import get_function_call
 
 
 @pytest.fixture
-def sample_functions() -> Dict[str, Function]:
+def sample_functions() -> dict[str, Function]:
     return {
         "test_function": Function(
             name="test_function",

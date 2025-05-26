@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -74,7 +73,7 @@ def qdrant_db(mock_qdrant_client, mock_embedder):
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(
@@ -198,7 +197,7 @@ def test_search(qdrant_db, mock_qdrant_client):
 
         # Verify search was called with correct parameters
         mock_qdrant_client.query_points.assert_called_once()
-        args, kwargs = mock_qdrant_client.query_points.call_args
+        _, kwargs = mock_qdrant_client.query_points.call_args
         assert kwargs["collection_name"] == "test_collection"
         assert kwargs["query"] == [0.1] * 768
         assert kwargs["limit"] == 2

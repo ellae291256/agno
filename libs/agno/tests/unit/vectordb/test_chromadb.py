@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -30,7 +29,8 @@ def chroma_db(mock_embedder):
     # Cleanup after test
     try:
         db.drop()
-    except Exception:
+    except Exception as e:
+        # Ignore errors during cleanup as the directory will be removed anyway
         pass
 
     if os.path.exists(TEST_PATH):
@@ -119,6 +119,8 @@ def test_distance_metrics():
     try:
         db_cosine.drop()
         db_euclidean.drop()
+    except Exception:
+        pass
     finally:
         if os.path.exists(TEST_PATH):
             shutil.rmtree(TEST_PATH)
