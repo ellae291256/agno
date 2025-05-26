@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -28,11 +29,6 @@ def chroma_db(mock_embedder):
     yield db
 
     # Cleanup after test
-    try:
-        db.drop()
-    except Exception:
-        pass
-
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)
 
