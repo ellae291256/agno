@@ -2,7 +2,7 @@
 
 import base64
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -47,7 +47,7 @@ def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body:
                 {"name": "From", "value": sender},
                 {"name": "Date", "value": date},
             ],
-            "body": {"data": base64.urlsafe_b64encode(body.encode()).decode()},
+            "body": {"data": base64.urlsafe_b64encode(body).decode()},
         },
     }
 
@@ -298,7 +298,7 @@ def test_message_with_attachments(gmail_tools, mock_gmail_service):
             "parts": [
                 {
                     "mimeType": "text/plain",
-                    "body": {"data": base64.urlsafe_b64encode("Message with attachment".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("Message with attachment").decode()},
                 },
                 {"filename": "test.pdf", "mimeType": "application/pdf"},
             ],
@@ -362,7 +362,7 @@ def test_html_message_content(gmail_tools, mock_gmail_service):
                 {"name": "Date", "value": "2024-01-01"},
             ],
             "mimeType": "text/html",
-            "body": {"data": base64.urlsafe_b64encode(html_content.encode()).decode()},
+            "body": {"data": base64.urlsafe_b64encode(html_content).decode()},
         },
     }
 
@@ -421,11 +421,11 @@ def test_multipart_complex_message(gmail_tools, mock_gmail_service):
             "parts": [
                 {
                     "mimeType": "text/plain",
-                    "body": {"data": base64.urlsafe_b64encode("Plain text version".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("Plain text version").decode()},
                 },
                 {
                     "mimeType": "text/html",
-                    "body": {"data": base64.urlsafe_b64encode("<p>HTML version</p>".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("<p>HTML version</p>").decode()},
                 },
                 {"filename": "test.pdf", "mimeType": "application/pdf"},
             ],

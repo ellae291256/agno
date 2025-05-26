@@ -1,4 +1,5 @@
-from typing import List
+from __future__ import annotations
+
 from unittest.mock import Mock, patch
 
 import pytest
@@ -136,7 +137,7 @@ def test_insert_documents(qdrant_db, sample_documents, mock_qdrant_client):
         mock_qdrant_client.upsert.assert_called_once()
 
         # Verify the right number of points are created
-        args, kwargs = mock_qdrant_client.upsert.call_args
+        _, kwargs = mock_qdrant_client.upsert.call_args
         assert kwargs["collection_name"] == "test_collection"
         assert kwargs["wait"] is False
         assert len(kwargs["points"]) == 3
