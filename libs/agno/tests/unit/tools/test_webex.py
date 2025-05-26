@@ -33,15 +33,15 @@ def webex_tools(mock_webex_api):
     """Create WebexTools instance with mocked API."""
     with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "test_token"}):
         tools = WebexTools()
-        tools.client = mock_webex_api
-        return tools
+    tools.client = mock_webex_api
+    return tools
 
 
 def test_init_with_api_token():
     """Test initialization with provided API token."""
     with patch("agno.tools.webex.WebexAPI") as mock_api:
         WebexTools(access_token="test_token")
-        mock_api.assert_called_once_with(access_token="test_token")
+    mock_api.assert_called_once_with(access_token="test_token")
 
 
 def test_init_with_env_var():
@@ -49,7 +49,7 @@ def test_init_with_env_var():
     with patch("agno.tools.webex.WebexAPI") as mock_api:
         with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "env_token"}):
             WebexTools()
-            mock_api.assert_called_once_with(access_token="env_token")
+    mock_api.assert_called_once_with(access_token="env_token")
 
 
 def test_init_without_token():
