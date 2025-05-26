@@ -34,27 +34,25 @@ def mock_session():
 @pytest.fixture
 def agent_storage(mock_engine, mock_session):
     """Create a SingleStoreStorage instance for agent mode with mocked components."""
-    session_factory, session_instance = mock_session
-    with patch("agno.storage.singlestore.sessionmaker", return_value=session_factory):
-        with patch("agno.storage.singlestore.inspect", return_value=MagicMock()):
-            storage = SingleStoreStorage(table_name="agent_sessions", schema="ai", db_engine=mock_engine, mode="agent")
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, session_instance
+    _, session_instance = mock_session
+    with patch("agno.storage.singlestore.sessionmaker"), patch("agno.storage.singlestore.inspect", return_value=MagicMock()):
+        storage = SingleStoreStorage(table_name="agent_sessions", schema="ai", db_engine=mock_engine, mode="agent")
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, session_instance
 
 
 @pytest.fixture
 def workflow_storage(mock_engine, mock_session):
     """Create a SingleStoreStorage instance for workflow mode with mocked components."""
-    session_factory, session_instance = mock_session
-    with patch("agno.storage.singlestore.sessionmaker", return_value=session_factory):
-        with patch("agno.storage.singlestore.inspect", return_value=MagicMock()):
-            storage = SingleStoreStorage(
-                table_name="workflow_sessions", schema="ai", db_engine=mock_engine, mode="workflow"
-            )
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, session_instance
+    _, session_instance = mock_session
+    with patch("agno.storage.singlestore.sessionmaker"), patch("agno.storage.singlestore.inspect", return_value=MagicMock()):
+        storage = SingleStoreStorage(
+            table_name="workflow_sessions", schema="ai", db_engine=mock_engine, mode="workflow"
+        )
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, session_instance
 
 
 def test_initialization():

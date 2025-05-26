@@ -98,9 +98,8 @@ MOCK_TIMEZONE_RESPONSE = {
 @pytest.fixture
 def google_maps_tools():
     """Create a GoogleMapTools instance with a mock API key."""
-    with patch.dict("os.environ", {"GOOGLE_MAPS_API_KEY": "AIzaTest"}):
-        with patch("google.maps.places_v1.PlacesClient"):
-            return GoogleMapTools()
+    with patch.dict("os.environ", {"GOOGLE_MAPS_API_KEY": "AIzaTest"}), patch("google.maps.places_v1.PlacesClient"):
+        return GoogleMapTools()
 
 
 @pytest.fixture

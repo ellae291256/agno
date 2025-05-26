@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from contextlib import AsyncExitStack
 from dataclasses import asdict, dataclass
 from datetime import timedelta
 from os import environ
 from types import TracebackType
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from agno.tools import Toolkit
 from agno.tools.function import Function
@@ -271,18 +273,16 @@ class MultiMCPTools(Toolkit):
 
     def __init__(
         self,
-        commands: Optional[List[str]] = None,
-        urls: Optional[List[str]] = None,
-        urls_transports: Optional[List[Literal["sse", "streamable-http"]]] = None,
+        commands: list[str] | None = None,
+        urls: list[str] | None = None,
+        urls_transports: list[Literal["sse", "streamable-http"]] | None = None,
         *,
-        env: Optional[dict[str, str]] = None,
-        server_params_list: Optional[
-            List[Union[SSEClientParams, StdioServerParameters, StreamableHTTPClientParams]]
-        ] = None,
+        env: dict[str, str] | None = None,
+        server_params_list: list[SSEClientParams | StdioServerParameters | StreamableHTTPClientParams] | None = None,
         timeout_seconds: int = 5,
         client=None,
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
+        include_tools: list[str] | None = None,
+        exclude_tools: list[str] | None = None,
         **kwargs,
     ):
         """
@@ -318,12 +318,12 @@ class MultiMCPTools(Toolkit):
         if server_params_list is None and commands is None and urls is None:
             raise ValueError("Either server_params_list or commands or urls must be provided")
 
-        self.server_params_list: List[Union[SSEClientParams, StdioServerParameters, StreamableHTTPClientParams]] = (
+        self.server_params_list: list[SSEClientParams | StdioServerParameters | StreamableHTTPClientParams] = (
             server_params_list or []
         )
         self.timeout_seconds = timeout_seconds
-        self.commands: Optional[List[str]] = commands
-        self.urls: Optional[List[str]] = urls
+        self.commands: list[str] | None = commands
+        self.urls: list[str] | None = urls
         # Merge provided env with system env
         if env is not None:
             env = {
