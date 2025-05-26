@@ -22,7 +22,7 @@ def mock_exa_client():
 @pytest.fixture
 def exa_tools(mock_exa_client):
     """Create ExaTools instance with mocked API."""
-    with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
+    with patch("os.environ", {"EXA_API_KEY": "test_key"}):
         tools = ExaTools()
         tools.exa = mock_exa_client
         return tools
@@ -30,11 +30,11 @@ def exa_tools(mock_exa_client):
 
 def create_mock_search_result(
     url: str,
-    title: str = None,
-    author: str = None,
-    published_date: str = None,
-    text: str = None,
-    highlights: list = None,
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    published_date: Optional[str] = None,
+    text: Optional[str] = None,
+    highlights: Optional[list] = None,
 ):
     """Helper function to create mock search result."""
     result = Mock()

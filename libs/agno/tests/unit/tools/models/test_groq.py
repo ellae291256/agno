@@ -53,7 +53,6 @@ def test_groq_tools_init_success(mock_toolkit_init, mock_groq_client):
     assert tools.tts_model == "playai-tts"
     assert tools.tts_voice == "Chip-PlayAI"
     assert tools.tts_format == "wav"
-    mock_groq_client  # Ensure fixture is used
 
     # Check tool registration by looking at the tools attribute
     # NOTE: This check might be invalid now as we mocked the base init
@@ -89,7 +88,6 @@ def test_groq_tools_init_with_params(mock_toolkit_init, mock_groq_client):
     assert tools.translation_model == "custom-trans"
     assert tools.tts_model == "custom-tts"
     assert tools.tts_voice == "CustomVoice"
-    mock_groq_client  # Ensure fixture is used
 
 
 # --- Test transcribe_audio ---
@@ -250,6 +248,7 @@ def test_generate_speech_success(mock_toolkit_init, mock_groq_client):
     tools = GroqTools()
     mock_agent = MagicMock(spec=Agent)
     mock_agent.add_audio = MagicMock()
+    _ = mock_agent.add_audio
     text_input = "Hello, this is a test."
 
     # Mock the response object from client.audio.speech.create

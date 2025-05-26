@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
-from typing import List, Literal, Optional
+from typing import Literal
 from uuid import UUID
 
 from agno.storage.base import Storage
@@ -228,12 +230,12 @@ class MongoDbStorage(Storage):
             session (Session): The session to upsert
             create_and_retry (bool): Whether to create a new session if the session_id already exists
         Returns:
-            Optional[Session]: The upserted session, otherwise None
+            Session | None: The upserted session, otherwise None
         """
         try:
             # Convert session to dict and add timestamps
             session_dict = session.to_dict()
-            now = datetime.now(timezone.utc)
+            now = datetime.now(tz=timezone.utc)
             timestamp = int(now.timestamp())
 
             # Handle UUID serialization

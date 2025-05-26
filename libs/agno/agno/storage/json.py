@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -127,7 +129,7 @@ class JsonStorage(Storage):
         user_id: Optional[str] = None,
         entity_id: Optional[str] = None,
         limit: Optional[int] = 2,
-    ) -> List[Session]:
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -136,11 +138,11 @@ class JsonStorage(Storage):
             entity_id: Filter by entity ID (agent_id, team_id, or workflow_id)
 
         Returns:
-            List[Session]: List of most recent sessions
+            list[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         # List of (created_at, data) tuples for sorting
-        session_data: List[tuple[int, dict]] = []
+        session_data: list[tuple[int, dict]] = []
 
         # First pass: collect and filter sessions
         for file in self.dir_path.glob("*.json"):
@@ -163,7 +165,7 @@ class JsonStorage(Storage):
                     created_at = data.get("created_at", 0)
                     session_data.append((created_at, data))
 
-            except Exception as e:
+            except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.error(f"Error reading session file {file}: {e}")
                 continue
 
@@ -198,7 +200,7 @@ class JsonStorage(Storage):
             with open(self.dir_path / f"{session.session_id}.json", "w", encoding="utf-8") as f:
                 f.write(self.serialize(data))
             return session
-        except Exception as e:
+        except (OSError, TypeError) as e:
             logger.error(f"Error upserting session: {e}")
             return None
 
@@ -208,7 +210,7 @@ class JsonStorage(Storage):
             return
         try:
             (self.dir_path / f"{session_id}.json").unlink(missing_ok=True)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error deleting session: {e}")
 
     def drop(self) -> None:

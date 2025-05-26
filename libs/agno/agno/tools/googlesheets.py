@@ -44,11 +44,13 @@ Note: The first time you run the application, it will open a browser window for 
 A token.json file will be created to store the authentication credentials for future use.
 """
 
+from __future__ import annotations
+
 import json
 from functools import wraps
 from os import getenv
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 
@@ -248,7 +250,7 @@ class GoogleSheetsTools(Toolkit):
 
     @authenticate
     def update_sheet(
-        self, data: List[List[Any]], spreadsheet_id: Optional[str] = None, range_name: Optional[str] = None
+        self, data: list[list[Any]], spreadsheet_id: Optional[str] = None, range_name: Optional[str] = None
     ) -> str:
         """Updates a Google Sheet with the provided data.
 

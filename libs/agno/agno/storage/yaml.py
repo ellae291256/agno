@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import time
 from dataclasses import asdict
 from pathlib import Path
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 import yaml
 
@@ -138,9 +140,9 @@ class YamlStorage(Storage):
         Returns:
             List[Session]: List of most recent sessions
         """
-        sessions: List[Session] = []
+        sessions: list[Session] = []
         # List of (created_at, data) tuples for sorting
-        session_data: List[tuple[int, dict]] = []
+        session_data: list[tuple[int, dict]] = []
 
         # First pass: collect and filter sessions
         for file in self.dir_path.glob("*.yaml"):
@@ -163,7 +165,7 @@ class YamlStorage(Storage):
                     created_at = data.get("created_at", 0)
                     session_data.append((created_at, data))
 
-            except Exception as e:
+            except (yaml.YAMLError, KeyError, TypeError) as e:
                 logger.error(f"Error reading session file {file}: {e}")
                 continue
 
@@ -198,7 +200,7 @@ class YamlStorage(Storage):
             with open(self.dir_path / f"{session.session_id}.yaml", "w", encoding="utf-8") as f:
                 f.write(self.serialize(data))
             return session
-        except Exception as e:
+        except (yaml.YAMLError, IOError, TypeError) as e:
             logger.error(f"Error upserting session: {e}")
             return None
 
@@ -208,7 +210,7 @@ class YamlStorage(Storage):
             return
         try:
             (self.dir_path / f"{session_id}.yaml").unlink(missing_ok=True)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error deleting session: {e}")
 
     def drop(self) -> None:

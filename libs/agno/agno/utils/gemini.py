@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.media import Image
 from agno.utils.log import log_error, log_warning
@@ -29,7 +31,7 @@ def format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
                     "data": base64.b64encode(content_bytes).decode("utf-8"),
                 }
                 return image_data
-            except Exception as e:
+            except IOError as e:
                 log_warning(f"Failed to download image from {image}: {e}")
                 return None
         else:
@@ -40,12 +42,11 @@ def format_image_for_message(image: Image) -> Optional[Dict[str, Any]]:
     elif image.filepath is not None:
         try:
             image_path = Path(image.filepath)
-            if image_path.exists() and image_path.is_file():
-                with open(image_path, "rb") as f:
-                    content_bytes = f.read()
-            else:
+            if not image_path.exists() or not image_path.is_file():
                 log_error(f"Image file {image_path} does not exist.")
-                raise
+                raise FileNotFoundError(f"Image file {image_path} does not exist.")
+            with open(image_path, "rb") as f:
+                content_bytes = f.read()
             return {
                 "mime_type": "image/jpeg",
                 "data": content_bytes,

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import time
-from typing import List, Literal, Optional
+from typing import Literal, Optional
 
 from agno.storage.base import Storage
 from agno.storage.session import Session
@@ -272,7 +274,7 @@ class PostgresStorage(Storage):
                 log_debug(f"Exception reading from table: {e}")
         return None
 
-    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[str]:
+    def get_all_session_ids(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> list[str]:
         """
         Get all session IDs, optionally filtered by user_id and/or entity_id.
 
@@ -281,7 +283,7 @@ class PostgresStorage(Storage):
             entity_id (Optional[str]): The ID of the agent / workflow to filter by.
 
         Returns:
-            List[str]: List of session IDs matching the criteria.
+            list[str]: List of session IDs matching the criteria.
         """
         try:
             with self.Session() as sess, sess.begin():
@@ -309,7 +311,7 @@ class PostgresStorage(Storage):
             self.create()
         return []
 
-    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> List[Session]:
+    def get_all_sessions(self, user_id: Optional[str] = None, entity_id: Optional[str] = None) -> list[Session]:
         """
         Get all sessions, optionally filtered by user_id and/or entity_id.
 
@@ -318,7 +320,7 @@ class PostgresStorage(Storage):
             entity_id (Optional[str]): The ID of the agent / workflow to filter by.
 
         Returns:
-            List[Session]: List of Session objects matching the criteria.
+            list[Session]: List of Session objects matching the criteria.
         """
         try:
             with self.Session() as sess, sess.begin():
@@ -358,7 +360,7 @@ class PostgresStorage(Storage):
         user_id: Optional[str] = None,
         entity_id: Optional[str] = None,
         limit: Optional[int] = 2,
-    ) -> List[Session]:
+    ) -> list[Session]:
         """Get the last N sessions, ordered by created_at descending.
 
         Args:
@@ -367,7 +369,7 @@ class PostgresStorage(Storage):
             entity_id: Filter by entity ID (agent_id, team_id, or workflow_id)
 
         Returns:
-            List[Session]: List of most recent sessions
+            list[Session]: List of most recent sessions
         """
         try:
             with self.Session() as sess, sess.begin():
@@ -393,7 +395,7 @@ class PostgresStorage(Storage):
                 # Execute query
                 rows = sess.execute(stmt).fetchall()
                 if rows is not None:
-                    sessions: List[Session] = []
+                    sessions: list[Session] = []
                     for row in rows:
                         session: Optional[Session] = None
                         if self.mode == "agent":
