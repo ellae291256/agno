@@ -16,10 +16,11 @@ def mock_openweather_api():
 
 
 @pytest.fixture
+@pytest.fixture
 def openweather_tools():
     """Create an OpenWeatherTools instance with a mock API key."""
     with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
-        return OpenWeatherTools()
+        yield OpenWeatherTools()
 
 
 def test_initialization_without_api_key():
@@ -27,6 +28,22 @@ def test_initialization_without_api_key():
     with patch.dict("os.environ", clear=True):
         with pytest.raises(ValueError, match="OpenWeather API key is required"):
             OpenWeatherTools()
+
+
+def test_init_with_selective_tools():
+    """Test initialization with only selected tools."""
+    with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
+        tools = OpenWeatherTools(
+            current_weather=True,
+            forecast=False,
+            air_pollution=True,
+            geocoding=False,
+        )
+
+        assert "get_current_weather" in [func.name for func in tools.functions.values()]
+        assert "get_forecast" not in [func.name for func in tools.functions.values()]
+        assert "get_air_pollution" in [func.name for func in tools.functions.values()]
+        assert "geocode_location" not in [func.name for func in tools.functions.values()]
 
 
 def test_init_with_selective_tools():
