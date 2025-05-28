@@ -31,8 +31,7 @@ def mock_webex_api():
 @pytest.fixture
 def webex_tools(mock_webex_api):
     """Create WebexTools instance with mocked API."""
-    with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "test_token"}):
-        tools = WebexTools()
+    with patch.dict("os.environ", {"WEBEX_ACCESS_TOKEN": "test_token"}), WebexTools() as tools:
         tools.client = mock_webex_api
         return tools
 
@@ -54,9 +53,8 @@ def test_init_with_env_var():
 
 def test_init_without_token():
     """Test initialization without API token."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="Webex access token is not set"):
-            WebexTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="Webex access token is not set"):
+        WebexTools()
 
 
 def test_init_with_selective_tools():

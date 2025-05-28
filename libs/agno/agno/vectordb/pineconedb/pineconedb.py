@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 try:
     from packaging import version
@@ -225,7 +227,8 @@ class PineconeDb(VectorDb):
         try:
             self.client.describe_index(name)
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Index {name} does not exist: {e}")
             return False
 
     async def async_name_exists(self, name: str) -> bool:
@@ -474,7 +477,8 @@ class PineconeDb(VectorDb):
         try:
             self.index.delete(delete_all=True, namespace=namespace)
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Failed to delete index: {e}")
             return False
 
     async def async_drop(self) -> None:

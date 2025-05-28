@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from sqlalchemy.dialects import mysql
@@ -406,8 +408,8 @@ class SingleStore(VectorDb):
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
 
     async def async_drop(self) -> None:

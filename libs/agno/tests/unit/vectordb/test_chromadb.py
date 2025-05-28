@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -30,8 +31,10 @@ def chroma_db(mock_embedder):
     # Cleanup after test
     try:
         db.drop()
-    except Exception:
-        pass
+    except Exception as e:
+        # Log the error but don't fail the test teardown
+        import logging
+        logging.warning(f"Failed to drop ChromaDB collection: {e}")
 
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)
