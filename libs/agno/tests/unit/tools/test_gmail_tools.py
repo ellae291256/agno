@@ -2,7 +2,7 @@
 
 import base64
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -106,6 +106,25 @@ def test_authentication_decorator():
 def test_auth_with_expired_credentials():
     """Test authentication with expired credentials."""
     mock_creds = Mock(spec=Credentials)
+    mock_creds.expired = True
+    mock_creds.valid = False
+    mock_creds.refresh = Mock()
+
+    with patch("agno.tools.gmail.build") as mock_build:
+        mock_service = MagicMock()
+        mock_build.return_value = mock_service
+
+        tools = GmailTools(creds=mock_creds)
+
+        with patch.object(tools, "_auth") as mock_auth:
+            tools.get_latest_emails(count=1)
+            mock_auth.assert_called_once()
+            mock_creds.refresh.assert_called_once()
+
+
+def test_auth_with_custom_paths():
+    """Test authentication with expired credentials."""
+    mock_creds = Mock(spec=Credentials)
     mock_creds.valid = False
     mock_creds.expired = True
     mock_creds.refresh_token = True
@@ -124,6 +143,49 @@ def test_auth_with_expired_credentials():
 
 
 def test_auth_with_custom_paths():
+    """Test authentication with custom credential and token paths."""
+    custom_creds_path = "custom_creds.json"
+    custom_token_path = "custom_token.json"
+
+    with patch("pathlib.Path.exists") as mock_exists:
+        mock_exists.return_value = True
+        with patch("agno.tools.gmail.Credentials.from_authorized_user_file") as mock_from_file:
+            tools = GmailTools(credentials_path=custom_creds_path, token_path=custom_token_path)
+            tools._auth()
+            mock_from_file.assert_called_once_with(custom_token_path, tools.scopes)
+
+
+def test_get_latest_emails(gmail_tools, mock_gmail_service):
+    """Test getting latest emails."""
+    # Mock response data
+    mock_messages = {
+        "messages": [{"id": "1", "snippet": "Test Email"}],
+        "resultSizeEstimate": 1,
+    }
+    mock_message_data = {
+        "id": "1",
+        "snippet": "Test Email",
+        "payload": {
+            "headers": [
+                {"name": "From", "value": "sender@example.com"},
+                {"name": "To", "value": "recipient@example.com"},
+                {"name": "Subject", "value": "Test Subject"},
+                {"name": "Date", "value": "Mon, 1 Jan 2024 00:00:00 +0000"},
+            ],
+            "body": {"data": "SGVsbG8gV29ybGQ="},
+        },
+    }
+
+    mock_gmail_service.users().messages().list().execute.return_value = mock_messages
+    mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
+
+    result = gmail_tools.get_latest_emails(count=1)
+
+    assert "Test Email" in result
+    assert "Test Subject" in result
+
+
+def test_get_emails_from_user(gmail_tools, mock_gmail_service):
     """Test authentication with custom credential and token paths."""
     custom_creds_path = "custom_creds.json"
     custom_token_path = "custom_token.json"
@@ -221,7 +283,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result

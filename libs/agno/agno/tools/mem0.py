@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, Optional, Union
+from typing import Any, Optional, Union
 
 from agno.agent import Agent
 from agno.tools.toolkit import Toolkit
@@ -15,7 +17,7 @@ except ImportError:
 class Mem0Tools(Toolkit):
     def __init__(
         self,
-        config: Optional[Dict[str, Any]] = None,
+        config: Optional[dict[str, Any]] = None,
         api_key: Optional[str] = None,
         user_id: Optional[str] = None,
         **kwargs,
@@ -61,7 +63,7 @@ class Mem0Tools(Toolkit):
                 if isinstance(session_state, dict):
                     resolved_user_id = session_state.get("current_user_id")
             except Exception:
-                pass
+                log_debug(f"Failed to get user_id from agent session state in {method_name}")
         if not resolved_user_id:
             error_msg = f"Error in {method_name}: A user_id must be provided in the method call."
             log_error(error_msg)
@@ -71,7 +73,7 @@ class Mem0Tools(Toolkit):
     def add_memory(
         self,
         agent: Agent,
-        content: Union[str, Dict[str, str]],
+        content: Union[str, dict[str, str]],
     ) -> str:
         """Add facts to the user's memory.
         Args:

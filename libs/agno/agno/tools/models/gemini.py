@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import time
 from os import getenv
@@ -110,6 +112,8 @@ class GeminiTools(Toolkit):
 
         except Exception as e:
             log_error(f"Failed to generate image: Client or method not available ({e})")
+            import traceback
+            log_error(traceback.format_exc())
             return f"Failed to generate image: Client or method not available ({e})"
 
     def generate_video(
@@ -173,4 +177,6 @@ class GeminiTools(Toolkit):
             return "Video generated successfully"
         except Exception as e:
             log_error(f"Failed to generate video: {e}")
+            import traceback
+            log_error(traceback.format_exc())
             return f"Failed to generate video: {e}"
