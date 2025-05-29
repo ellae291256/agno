@@ -1,18 +1,18 @@
 """Unit tests for E2BTools class."""
 
 import os
+import os
 from unittest.mock import Mock, patch
 
 import pytest
 
 # Mock the e2b_code_interpreter module
+sys_modules = __import__("sys").modules
 with patch.dict("sys.modules", {"e2b_code_interpreter": Mock()}):
-    # Create a mock Sandbox class
-    sys_modules = __import__("sys").modules
     sys_modules["e2b_code_interpreter"].Sandbox = Mock
 
-    # Now import the module that uses e2b_code_interpreter
-    from agno.tools.e2b import E2BTools
+# Now import the module that uses e2b_code_interpreter
+from agno.tools.e2b import E2BTools
 
 TEST_API_KEY = os.environ.get("E2B_API_KEY", "test_api_key")
 
@@ -90,11 +90,10 @@ def test_init_with_api_key():
 
 def test_init_with_env_var():
     """Test initialization with environment variable."""
-    with patch("agno.tools.e2b.Sandbox"):
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools()
-            # Instead of checking if the mock was called, just verify the API key is set
-            assert tools.api_key == TEST_API_KEY
+    with patch("agno.tools.e2b.Sandbox"), patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
+        tools = E2BTools()
+        # Instead of checking if the mock was called, just verify the API key is set
+        assert tools.api_key == TEST_API_KEY
 
 
 def test_init_without_api_key():
@@ -106,13 +105,12 @@ def test_init_without_api_key():
 
 def test_init_with_selective_tools():
     """Test initialization with only selected tools enabled."""
-    with patch("agno.tools.e2b.Sandbox"):
-        with patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
-            tools = E2BTools(
-                run_code=True,
-                upload_file=False,
-                download_result=False,
-                filesystem=True,
+    with patch("agno.tools.e2b.Sandbox"), patch.dict("os.environ", {"E2B_API_KEY": TEST_API_KEY}):
+        tools = E2BTools(
+            run_code=True,
+            upload_file=False,
+            download_result=False,
+            filesystem=True,
                 internet_access=False,
                 sandbox_management=False,
                 command_execution=True,

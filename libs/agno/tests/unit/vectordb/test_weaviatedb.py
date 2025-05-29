@@ -1,5 +1,5 @@
 import json
-from typing import List
+from collections.abc import Sequence
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
