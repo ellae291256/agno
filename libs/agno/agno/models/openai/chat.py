@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any, Iterator, Union
 
 import httpx
 from pydantic import BaseModel

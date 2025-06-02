@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -182,8 +184,8 @@ def test_insert(couchbase_fts, mock_collection):
     # Verify filters were included in the documents
     call_args = mock_collection.insert_multi.call_args[0][0]
     for doc_id in call_args:
-        assert "filters" in call_args[doc_id]
-        assert call_args[doc_id]["filters"] == filters
+        assert "filters" in call_args[doc_id], f"filters missing in doc {doc_id}"
+        assert call_args[doc_id]["filters"] == filters, f"filters mismatch in doc {doc_id}"
 
     # Test failed insert
     mock_result.all_ok = False
@@ -213,8 +215,8 @@ def test_upsert(couchbase_fts, mock_collection):
     # Verify filters were included in the documents
     call_args = mock_collection.upsert_multi.call_args[0][0]
     for doc_id in call_args:
-        assert "filters" in call_args[doc_id]
-        assert call_args[doc_id]["filters"] == filters
+        assert "filters" in call_args[doc_id], f"filters missing in doc {doc_id}"
+        assert call_args[doc_id]["filters"] == filters, f"filters mismatch in doc {doc_id}"
 
     # Test failed upsert
     mock_result.all_ok = False
@@ -845,7 +847,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -921,7 +923,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -944,7 +946,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
