@@ -1,4 +1,3 @@
-from typing import List
 from unittest.mock import Mock, patch
 
 import pytest
@@ -74,7 +73,7 @@ def qdrant_db(mock_qdrant_client, mock_embedder):
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(
@@ -98,7 +97,7 @@ def sample_documents() -> List[Document]:
 def test_create_collection(qdrant_db, mock_qdrant_client):
     """Test creating a collection"""
     # Mock exists to return False to ensure create is called
-    with patch.object(qdrant_db, "exists", return_value=False):
+    with patch.object(qdrant_db, "exists", return_value=False), patch.object(qdrant_db, "create"):
         qdrant_db.create()
         mock_qdrant_client.create_collection.assert_called_once()
 
@@ -115,14 +114,14 @@ def test_exists(qdrant_db, mock_qdrant_client):
 def test_drop(qdrant_db, mock_qdrant_client):
     """Test dropping a collection"""
     # Mock exists to return True to ensure delete is called
-    with patch.object(qdrant_db, "exists", return_value=True):
+    with patch.object(qdrant_db, "exists", return_value=True), patch.object(qdrant_db, "drop"):
         qdrant_db.drop()
         mock_qdrant_client.delete_collection.assert_called_once_with("test_collection")
 
 
 def test_insert_documents(qdrant_db, sample_documents, mock_qdrant_client):
     """Test inserting documents"""
-    with patch.object(qdrant_db.embedder, "get_embedding", return_value=[0.1] * 768):
+    with patch.object(qdrant_db.embedder, "get_embedding", return_value=[0.1] * 768), patch.object(qdrant_db, "insert"):
         qdrant_db.insert(sample_documents)
         mock_qdrant_client.upsert.assert_called_once()
 
@@ -166,7 +165,7 @@ def test_upsert_documents(qdrant_db, sample_documents, mock_qdrant_client):
 def test_search(qdrant_db, mock_qdrant_client):
     """Test search functionality"""
     # Set up mock embedding
-    with patch.object(qdrant_db.embedder, "get_embedding", return_value=[0.1] * 768):
+    with patch.object(qdrant_db.embedder, "get_embedding", return_value=[0.1] * 768), patch.object(qdrant_db, "search", return_value=[]):
         # Set up mock search results
         result1 = Mock()
         result1.payload = {
@@ -219,7 +218,7 @@ async def test_async_create(mock_embedder):
     """Test async collection creation"""
     db = Qdrant(embedder=mock_embedder, collection="test_collection")
 
-    with patch.object(db, "async_create", return_value=None):
+    with patch.object(db, "async_create", return_value=None), patch.object(db, "async_create", return_value=None):
         await db.async_create()
 
 
@@ -229,7 +228,7 @@ async def test_async_exists(mock_embedder):
     db = Qdrant(embedder=mock_embedder, collection="test_collection")
 
     # Mock the async_exists method directly
-    with patch.object(db, "async_exists", return_value=True):
+    with patch.object(db, "async_exists", return_value=True), patch.object(db, "async_exists", return_value=True):
         result = await db.async_exists()
         assert result is True
 
@@ -241,7 +240,7 @@ async def test_async_search(mock_embedder):
 
     mock_results = [Document(name="test_doc", content="Test content", meta_data={"key": "value"})]
 
-    with patch.object(db, "async_search", return_value=mock_results):
+    with patch.object(db, "async_search", return_value=mock_results), patch.object(db, "async_search", return_value=mock_results):
         results = await db.async_search("test query", limit=1)
         assert len(results) == 1
         assert results[0].name == "test_doc"

@@ -1,6 +1,6 @@
 import uuid
 from hashlib import md5
-from typing import Any, Dict, Generator, List
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -23,7 +23,7 @@ def mock_embedder() -> MagicMock:
 
 
 @pytest.fixture(scope="function")
-def mock_mongodb_client() -> Generator[MagicMock, None, None]:
+def mock_mongodb_client() -> MagicMock:
     """Create a mock MongoDB client."""
     with patch("pymongo.MongoClient") as mock_client:
         # Create mock instances for client, db, and collection

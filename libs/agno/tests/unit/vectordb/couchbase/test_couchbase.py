@@ -1,4 +1,3 @@
-import copy
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -504,7 +503,7 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     # Create CouchbaseSearch instance with cluster-level index
     fts = CouchbaseSearch(
         bucket_name="test_bucket",
-        scope_name="test_scope",
+        scope_name="_default",
         collection_name="test_collection",
         couchbase_connection_string="couchbase://localhost",
         cluster_options=ClusterOptions(
@@ -631,11 +630,14 @@ def test_search_cluster_level(mock_cluster, mock_embedder):
 @pytest.mark.asyncio
 async def test_async_create(couchbase_fts):
     """Test the async_create method."""
-    with patch.object(
-        couchbase_fts, "_async_create_collection_and_scope", new_callable=AsyncMock
-    ) as mock_create_coll_scope, patch.object(
-        couchbase_fts, "_async_create_fts_index", new_callable=AsyncMock
-    ) as mock_create_fts:
+    with (
+        patch.object(
+            couchbase_fts, "_async_create_collection_and_scope", new_callable=AsyncMock
+        ) as mock_create_coll_scope,
+        patch.object(
+            couchbase_fts, "_async_create_fts_index", new_callable=AsyncMock
+        ) as mock_create_fts,
+    ):
         await couchbase_fts.async_create()
         mock_create_coll_scope.assert_called_once()
         mock_create_fts.assert_called_once()
@@ -652,6 +654,7 @@ async def test_async_doc_exists(couchbase_fts):
         mock_async_id_exists.return_value = True
         assert await couchbase_fts.async_doc_exists(document) is True
         mock_async_id_exists.assert_called_once()
+        mock_async_id_exists.assert_called_with(document)
 
         # Test document doesn't exist
         mock_async_id_exists.return_value = False
@@ -674,6 +677,7 @@ async def test_async_id_exists(couchbase_fts):
         mock_get_result.exists = True
         assert await couchbase_fts.async_id_exists("test_id") is True
         mock_collection_inst.exists.assert_called_once_with("test_id")
+        mock_get_async_collection.assert_called_once_with(couchbase_fts, "test_id")
 
         mock_get_result.exists = False
         mock_collection_inst.exists.reset_mock()
@@ -699,6 +703,7 @@ async def test_async_name_exists(couchbase_fts):
 
         async def mock_rows_found():
             yield {"name": "test_doc"}
+        mock_query_result.rows = mock_rows_found
 
         mock_query_result.rows = mock_rows_found
 
@@ -733,7 +738,7 @@ async def test_async_insert(couchbase_fts, mock_embedder):
         couchbase_fts, "get_async_collection", AsyncMock(return_value=mock_async_collection_instance)
     ) as mock_get_async_collection:
         # Test case 1: without filters - documents should be embedded
-        await couchbase_fts.async_insert(copy.deepcopy(documents))
+        await couchbase_fts.async_insert(documents)
 
         mock_get_async_collection.assert_called_once()
         assert mock_embedder.get_embedding_and_usage.call_count == len(documents)
@@ -845,7 +850,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -944,7 +949,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
