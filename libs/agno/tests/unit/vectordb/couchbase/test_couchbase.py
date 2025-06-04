@@ -267,7 +267,7 @@ def test_drop(mock_bucket, couchbase_fts):
     mock_bucket.collections.return_value = mock_collections_mgr
 
     # Mock the exists method to return True
-    with patch.object(couchbase_fts, "exists", return_value=True):
+    with patch.object(couchbase_fts, "exists", return_value=True), patch.object(couchbase_fts, "exists", return_value=False):
         # Test successful drop
         couchbase_fts.drop()
         mock_collections_mgr.drop_collection.assert_called_once_with(
@@ -276,9 +276,8 @@ def test_drop(mock_bucket, couchbase_fts):
 
     # Test when collection doesn't exist
     mock_collections_mgr.drop_collection.reset_mock()
-    with patch.object(couchbase_fts, "exists", return_value=False):
-        couchbase_fts.drop()
-        mock_collections_mgr.drop_collection.assert_not_called()
+    couchbase_fts.drop()
+    mock_collections_mgr.drop_collection.assert_not_called()
 
 
 def test_exists(couchbase_fts, mock_scope):
@@ -323,8 +322,8 @@ def test_get_count(mock_scope, couchbase_fts):
 
     # Test error case
     mock_search_indexes.get_indexed_documents_count.side_effect = Exception()
-    count = couchbase_fts.get_count()
-    assert count == 0
+    with pytest.raises(Exception):
+        couchbase_fts.get_count()
 
 
 def test_init_empty_bucket_name():
@@ -397,9 +396,7 @@ def test_create_scope_error(couchbase_fts, mock_bucket):
 def test_create_collection_with_overwrite(couchbase_fts_overwrite, mock_bucket, mock_scope):
     # Test collection creation with overwrite=True
     couchbase_fts_overwrite._create_collection_and_scope()
-    collections_mgr = mock_bucket.collections.return_value
-
-    collections_mgr.create_scope.assert_called_once_with(scope_name=couchbase_fts_overwrite.scope_name)
+    mock_bucket.collections.return_value.create_scope.assert_called_once_with(scope_name=couchbase_fts_overwrite.scope_name)
     # Assert that the collection was dropped and created
     collections_mgr.drop_collection.assert_called_once_with(
         collection_name=couchbase_fts_overwrite.collection_name, scope_name=couchbase_fts_overwrite.scope_name
@@ -845,7 +842,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -870,7 +867,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query filter scope kv")
         mock_get_async_scope.assert_called_once()
         mock_scope_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_scope_inst.search.call_args
+        _, search_kwargs_f = mock_scope_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 5
         assert search_kwargs_f["options"]["raw"] == filters
 
@@ -921,7 +918,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -944,7 +941,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 

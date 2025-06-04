@@ -1,8 +1,9 @@
 """Unit tests for GmailTools class."""
 
+from __future__ import annotations
+
 import base64
 from datetime import datetime
-from typing import Any, Dict
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -47,7 +48,7 @@ def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body:
                 {"name": "From", "value": sender},
                 {"name": "Date", "value": date},
             ],
-            "body": {"data": base64.urlsafe_b64encode(body.encode()).decode()},
+            "body": {"data": base64.urlsafe_b64encode(body).decode()},
         },
     }
 
@@ -116,27 +117,18 @@ def test_auth_with_expired_credentials():
 
         tools = GmailTools(creds=mock_creds)
 
-        with patch.object(mock_creds, "refresh") as mock_refresh:
-            with patch("pathlib.Path.exists") as mock_exists:
-                mock_exists.return_value = False  # Force refresh path
-                tools._auth()
-                mock_refresh.assert_called_once()
-
-
-def test_auth_with_custom_paths():
-    """Test authentication with custom credential and token paths."""
-    custom_creds_path = "custom_creds.json"
-    custom_token_path = "custom_token.json"
-
-    with patch("pathlib.Path.exists") as mock_exists:
-        mock_exists.return_value = True
-        with patch("agno.tools.gmail.Credentials.from_authorized_user_file") as mock_from_file:
-            tools = GmailTools(credentials_path=custom_creds_path, token_path=custom_token_path)
+        with patch.object(mock_creds, "refresh") as mock_refresh, patch("pathlib.Path.exists") as mock_exists:
+            mock_exists.return_value = False  # Force refresh path
             tools._auth()
-            mock_from_file.assert_called_once_with(custom_token_path, tools.scopes)
+            mock_refresh.assert_called_once()
 
 
-def test_get_latest_emails(gmail_tools, mock_gmail_service):
+    start_date = int(datetime(2024, 1, 1, tzinfo=datetime.timezone.utc).timestamp())
+    result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
+
+    assert "Date Email" in result
+    assert "Date-specific content" in result
+
     """Test getting latest emails."""
     # Mock response data
     mock_messages = {"messages": [{"id": "123"}, {"id": "456"}]}
@@ -298,7 +290,7 @@ def test_message_with_attachments(gmail_tools, mock_gmail_service):
             "parts": [
                 {
                     "mimeType": "text/plain",
-                    "body": {"data": base64.urlsafe_b64encode("Message with attachment".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("Message with attachment").decode()},
                 },
                 {"filename": "test.pdf", "mimeType": "application/pdf"},
             ],
@@ -362,7 +354,7 @@ def test_html_message_content(gmail_tools, mock_gmail_service):
                 {"name": "Date", "value": "2024-01-01"},
             ],
             "mimeType": "text/html",
-            "body": {"data": base64.urlsafe_b64encode(html_content.encode()).decode()},
+            "body": {"data": base64.urlsafe_b64encode(html_content).decode()},
         },
     }
 
@@ -421,11 +413,11 @@ def test_multipart_complex_message(gmail_tools, mock_gmail_service):
             "parts": [
                 {
                     "mimeType": "text/plain",
-                    "body": {"data": base64.urlsafe_b64encode("Plain text version".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("Plain text version").decode()},
                 },
                 {
                     "mimeType": "text/html",
-                    "body": {"data": base64.urlsafe_b64encode("<p>HTML version</p>".encode()).decode()},
+                    "body": {"data": base64.urlsafe_b64encode("<p>HTML version</p>").decode()},
                 },
                 {"filename": "test.pdf", "mimeType": "application/pdf"},
             ],

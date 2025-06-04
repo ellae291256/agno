@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -28,10 +29,7 @@ def chroma_db(mock_embedder):
     yield db
 
     # Cleanup after test
-    try:
-        db.drop()
-    except Exception:
-        pass
+    db.drop()
 
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)
@@ -116,12 +114,11 @@ def test_distance_metrics():
     assert db_euclidean._collection is not None
 
     # Cleanup
-    try:
-        db_cosine.drop()
-        db_euclidean.drop()
-    finally:
-        if os.path.exists(TEST_PATH):
-            shutil.rmtree(TEST_PATH)
+    db_cosine.drop()
+    db_euclidean.drop()
+
+    if os.path.exists(TEST_PATH):
+        shutil.rmtree(TEST_PATH)
 
 
 def test_doc_exists(chroma_db, sample_documents):
@@ -158,11 +155,10 @@ def test_custom_embedder(mock_embedder):
     assert db.embedder == mock_embedder
 
     # Cleanup
-    try:
-        db.drop()
-    finally:
-        if os.path.exists(TEST_PATH):
-            shutil.rmtree(TEST_PATH)
+    db.drop()
+
+    if os.path.exists(TEST_PATH):
+        shutil.rmtree(TEST_PATH)
 
 
 def test_multiple_document_operations(chroma_db, sample_documents):

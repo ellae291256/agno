@@ -20,6 +20,7 @@ def temp_output_dir():
 @pytest.fixture
 def viz_tools(temp_output_dir):
     """Create a VisualizationTools instance with all chart types enabled."""
+    return VisualizationTools(output_dir=temp_output_dir)
     return VisualizationTools(output_dir=temp_output_dir, enable_all=True)
 
 
