@@ -9,7 +9,7 @@ class Toolkit:
     def __init__(
         self,
         name: str = "toolkit",
-        tools: List[Callable] = [],
+        tools: Optional[List[Callable]] = None,
         instructions: Optional[str] = None,
         add_instructions: bool = False,
         include_tools: Optional[list[str]] = None,
@@ -42,7 +42,7 @@ class Toolkit:
             show_result_tools (Optional[List[str]]): List of function names whose results should be shown.
         """
         self.name: str = name
-        self.tools: List[Callable] = tools
+        self.tools: List[Callable] = tools if tools is not None else []
         self.functions: Dict[str, Function] = OrderedDict()
         self.instructions: Optional[str] = instructions
         self.add_instructions: bool = add_instructions
@@ -54,7 +54,7 @@ class Toolkit:
         self.show_result_tools: list[str] = show_result_tools or []
 
         self._check_tools_filters(
-            available_tools=[tool.__name__ for tool in tools], include_tools=include_tools, exclude_tools=exclude_tools
+            available_tools=[tool.__name__ for tool in self.tools], include_tools=include_tools, exclude_tools=exclude_tools
         )
 
         self.include_tools = include_tools
@@ -135,7 +135,7 @@ class Toolkit:
             )
             self.functions[f.name] = f
             log_debug(f"Function: {f.name} registered with {self.name}")
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             logger.warning(f"Failed to create Function for: {function.__name__}")
             raise e
 

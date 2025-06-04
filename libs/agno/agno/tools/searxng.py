@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 import urllib.parse
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import httpx
 
@@ -12,12 +14,21 @@ class Searxng(Toolkit):
     def __init__(
         self,
         host: str,
-        engines: List[str] = [],
+        engines: list[str] | None = None,
         fixed_max_results: Optional[int] = None,
         images: bool = False,
         it: bool = False,
         map: bool = False,
         music: bool = False,
+    ):
+        super().__init__(name="searxng")
+        self.host = host
+        self.engines = engines or []
+        self.fixed_max_results = fixed_max_results
+        self.images = images
+        self.it = it
+        self.map = map
+        self.music = music
         news: bool = False,
         science: bool = False,
         videos: bool = False,
