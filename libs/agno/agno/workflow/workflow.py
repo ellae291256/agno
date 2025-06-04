@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Dict, List, Optional, Union, cast
+from typing import Any, AsyncGenerator, AsyncIterator, Callable, Optional, Union, cast
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -14,7 +14,7 @@ from agno.agent import Agent
 from agno.media import AudioArtifact, ImageArtifact, VideoArtifact
 from agno.memory.v2.memory import Memory
 from agno.memory.workflow import WorkflowMemory, WorkflowRun
-from agno.run.response import RunEvent, RunResponse  # noqa: F401
+from agno.run.response import RunEvent, RunResponse
 from agno.storage.base import Storage
 from agno.storage.session.workflow import WorkflowSession
 from agno.team.team import Team
@@ -185,7 +185,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -293,7 +293,7 @@ class Workflow:
             result = await self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.arun() failed: {e}")
-            raise e
+            raise
 
         # Handle async iterator results
         if isinstance(result, (AsyncIterator, AsyncGenerator)):
@@ -412,7 +412,7 @@ class Workflow:
                 self._subclass_run = self.__class__.run.__get__(self)
                 # Get the parameters of the sync run method
                 sig = inspect.signature(self.__class__.run)
-            if self.__class__.arun is not Workflow.arun:
+            elif self.__class__.arun is not Workflow.arun:
                 self._subclass_run = self.__class__.arun.__get__(self)
                 # Get the parameters of the async run method
                 sig = inspect.signature(self.__class__.arun)
@@ -834,14 +834,14 @@ class Workflow:
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
 
-    def to_config_dict(self) -> Dict[str, Any]:
+    def to_config_dict(self) -> dict[str, Any]:
         """Convert the workflow to a config dictionary including all agents and teams.
 
         Returns:
-            Dict[str, Any]: Dictionary representation of the workflow config.
+            dict[str, Any]: Dictionary representation of the workflow config.
         """
         # Basic workflow information
-        config: Dict[str, Any] = {
+        config: dict[str, Any] = {
             "name": self.name,
             "description": self.description,
             "type": "workflow",
@@ -851,8 +851,8 @@ class Workflow:
             },
         }
 
-        agents: List[Dict[str, Any]] = []
-        teams: List[Dict[str, Any]] = []
+        agents: list[dict[str, Any]] = []
+        teams: list[dict[str, Any]] = []
 
         for attr_name in dir(self.__class__):
             # Skip private/special attributes and methods

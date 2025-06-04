@@ -1,4 +1,6 @@
-from typing import Any, Dict, Optional, Union, get_args, get_origin
+from __future__ import annotations
+
+from typing import Any, Optional, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -136,7 +138,7 @@ def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
                     schema = get_json_schema_for_arg(arg)
                     if schema:
                         types.append(schema)
-                except Exception:
+                except TypeError:
                     continue
             return {"anyOf": types} if types else None
 
@@ -221,7 +223,7 @@ def get_json_schema(
 
             else:
                 logger.warning(f"Could not parse argument {parameter_name} of type {type_hint}")
-        except Exception as e:
+        except (TypeError, AttributeError) as e:
             logger.error(f"Error processing argument {parameter_name}: {str(e)}")
             continue
 

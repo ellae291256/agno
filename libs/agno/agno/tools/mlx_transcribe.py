@@ -15,9 +15,11 @@ optimized for Apple Silicon processors. It supports various audio formats and
 provides high-quality transcription capabilities.
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_info, logger

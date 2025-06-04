@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Union
 
 try:
     import asyncio
@@ -28,12 +29,12 @@ class Milvus(VectorDb):
     def __init__(
         self,
         collection: str,
-        embedder: Optional[Embedder] = None,
+        embedder: Embedder | None = None,
         distance: Distance = Distance.cosine,
         uri: str = "http://localhost:19530",
-        token: Optional[str] = None,
+        token: str | None = None,
         search_type: SearchType = SearchType.vector,
-        reranker: Optional[Reranker] = None,
+        reranker: Reranker | None = None,
         sparse_vector_dimensions: int = 10000,
         **kwargs,
     ):
@@ -71,15 +72,15 @@ class Milvus(VectorDb):
             embedder = OpenAIEmbedder()
             log_info("Embedder not provided, using OpenAIEmbedder as default.")
         self.embedder: Embedder = embedder
-        self.dimensions: Optional[int] = self.embedder.dimensions
+        self.dimensions: int | None = self.embedder.dimensions
 
         self.distance: Distance = distance
         self.uri: str = uri
-        self.token: Optional[str] = token
-        self._client: Optional[MilvusClient] = None
-        self._async_client: Optional[AsyncMilvusClient] = None
+        self.token: str | None = token
+        self._client: MilvusClient | None = None
+        self._async_client: AsyncMilvusClient | None = None
         self.search_type: SearchType = search_type
-        self.reranker: Optional[Reranker] = reranker
+        self.reranker: Reranker | None = reranker
         self.sparse_vector_dimensions = sparse_vector_dimensions
         self.kwargs = kwargs
 
@@ -105,7 +106,7 @@ class Milvus(VectorDb):
             )
         return self._async_client
 
-    def _get_sparse_vector(self, text: str) -> Dict[int, float]:
+    def _get_sparse_vector(self, text: str) -> dict[int, float]:
         """
         Convert text into a sparse vector representation using a simple TF-IDF-like scoring.
 
@@ -193,7 +194,7 @@ class Milvus(VectorDb):
 
     def _prepare_document_data(
         self, document: Document, include_vectors: bool = True
-    ) -> Dict[str, Union[str, List[float], Dict[int, float], None]]:
+    ) -> dict[str, str | list[float] | dict[int, float] | None]:
         """
         Prepare document data for insertion.
 
@@ -218,7 +219,7 @@ class Milvus(VectorDb):
         meta_data_str = json.dumps(document.meta_data) if document.meta_data else "{}"
         usage_str = json.dumps(document.usage) if document.usage else "{}"
 
-        data: Dict[str, Union[str, List[float], Dict[int, float], None]] = {
+        data: dict[str, str | list[float] | dict[int, float] | None] = {
             "id": doc_id,
             "text": cleaned_content,
             "name": document.name,
@@ -236,7 +237,7 @@ class Milvus(VectorDb):
                     }
                 )
             else:
-                vector_data: Optional[List[float]] = document.embedding
+                vector_data: list[float] | None = document.embedding
                 data["vector"] = vector_data
 
         return data
@@ -518,7 +519,7 @@ class Milvus(VectorDb):
         """
         return MILVUS_DISTANCE_MAP.get(self.distance, "COSINE")
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
@@ -547,7 +548,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -565,8 +566,8 @@ class Milvus(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit, filters)
 
@@ -584,7 +585,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -601,7 +602,7 @@ class Milvus(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a hybrid search combining dense and sparse vector similarity.
 
@@ -661,7 +662,7 @@ class Milvus(VectorDb):
             )
 
             # Build search results
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for hits in results:
                 for hit in hits:
                     entity = hit.get("entity", {})
@@ -689,7 +690,7 @@ class Milvus(VectorDb):
 
         except Exception as e:
             logger.error(f"Error during hybrid search: {e}")
-            return []
+            raise e
 
     def drop(self) -> None:
         if self.exists():
@@ -707,9 +708,8 @@ class Milvus(VectorDb):
             await self.async_client.drop_collection(self.collection)
 
     def exists(self) -> bool:
-        if self.client:
-            if self.client.has_collection(self.collection):
-                return True
+        if self.client and self.client.has_collection(self.collection):
+            return True
         return False
 
     async def async_exists(self) -> bool:
