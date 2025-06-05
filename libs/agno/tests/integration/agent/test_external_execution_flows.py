@@ -135,13 +135,13 @@ async def test_tool_call_requires_external_execution_stream_async():
     )
 
     found_external_execution = False
-    async for response in await agent.arun(
+    async for stream_response in await agent.arun(
         "Send an email to john@doe.com with the subject 'Test' and the body 'Hello, how are you?'", stream=True
     ):
-        if response.is_paused:
-            assert response.tools[0].external_execution_required
-            assert response.tools[0].tool_name == "send_email"
-            assert response.tools[0].tool_args == {
+        if stream_response.is_paused:
+            assert stream_response.tools[0].external_execution_required
+            assert stream_response.tools[0].tool_name == "send_email"
+            assert stream_response.tools[0].tool_args == {
                 "to": "john@doe.com",
                 "subject": "Test",
                 "body": "Hello, how are you?",
@@ -153,8 +153,8 @@ async def test_tool_call_requires_external_execution_stream_async():
     assert found_external_execution, "No tools were found to require external execution"
 
     found_external_execution = False
-    async for response in await agent.acontinue_run(response, stream=True):
-        if response.is_paused:
+    async for stream_response in await agent.acontinue_run(response, stream=True):
+        if stream_response.is_paused:
             found_external_execution = True
     assert found_external_execution is False, "Some tools still require external execution"
 

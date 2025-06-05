@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -26,7 +25,7 @@ def lance_db(mock_embedder):
 
     try:
         db.drop()
-    except Exception:
+    except Exception as e:
         pass
 
     if os.path.exists(TEST_PATH):
@@ -69,12 +68,13 @@ def test_insert_documents(lance_db, sample_documents):
 
 def test_vector_search(lance_db, sample_documents):
     """Test vector search"""
+    import json
+
     lance_db.insert(sample_documents)
     results = lance_db.vector_search("coconut dishes", limit=2)
     assert len(results) == 2
     # results is a DataFrame, so check the 'payload' column for content
     # Each payload is a JSON string, so parse it and check for 'coconut'
-    import json
 
     found = False
     for _, row in results.iterrows():

@@ -12,7 +12,7 @@ class Searxng(Toolkit):
     def __init__(
         self,
         host: str,
-        engines: List[str] = [],
+        engines: Optional[List[str]] = None,
         fixed_max_results: Optional[int] = None,
         images: bool = False,
         it: bool = False,
@@ -24,7 +24,7 @@ class Searxng(Toolkit):
         **kwargs,
     ):
         self.host = host
-        self.engines = engines
+        self.engines = engines if engines is not None else []
         self.fixed_max_results = fixed_max_results
 
         tools: List[Any] = []
