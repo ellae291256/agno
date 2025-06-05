@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import base64
 import json
 import tempfile
 import time
 from os import fdopen, getenv
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -159,8 +161,10 @@ class E2BTools(Toolkit):
                 file_in_sandbox = self.sandbox.files.write(sandbox_path, f)
 
             return file_in_sandbox.path
-        except Exception as e:
-            return json.dumps({"status": "error", "message": f"Error uploading file: {str(e)}"})
+        except FileNotFoundError as e:
+            return json.dumps({"status": "error", "message": f"File not found: {str(e)}"})
+        except IOError as e:
+            return json.dumps({"status": "error", "message": f"IO error uploading file: {str(e)}"})
 
     def download_png_result(
         self, agent: Union[Agent, Team], result_index: int = 0, output_path: Optional[str] = None
@@ -222,8 +226,10 @@ class E2BTools(Toolkit):
             else:
                 return f"Image added as artifact with ID {image_id}"
 
-        except Exception as e:
-            return json.dumps({"status": "error", "message": f"Error processing PNG: {str(e)}"})
+        except (KeyError, IndexError) as e:
+            return json.dumps({"status": "error", "message": f"Index or key error: {str(e)}"})
+        except IOError as e:
+            return json.dumps({"status": "error", "message": f"IO error processing PNG: {str(e)}"})
 
     def download_chart_data(
         self, agent: Agent, result_index: int = 0, output_path: Optional[str] = None, add_as_artifact: bool = True

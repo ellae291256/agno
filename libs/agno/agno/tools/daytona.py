@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from agno.tools import Toolkit
 from agno.utils.code_execution import prepare_python_code
@@ -91,7 +93,7 @@ class DaytonaTools(Toolkit):
             self.sandbox: Sandbox = daytona.create(params)
         except Exception as e:
             logger.error(f"Error creating Daytona sandbox: {e}")
-            raise e
+            raise RuntimeError(f"Error creating Daytona sandbox: {e}") from e
 
         # Last execution result for reference
         self.last_execution: Optional[ExecuteResponse] = None

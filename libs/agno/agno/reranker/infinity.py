@@ -1,4 +1,6 @@
-from typing import Any, List, Optional
+from __future__ import annotations
+
+from typing import Any
 from urllib.parse import urlparse
 
 from agno.document import Document
@@ -118,7 +120,7 @@ class InfinityReranker(Reranker):
 
         except Exception as e:
             logger.error(f"Error connecting to Infinity server at {self.base_url}: {e}")
-            return documents
+            raise
 
         return compressed_docs
 
@@ -127,7 +129,7 @@ class InfinityReranker(Reranker):
             return self._rerank(query=query, documents=documents)
         except Exception as e:
             logger.error(f"Error reranking documents: {e}. Returning original documents")
-            return documents
+            raise
 
     async def arerank(self, query: str, documents: List[Document]) -> List[Document]:
         """Async version of rerank"""
@@ -190,6 +192,6 @@ class InfinityReranker(Reranker):
 
         except Exception as e:
             logger.error(f"Error connecting to Infinity server at {self.base_url}: {e}")
-            return documents
+            raise
 
         return compressed_docs

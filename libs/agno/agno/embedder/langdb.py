@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from typing_extensions import Literal
 
@@ -58,11 +60,11 @@ class LangDBEmbedder(Embedder):
             _request_params.update(self.request_params)
         return self.client.embeddings.create(**_request_params)
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         response: CreateEmbeddingResponse = self.response(text=text)
         try:
             return response.data[0].embedding
-        except Exception as e:
+        except (AttributeError, IndexError) as e:
             logger.warning(e)
             return []
 

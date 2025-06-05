@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import asdict
 from io import BytesIO
-from typing import Any, Dict, Generator, List, Optional, cast
+from typing import Any, Generator, Optional, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import asdict
 from io import BytesIO
-from typing import Any, AsyncGenerator, Dict, List, Optional, cast
+from typing import Any, AsyncGenerator, Optional, cast
 from uuid import uuid4
 
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile
@@ -23,9 +25,9 @@ async def agent_chat_response_streamer(
     message: str,
     session_id: Optional[str] = None,
     user_id: Optional[str] = None,
-    images: Optional[List[Image]] = None,
-    audio: Optional[List[Audio]] = None,
-    videos: Optional[List[Video]] = None,
+    images: Optional[list[Image]] = None,
+    audio: Optional[list[Audio]] = None,
+    videos: Optional[list[Video]] = None,
 ) -> AsyncGenerator:
     try:
         run_response = await agent.arun(
@@ -55,10 +57,10 @@ async def team_chat_response_streamer(
     message: str,
     session_id: Optional[str] = None,
     user_id: Optional[str] = None,
-    images: Optional[List[Image]] = None,
-    audio: Optional[List[Audio]] = None,
-    videos: Optional[List[Video]] = None,
-    files: Optional[List[FileMedia]] = None,
+    images: Optional[list[Image]] = None,
+    audio: Optional[list[Audio]] = None,
+    videos: Optional[list[Video]] = None,
+    files: Optional[list[FileMedia]] = None,
 ) -> AsyncGenerator:
     try:
         run_response = await team.arun(
@@ -85,7 +87,7 @@ async def team_chat_response_streamer(
 
 
 def get_async_router(
-    agents: Optional[List[Agent]] = None, teams: Optional[List[Team]] = None, workflows: Optional[List[Workflow]] = None
+    agents: Optional[list[Agent]] = None, teams: Optional[list[Team]] = None, workflows: Optional[list[Workflow]] = None
 ) -> APIRouter:
     router = APIRouter()
 
@@ -97,12 +99,12 @@ def get_async_router(
         return {"status": "available"}
 
     async def agent_process_file(
-        files: List[UploadFile],
+        files: list[UploadFile],
         agent: Agent,
     ):
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
         for file in files:
             logger.info(f"Processing file: {file.content_type}")
             if file.content_type in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
@@ -195,12 +197,12 @@ def get_async_router(
         return base64_images, base64_audios, base64_videos
 
     def team_process_file(
-        files: List[UploadFile],
+        files: list[UploadFile],
     ):
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
-        document_files: List[FileMedia] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
+        document_files: list[FileMedia] = []
         for file in files:
             if file.content_type in ["image/png", "image/jpeg", "image/jpg", "image/webp"]:
                 try:
@@ -257,11 +259,11 @@ def get_async_router(
         monitor: bool = Form(False),
         session_id: Optional[str] = Form(None),
         user_id: Optional[str] = Form(None),
-        files: Optional[List[UploadFile]] = File(None),
+        files: Optional[list[UploadFile]] = File(None),
         agent_id: Optional[str] = Query(None),
         team_id: Optional[str] = Query(None),
         workflow_id: Optional[str] = Query(None),
-        workflow_input: Optional[Dict[str, Any]] = Form(None),
+        workflow_input: Optional[dict[str, Any]] = Form(None),
     ):
         if session_id is not None and session_id != "":
             logger.debug(f"Continuing session: {session_id}")
@@ -306,10 +308,10 @@ def get_async_router(
         elif workflow:
             workflow.monitoring = bool(monitor)
 
-        base64_images: List[Image] = []
-        base64_audios: List[Audio] = []
-        base64_videos: List[Video] = []
-        document_files: List[FileMedia] = []
+        base64_images: list[Image] = []
+        base64_audios: list[Audio] = []
+        base64_videos: list[Video] = []
+        document_files: list[FileMedia] = []
         if files:
             if agent:
                 base64_images, base64_audios, base64_videos = await agent_process_file(files, agent)

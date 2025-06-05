@@ -1,5 +1,7 @@
 """Async router handling exposing an Agno Agent or Team in an AG-UI compatible format."""
 
+from __future__ import annotations
+
 import logging
 import uuid
 from typing import Iterator, Optional
@@ -49,6 +51,8 @@ def run_agent(agent: Agent, run_input: RunAgentInput) -> Iterator[BaseEvent]:
     except Exception as e:
         logger.error(f"Error running agent: {e}", exc_info=True)
         yield RunErrorEvent(type=EventType.RUN_ERROR, message=str(e))
+    finally:
+        pass
 
 
 def run_team(team: Team, input: RunAgentInput) -> Iterator[BaseEvent]:
@@ -76,6 +80,8 @@ def run_team(team: Team, input: RunAgentInput) -> Iterator[BaseEvent]:
     except Exception as e:
         logger.error(f"Error running team: {e}", exc_info=True)
         yield RunErrorEvent(type=EventType.RUN_ERROR, message=str(e))
+    finally:
+        pass
 
 
 def get_sync_agui_router(agent: Optional[Agent] = None, team: Optional[Team] = None) -> APIRouter:

@@ -1499,7 +1499,7 @@ class Agent:
             )
             raise last_exception
         else:
-            raise Exception(f"Failed after {num_attempts} attempts.")
+            raise RuntimeError(f"Failed after {num_attempts} attempts.")
 
     @overload
     def continue_run(
@@ -1507,13 +1507,13 @@ class Agent:
         run_response: Optional[RunResponse] = None,
         *,
         run_id: Optional[str] = None,
-        updated_tools: Optional[List[ToolExecution]] = None,
+        updated_tools: Optional[list[ToolExecution]] = None,
         stream: Literal[False] = False,
         stream_intermediate_steps: Optional[bool] = None,
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[dict[str, Any]] = None,
     ) -> RunResponse: ...
 
     @overload
@@ -1522,13 +1522,13 @@ class Agent:
         run_response: Optional[RunResponse] = None,
         *,
         run_id: Optional[str] = None,
-        updated_tools: Optional[List[ToolExecution]] = None,
+        updated_tools: Optional[list[ToolExecution]] = None,
         stream: Literal[True] = True,
         stream_intermediate_steps: Optional[bool] = None,
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: Optional[dict[str, Any]] = None,
     ) -> Iterator[RunResponse]: ...
 
     def continue_run(
@@ -1536,14 +1536,14 @@ class Agent:
         run_response: Optional[RunResponse] = None,
         *,
         run_id: Optional[str] = None,
-        updated_tools: Optional[List[ToolExecution]] = None,
+        updated_tools: Optional[list[ToolExecution]] = None,
         stream: Optional[bool] = None,
         stream_intermediate_steps: Optional[bool] = None,
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
-    ) -> Union[RunResponse, Iterator[RunResponse]]:
+        knowledge_filters: Optional[dict[str, Any]] = None,
+    ) -> RunResponse | Iterator[RunResponse]:
         """Continue a previous run.
 
         Args:
@@ -3368,7 +3368,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             parsed_messages.append(Message(**_im))
-                        except Exception as e:
+                        except ValidationError as e:
                             log_warning(f"Failed to validate message during memory update: {e}")
                     else:
                         log_warning(f"Unsupported message type: {type(_im)}")
@@ -3393,7 +3393,7 @@ class Agent:
                 try:
                     future.result()
                 except Exception as e:
-                    log_warning(f"Error in memory/summary operation: {str(e)}")
+                    log_warning(f"Error in memory/summary operation: {e}")
 
     async def _amake_memories_and_summaries(
         self,
@@ -3423,7 +3423,7 @@ class Agent:
                 elif isinstance(_im, dict):
                     try:
                         parsed_messages.append(Message(**_im))
-                    except Exception as e:
+                    except ValidationError as e:
                         log_warning(f"Failed to validate message during memory update: {e}")
                 else:
                     log_warning(f"Unsupported message type: {type(_im)}")
@@ -3444,7 +3444,7 @@ class Agent:
             try:
                 await asyncio.gather(*tasks)
             except Exception as e:
-                log_warning(f"Error in memory/summary operation: {str(e)}")
+                log_warning(f"Error in memory/summary operation: {e}")
 
     def _raise_if_async_tools(self) -> None:
         """Raise an exception if any tools contain async functions"""
@@ -3457,19 +3457,19 @@ class Agent:
             if isinstance(tool, Toolkit):
                 for func in tool.functions:
                     if iscoroutinefunction(tool.functions[func].entrypoint):
-                        raise Exception(
+                        raise ValueError(
                             f"Async tool {tool.name} can't be used with synchronous agent.run() or agent.print_response(). "
                             "Use agent.arun() or agent.aprint_response() instead to use this tool."
                         )
             elif isinstance(tool, Function):
                 if iscoroutinefunction(tool.entrypoint):
-                    raise Exception(
+                    raise ValueError(
                         f"Async function {tool.name} can't be used with synchronous agent.run() or agent.print_response(). "
                         "Use agent.arun() or agent.aprint_response() instead to use this tool."
                     )
             elif callable(tool):
                 if iscoroutinefunction(tool):
-                    raise Exception(
+                    raise ValueError(
                         f"Async function {tool.__name__} can't be used with synchronous agent.run() or agent.print_response(). "
                         "Use agent.arun() or agent.aprint_response() instead to use this tool."
                     )
@@ -4186,7 +4186,7 @@ class Agent:
                 except Exception:
                     log_warning("Invalid timezone identifier")
 
-            time = datetime.now(tz) if tz else datetime.now()
+            time = datetime.now(tz) if tz else datetime.now(tz=None)
 
             additional_information.append(f"The current time is {time}.")
         # 3.2.3 Add agent name if provided
@@ -4593,7 +4593,7 @@ class Agent:
                         messages_to_add_to_run_response.append(_m_parsed)
                         run_messages.messages.append(_m_parsed)
                         run_messages.extra_messages.append(_m_parsed)
-                    except Exception as e:
+                    except ValidationError as e:
                         log_warning(f"Failed to validate message: {e}")
             # Add the extra messages to the run_response
             if len(messages_to_add_to_run_response) > 0:
@@ -4652,7 +4652,7 @@ class Agent:
         elif isinstance(message, dict):
             try:
                 user_message = Message.model_validate(message)
-            except Exception as e:
+            except ValidationError as e:
                 log_warning(f"Failed to validate message: {e}")
         # Add user message to run_messages
         if user_message is not None:
@@ -4673,7 +4673,7 @@ class Agent:
                         if run_messages.extra_messages is None:
                             run_messages.extra_messages = []
                         run_messages.extra_messages.append(Message.model_validate(_m))
-                    except Exception as e:
+                    except ValidationError as e:
                         log_warning(f"Failed to validate message: {e}")
 
         return run_messages
@@ -4723,7 +4723,7 @@ class Agent:
                         messages_to_add_to_run_response.append(_m_parsed)
                         run_messages.messages.append(_m_parsed)
                         run_messages.extra_messages.append(_m_parsed)
-                    except Exception as e:
+                    except ValidationError as e:
                         log_warning(f"Failed to validate message: {e}")
             # Add the extra messages to the run_response
             if len(messages_to_add_to_run_response) > 0:
@@ -4769,7 +4769,7 @@ class Agent:
         elif isinstance(message, dict):
             try:
                 user_message = Message.model_validate(message)
-            except Exception as e:
+            except ValidationError as e:
                 log_warning(f"Failed to validate message: {e}")
 
         # Add user message to run_messages
@@ -4791,7 +4791,7 @@ class Agent:
                         if run_messages.extra_messages is None:
                             run_messages.extra_messages = []
                         run_messages.extra_messages.append(Message.model_validate(_m))
-                    except Exception as e:
+                    except ValidationError as e:
                         log_warning(f"Failed to validate message: {e}")
 
         return run_messages
@@ -4891,11 +4891,11 @@ class Agent:
         elif field_name in ("storage", "model", "reasoning_model"):
             try:
                 return deepcopy(field_value)
-            except Exception:
+            except Exception as e:
                 try:
                     return copy(field_value)
-                except Exception as e:
-                    log_warning(f"Failed to copy field: {field_name} - {e}")
+                except Exception as e2:
+                    log_warning(f"Failed to copy field: {field_name} - {e2}")
                     return field_value
 
         # For compound types, attempt a deep copy
@@ -4925,8 +4925,9 @@ class Agent:
             from copy import copy
 
             return copy(field_value)
-        except Exception:
+        except Exception as e:
             # If copy fails, return as is
+            log_warning(f"Failed to copy field: {e}")
             return field_value
 
     def get_transfer_function(self, member_agent: Agent, index: int, session_id: Optional[str] = None) -> Function:
@@ -7469,7 +7470,7 @@ class Agent:
             # Log the error but don't crash
             from agno.utils.log import log_error
 
-            log_error(f"Failed to add reasoning metrics to extra_data: {str(e)}")
+            log_error(f"Failed to add reasoning metrics to extra_data: {e}")
 
     def _get_effective_filters(self, knowledge_filters: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """

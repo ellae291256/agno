@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -68,14 +70,16 @@ class OpenAITools(Toolkit):
         """
         log_debug(f"Transcribing audio from {audio_path}")
         try:
-            audio_file = open(audio_path, "rb")
-
-            transcript = OpenAIClient().audio.transcriptions.create(
-                model=self.transcription_model,
-                file=audio_file,
-                response_format="text",
-            )
-        except Exception as e:  # type: ignore[return]
+            with open(audio_path, "rb") as audio_file:
+                transcript = OpenAIClient().audio.transcriptions.create(
+                    model=self.transcription_model,
+                    file=audio_file,
+                    response_format="text",
+                )
+        except FileNotFoundError as e:
+            log_error(f"Failed to transcribe audio: File not found {audio_path}: {str(e)}")
+            return f"Failed to transcribe audio: File not found {audio_path}"
+        except Exception as e:
             log_error(f"Failed to transcribe audio: {str(e)}")
             return f"Failed to transcribe audio: {str(e)}"
 

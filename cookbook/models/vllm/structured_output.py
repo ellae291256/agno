@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 from agno.agent import Agent
 from agno.models.vllm import vLLM
