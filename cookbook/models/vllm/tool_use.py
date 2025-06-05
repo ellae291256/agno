@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Build a Web Search Agent using xAI."""
 
 from agno.agent import Agent

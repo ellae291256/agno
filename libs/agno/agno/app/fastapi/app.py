@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import logging
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import uvicorn
 from fastapi import FastAPI

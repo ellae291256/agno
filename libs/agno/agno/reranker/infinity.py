@@ -1,4 +1,6 @@
-from typing import Any, List, Optional
+from __future__ import annotations
+
+from typing import List
 from urllib.parse import urlparse
 
 from agno.document import Document
@@ -10,18 +12,18 @@ try:
     from infinity_client.api.default import rerank
     from infinity_client.models import RerankInput
 except ImportError:
-    raise ImportError("infinity_client not installed, please run `pip install infinity_client`")
+    pass
 
 
 class InfinityReranker(Reranker):
     model: str = "BAAI/bge-reranker-base"
     host: str = "localhost"
     port: int = 7997
-    url: Optional[str] = None
-    top_n: Optional[int] = None
-    api_key: Optional[str] = None
+    url: str | None = None
+    top_n: int | None = None
+    api_key: str | None = None
     verify_ssl: bool = True
-    _client: Optional[Any] = None
+    _client: Any | None = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

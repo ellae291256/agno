@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import json
 import os
-from typing import Any, List, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -14,11 +15,11 @@ except ImportError:
 class XTools(Toolkit):
     def __init__(
         self,
-        bearer_token: Optional[str] = None,
-        consumer_key: Optional[str] = None,
-        consumer_secret: Optional[str] = None,
-        access_token: Optional[str] = None,
-        access_token_secret: Optional[str] = None,
+        bearer_token: str | None = None,
+        consumer_key: str | None = None,
+        consumer_secret: str | None = None,
+        access_token: str | None = None,
+        access_token_secret: str | None = None,
         include_post_metrics: bool = False,
         wait_on_rate_limit: bool = False,
         **kwargs,
@@ -51,7 +52,7 @@ class XTools(Toolkit):
         )
         self.include_post_metrics = include_post_metrics
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         tools.append(self.create_post)
         tools.append(self.reply_to_post)
         tools.append(self.send_dm)
@@ -329,6 +330,6 @@ class XTools(Toolkit):
         except tweepy.TweepyException as e:
             logger.error(f"Error searching posts: {e}")
             return json.dumps({"error": str(e), "query": query})
-        except Exception as e:
+        except Exception:
             logger.error(f"Unexpected error searching posts: {e}")
             return json.dumps({"error": f"An unexpected error occurred: {str(e)}", "query": query})

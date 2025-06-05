@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.code_execution import prepare_python_code
@@ -116,6 +118,7 @@ class DaytonaTools(Toolkit):
             self.result = execution.result
             return self.result
         except Exception as e:
+            logger.error(f"Error executing code: {str(e)}")
             return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
 
     def run_code(self, code: str) -> str:
@@ -127,4 +130,5 @@ class DaytonaTools(Toolkit):
             self.result = response.result
             return self.result
         except Exception as e:
+            logger.error(f"Error executing code: {str(e)}")
             return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
