@@ -1,9 +1,9 @@
 """Unit tests for WebTools class."""
 
-import pytest
+from agno.tools.webtools import WebTools
 from unittest.mock import patch, Mock
 
-from agno.tools.webtools import WebTools
+import pytest
 
 
 @pytest.fixture

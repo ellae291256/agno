@@ -1,4 +1,3 @@
-import copy
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -263,9 +262,6 @@ def test_search(couchbase_fts, mock_scope, mock_collection):
 
 def test_drop(mock_bucket, couchbase_fts):
     # Setup
-    mock_collections_mgr = Mock()
-    mock_bucket.collections.return_value = mock_collections_mgr
-
     # Mock the exists method to return True
     with patch.object(couchbase_fts, "exists", return_value=True):
         # Test successful drop
@@ -308,6 +304,8 @@ def test_prepare_doc(couchbase_fts, mock_embedder):
     assert prepared_doc["name"] == "test doc"
     assert prepared_doc["content"] == "test content"
     assert prepared_doc["meta_data"] == {"key": "value"}
+    assert prepared_doc["content"] == "test content"
+    assert prepared_doc["meta_data"] == {"key": "value"}
     assert prepared_doc["embedding"] == [0.1, 0.2, 0.3]
 
 
@@ -320,6 +318,7 @@ def test_get_count(mock_scope, couchbase_fts):
     # Test
     count = couchbase_fts.get_count()
     assert count == 42
+    mock_search_indexes.get_indexed_documents_count.assert_called_once()
 
     # Test error case
     mock_search_indexes.get_indexed_documents_count.side_effect = Exception()
@@ -733,7 +732,7 @@ async def test_async_insert(couchbase_fts, mock_embedder):
         couchbase_fts, "get_async_collection", AsyncMock(return_value=mock_async_collection_instance)
     ) as mock_get_async_collection:
         # Test case 1: without filters - documents should be embedded
-        await couchbase_fts.async_insert(copy.deepcopy(documents))
+        await couchbase_fts.async_insert(documents)
 
         mock_get_async_collection.assert_called_once()
         assert mock_embedder.get_embedding_and_usage.call_count == len(documents)
@@ -750,7 +749,7 @@ async def test_async_insert(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding_and_usage.reset_mock()
 
         # Test case 2: with filters - documents already have embeddings, so embedder should not be called again
-        await couchbase_fts.async_insert(copy.deepcopy(documents), filters=filters)
+        await couchbase_fts.async_insert(documents, filters=filters)
         mock_get_async_collection.assert_called_once()
         assert mock_embedder.get_embedding_and_usage.call_count == len(documents)
         assert mock_async_collection_instance.insert.call_count == len(documents)
@@ -774,7 +773,7 @@ async def test_async_upsert(couchbase_fts, mock_embedder):
         couchbase_fts, "get_async_collection", AsyncMock(return_value=mock_async_collection_instance)
     ) as mock_get_async_collection:
         # Test case 1: without filters - documents should be embedded
-        await couchbase_fts.async_upsert(copy.deepcopy(documents))
+        await couchbase_fts.async_upsert(documents)
 
         mock_get_async_collection.assert_called_once()
         assert mock_embedder.get_embedding_and_usage.call_count == len(documents)
@@ -791,7 +790,7 @@ async def test_async_upsert(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding_and_usage.reset_mock()
 
         # Test case 2: with filters - documents already have embeddings, so embedder should not be called again
-        await couchbase_fts.async_upsert(copy.deepcopy(documents), filters=filters)
+        await couchbase_fts.async_upsert(documents, filters=filters)
         mock_get_async_collection.assert_called_once()
         assert mock_embedder.get_embedding_and_usage.call_count == len(documents)  # Embedder not called again
         assert mock_async_collection_instance.upsert.call_count == len(documents)
@@ -845,7 +844,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -870,7 +869,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query filter scope kv")
         mock_get_async_scope.assert_called_once()
         mock_scope_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_scope_inst.search.call_args
+        _, search_kwargs_f = mock_scope_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 5
         assert search_kwargs_f["options"]["raw"] == filters
 
@@ -921,7 +920,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -944,7 +943,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 

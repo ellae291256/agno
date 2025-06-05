@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import base64
 import json
 import tempfile
 import time
 from os import fdopen, getenv
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Optional, Union
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -135,6 +137,7 @@ class E2BTools(Toolkit):
             return json.dumps(results) if results else "Code executed successfully with no output."
 
         except Exception as e:
+            logger.error(f"Error executing code: {str(e)}")
             return json.dumps({"status": "error", "message": f"Error executing code: {str(e)}"})
 
     #  File Upload/Download Functions
@@ -156,7 +159,8 @@ class E2BTools(Toolkit):
 
             # Upload the file
             with open(file_path, "rb") as f:
-                file_in_sandbox = self.sandbox.files.write(sandbox_path, f)
+                with self.sandbox.files.write(sandbox_path, f) as file_in_sandbox:
+                    pass
 
             return file_in_sandbox.path
         except Exception as e:
@@ -223,6 +227,7 @@ class E2BTools(Toolkit):
                 return f"Image added as artifact with ID {image_id}"
 
         except Exception as e:
+            logger.error(f"Error processing PNG: {str(e)}")
             return json.dumps({"status": "error", "message": f"Error processing PNG: {str(e)}"})
 
     def download_chart_data(
