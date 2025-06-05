@@ -1,8 +1,8 @@
 """Unit tests for GmailTools class."""
 
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
@@ -37,7 +37,7 @@ def gmail_tools(mock_credentials, mock_gmail_service):
         return tools
 
 
-def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body: str) -> Dict[str, Any]:
+def create_mock_message(msg_id: str, subject: str, sender: str, date: str, body: str) -> dict[str, Any]:
     """Helper function to create mock message data."""
     return {
         "id": msg_id,
@@ -116,11 +116,10 @@ def test_auth_with_expired_credentials():
 
         tools = GmailTools(creds=mock_creds)
 
-        with patch.object(mock_creds, "refresh") as mock_refresh:
-            with patch("pathlib.Path.exists") as mock_exists:
-                mock_exists.return_value = False  # Force refresh path
-                tools._auth()
-                mock_refresh.assert_called_once()
+        with patch.object(mock_creds, "refresh") as mock_refresh, patch("pathlib.Path.exists") as mock_exists:
+            mock_exists.return_value = False  # Force refresh path
+            tools._auth()
+            mock_refresh.assert_called_once()
 
 
 def test_auth_with_custom_paths():
@@ -221,7 +220,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result
@@ -498,15 +497,15 @@ def test_send_email_with_single_attachment(gmail_tools, mock_gmail_service):
     # Reset mock to clear any setup calls
     mock_gmail_service.reset_mock()
 
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=("application/pdf", None)):
-                result = gmail_tools.send_email(
-                    to="recipient@test.com",
-                    subject="With Attachment",
-                    body="Email with attachment",
-                    attachments="test.pdf",
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=("application/pdf", None)):
+        result = gmail_tools.send_email(
+            to="recipient@test.com",
+            subject="With Attachment",
+            body="Email with attachment",
+            attachments="test.pdf",
+        )
 
     assert "msg123" in result
     mock_gmail_service.users().messages().send.assert_called_once()
@@ -520,15 +519,15 @@ def test_send_email_with_multiple_attachments(gmail_tools, mock_gmail_service):
     # Reset mock to clear any setup calls
     mock_gmail_service.reset_mock()
 
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=("application/pdf", None)):
-                result = gmail_tools.send_email(
-                    to="recipient@test.com",
-                    subject="Multiple Attachments",
-                    body="Email with multiple attachments",
-                    attachments=["test1.pdf", "test2.pdf"],
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=("application/pdf", None)):
+        result = gmail_tools.send_email(
+            to="recipient@test.com",
+            subject="Multiple Attachments",
+            body="Email with multiple attachments",
+            attachments=["test1.pdf", "test2.pdf"],
+        )
 
     assert "msg123" in result
     mock_gmail_service.users().messages().send.assert_called_once()
@@ -542,15 +541,15 @@ def test_create_draft_with_attachment(gmail_tools, mock_gmail_service):
     # Reset mock to clear any setup calls
     mock_gmail_service.reset_mock()
 
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=("text/plain", None)):
-                result = gmail_tools.create_draft_email(
-                    to="recipient@test.com",
-                    subject="Draft with Attachment",
-                    body="Draft with attachment",
-                    attachments="document.txt",
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=("text/plain", None)):
+        result = gmail_tools.create_draft_email(
+            to="recipient@test.com",
+            subject="Draft with Attachment",
+            body="Draft with attachment",
+            attachments="document.txt",
+        )
 
     assert "draft123" in result
     mock_gmail_service.users().drafts().create.assert_called_once()
@@ -564,17 +563,17 @@ def test_send_email_reply_with_attachment(gmail_tools, mock_gmail_service):
     # Reset mock to clear any setup calls
     mock_gmail_service.reset_mock()
 
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=("image/jpeg", None)):
-                result = gmail_tools.send_email_reply(
-                    thread_id="thread123",
-                    message_id="msg456",
-                    to="recipient@test.com",
-                    subject="Reply with Attachment",
-                    body="Reply with attachment",
-                    attachments="image.jpg",
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=("image/jpeg", None)):
+        result = gmail_tools.send_email_reply(
+            thread_id="thread123",
+            message_id="msg456",
+            to="recipient@test.com",
+            subject="Reply with Attachment",
+            body="Reply with attachment",
+            attachments="image.jpg",
+        )
 
     assert "msg123" in result
     mock_gmail_service.users().messages().send.assert_called_once()
@@ -639,15 +638,15 @@ def test_attachment_mime_type_guessing(gmail_tools, mock_gmail_service):
     mock_gmail_service.reset_mock()
 
     # Test with unknown MIME type (should default to application/octet-stream)
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=(None, None)):
-                result = gmail_tools.send_email(
-                    to="recipient@test.com",
-                    subject="Unknown File Type",
-                    body="Email with unknown file type",
-                    attachments="unknown.xyz",
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=(None, None)):
+        result = gmail_tools.send_email(
+            to="recipient@test.com",
+            subject="Unknown File Type",
+            body="Email with unknown file type",
+            attachments="unknown.xyz",
+        )
 
     assert "msg123" in result
     mock_gmail_service.users().messages().send.assert_called_once()
@@ -662,15 +661,15 @@ def test_attachment_with_encoding(gmail_tools, mock_gmail_service):
     mock_gmail_service.reset_mock()
 
     # Test with encoding present (should default to application/octet-stream)
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=("text/plain", "gzip")):
-                result = gmail_tools.send_email(
-                    to="recipient@test.com",
-                    subject="Encoded File",
-                    body="Email with encoded file",
-                    attachments="file.txt.gz",
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=("text/plain", "gzip")):
+        result = gmail_tools.send_email(
+            to="recipient@test.com",
+            subject="Encoded File",
+            body="Email with encoded file",
+            attachments="file.txt.gz",
+        )
 
     assert "msg123" in result
     mock_gmail_service.users().messages().send.assert_called_once()
@@ -700,16 +699,16 @@ def test_attachment_filename_extraction(gmail_tools, mock_gmail_service):
     # Reset mock to clear any setup calls
     mock_gmail_service.reset_mock()
 
-    with patch("pathlib.Path.exists", return_value=True):
-        with patch("builtins.open", mock_open(read_data=b"fake file content")):
-            with patch("mimetypes.guess_type", return_value=("application/pdf", None)):
-                # Test with full path - should extract just the filename
-                result = gmail_tools.send_email(
-                    to="recipient@test.com",
-                    subject="Path Test",
-                    body="Email with full path attachment",
-                    attachments="/full/path/to/document.pdf",
-                )
+    with patch("pathlib.Path.exists", return_value=True), \
+         patch("builtins.open", mock_open(read_data=b"fake file content")), \
+         patch("mimetypes.guess_type", return_value=("application/pdf", None)):
+        # Test with full path - should extract just the filename
+        result = gmail_tools.send_email(
+            to="recipient@test.com",
+            subject="Path Test",
+            body="Email with full path attachment",
+            attachments="/full/path/to/document.pdf",
+        )
 
     assert "msg123" in result
     mock_gmail_service.users().messages().send.assert_called_once()

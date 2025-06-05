@@ -1,7 +1,7 @@
 """Unit tests for WebTools class."""
 
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
 from agno.tools.webtools import WebTools
 

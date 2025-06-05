@@ -12,12 +12,15 @@ class Searxng(Toolkit):
     def __init__(
         self,
         host: str,
-        engines: List[str] = [],
+        engines: Optional[List[str]] = None,
         fixed_max_results: Optional[int] = None,
         images: bool = False,
         it: bool = False,
         map: bool = False,
         music: bool = False,
+    ):
+        if engines is None:
+            engines = []
         news: bool = False,
         science: bool = False,
         videos: bool = False,
