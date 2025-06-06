@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -110,7 +112,7 @@ class ChromaDb(VectorDb):
             if cleaned_content in existing_documents:  # type: ignore
                 return True
         except Exception as e:
-            logger.error(f"Document does not exist: {e}")
+            logger.error(f"Error checking document existence: {e}")
         return False
 
     async def async_doc_exists(self, document: Document) -> bool:
@@ -130,7 +132,7 @@ class ChromaDb(VectorDb):
                     if name in collection:
                         return True
             except Exception as e:
-                logger.error(f"Document with given name does not exist: {e}")
+                logger.error(f"Error checking name existence: {e}")
         return False
 
     async def async_name_exists(self, name: str) -> bool:
@@ -279,6 +281,7 @@ class ChromaDb(VectorDb):
                 )
         except Exception as e:
             logger.error(f"Error building search results: {e}")
+            return []
 
         if self.reranker:
             search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -334,7 +337,7 @@ class ChromaDb(VectorDb):
             return True
         except Exception as e:
             log_debug(f"Collection does not exist: {e}")
-        return False
+            return False
 
     async def async_exists(self) -> bool:
         """Check if collection exists asynchronously by running in a thread."""
@@ -348,6 +351,7 @@ class ChromaDb(VectorDb):
                 return collection.count()
             except Exception as e:
                 logger.error(f"Error getting count: {e}")
+                return 0
         return 0
 
     def optimize(self) -> None:

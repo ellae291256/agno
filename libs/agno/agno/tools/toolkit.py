@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import OrderedDict
 from typing import Any, Callable, Dict, List, Optional
 
@@ -9,13 +11,13 @@ class Toolkit:
     def __init__(
         self,
         name: str = "toolkit",
-        tools: List[Callable] = [],
+        tools: Optional[List[Callable]] = None,
         instructions: Optional[str] = None,
         add_instructions: bool = False,
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
-        requires_confirmation_tools: Optional[list[str]] = None,
-        external_execution_required_tools: Optional[list[str]] = None,
+        include_tools: Optional[List[str]] = None,
+        exclude_tools: Optional[List[str]] = None,
+        requires_confirmation_tools: Optional[List[str]] = None,
+        external_execution_required_tools: Optional[List[str]] = None,
         stop_after_tool_call_tools: Optional[List[str]] = None,
         show_result_tools: Optional[List[str]] = None,
         cache_results: bool = False,
@@ -42,19 +44,19 @@ class Toolkit:
             show_result_tools (Optional[List[str]]): List of function names whose results should be shown.
         """
         self.name: str = name
-        self.tools: List[Callable] = tools
+        self.tools: List[Callable] = tools if tools is not None else []
         self.functions: Dict[str, Function] = OrderedDict()
         self.instructions: Optional[str] = instructions
         self.add_instructions: bool = add_instructions
 
-        self.requires_confirmation_tools: list[str] = requires_confirmation_tools or []
-        self.external_execution_required_tools: list[str] = external_execution_required_tools or []
+        self.requires_confirmation_tools: List[str] = requires_confirmation_tools or []
+        self.external_execution_required_tools: List[str] = external_execution_required_tools or []
 
-        self.stop_after_tool_call_tools: list[str] = stop_after_tool_call_tools or []
-        self.show_result_tools: list[str] = show_result_tools or []
+        self.stop_after_tool_call_tools: List[str] = stop_after_tool_call_tools or []
+        self.show_result_tools: List[str] = show_result_tools or []
 
         self._check_tools_filters(
-            available_tools=[tool.__name__ for tool in tools], include_tools=include_tools, exclude_tools=exclude_tools
+            available_tools=[tool.__name__ for tool in self.tools], include_tools=include_tools, exclude_tools=exclude_tools
         )
 
         self.include_tools = include_tools
@@ -71,8 +73,8 @@ class Toolkit:
     def _check_tools_filters(
         self,
         available_tools: List[str],
-        include_tools: Optional[list[str]] = None,
-        exclude_tools: Optional[list[str]] = None,
+        include_tools: Optional[List[str]] = None,
+        exclude_tools: Optional[List[str]] = None,
     ) -> None:
         """Check if `include_tools` and `exclude_tools` are valid"""
         if include_tools or exclude_tools:
@@ -137,7 +139,7 @@ class Toolkit:
             log_debug(f"Function: {f.name} registered with {self.name}")
         except Exception as e:
             logger.warning(f"Failed to create Function for: {function.__name__}")
-            raise e
+            raise
 
     def __repr__(self):
         return f"<{self.__class__.__name__} name={self.name} functions={list(self.functions.keys())}>"

@@ -60,7 +60,7 @@ def custom_crawl4ai_tools():
 
 def create_mock_crawler_result(
     raw_markdown: str = "This is the extracted content from the webpage.",
-    fit_markdown: str = None,
+    fit_markdown: str | None = None,
     html: str = "<html><body>Test content</body></html>",
     text: str = "Test text content",
     success: bool = True,
@@ -221,7 +221,7 @@ def test_crawl_multiple_urls(crawl4ai_tools, mock_async_crawler):
 
 def test_crawl_error_handling(crawl4ai_tools, mock_async_crawler):
     """Test error handling during crawl."""
-    mock_async_crawler.arun = AsyncMock(side_effect=Exception("Network error"))
+    mock_async_crawler.arun = AsyncMock(side_effect=RuntimeError("Network error"))
 
     # Execute
     result = crawl4ai_tools.crawl("https://example.com")
@@ -270,9 +270,10 @@ def test_crawl_no_readable_content(crawl4ai_tools, mock_async_crawler):
 def test_pruning_configuration(mock_async_crawler, mock_browser_config, mock_crawler_run_config):
     """Test pruning filter configuration."""
     # Mock the imports that happen inside _build_config
-    with patch("crawl4ai.content_filter_strategy.PruningContentFilter") as mock_pruning, patch(
-        "crawl4ai.markdown_generation_strategy.DefaultMarkdownGenerator"
-    ) as mock_markdown_gen:
+    with (
+        patch("crawl4ai.content_filter_strategy.PruningContentFilter") as mock_pruning,
+        patch("crawl4ai.markdown_generation_strategy.DefaultMarkdownGenerator") as mock_markdown_gen,
+    ):
         # Create toolkit with pruning enabled
         toolkit = Crawl4aiTools(use_pruning=True, pruning_threshold=0.6)
 
@@ -300,7 +301,7 @@ def test_crawl_with_multiple_urls_and_errors(crawl4ai_tools, mock_async_crawler)
         nonlocal call_count
         call_count += 1
         if call_count == 2:
-            raise Exception("Connection failed")
+            raise RuntimeError("Connection failed")
         return create_mock_crawler_result(raw_markdown=f"Content from {url}")
 
     mock_async_crawler.arun = mock_arun

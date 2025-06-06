@@ -1509,46 +1509,46 @@ class Agent:
     @overload
     def continue_run(
         self,
-        run_response: Optional[RunResponse] = None,
+        run_response: RunResponse | None = None,
         *,
-        run_id: Optional[str] = None,
-        updated_tools: Optional[List[ToolExecution]] = None,
+        run_id: str | None = None,
+        updated_tools: list[ToolExecution] | None = None,
         stream: Literal[False] = False,
-        stream_intermediate_steps: Optional[bool] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        stream_intermediate_steps: bool | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        retries: int | None = None,
+        knowledge_filters: dict[str, Any] | None = None,
     ) -> RunResponse: ...
 
     @overload
     def continue_run(
         self,
-        run_response: Optional[RunResponse] = None,
+        run_response: RunResponse | None = None,
         *,
-        run_id: Optional[str] = None,
-        updated_tools: Optional[List[ToolExecution]] = None,
+        run_id: str | None = None,
+        updated_tools: list[ToolExecution] | None = None,
         stream: Literal[True] = True,
-        stream_intermediate_steps: Optional[bool] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        stream_intermediate_steps: bool | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        retries: int | None = None,
+        knowledge_filters: dict[str, Any] | None = None,
     ) -> Iterator[RunResponse]: ...
 
     def continue_run(
         self,
-        run_response: Optional[RunResponse] = None,
+        run_response: RunResponse | None = None,
         *,
-        run_id: Optional[str] = None,
-        updated_tools: Optional[List[ToolExecution]] = None,
-        stream: Optional[bool] = None,
-        stream_intermediate_steps: Optional[bool] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        retries: Optional[int] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
-    ) -> Union[RunResponse, Iterator[RunResponse]]:
+        run_id: str | None = None,
+        updated_tools: list[ToolExecution] | None = None,
+        stream: bool | None = None,
+        stream_intermediate_steps: bool | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        retries: int | None = None,
+        knowledge_filters: dict[str, Any] | None = None,
+    ) -> RunResponse | Iterator[RunResponse]:
         """Continue a previous run.
 
         Args:
@@ -2786,7 +2786,7 @@ class Agent:
         run_response: RunResponse,
         run_messages: RunMessages,
         session_id: str,
-        messages: Optional[Sequence[Union[Dict, Message]]] = None,
+        messages: Sequence[dict | Message] | None = None,
         index_of_last_user_message: int = 0,
     ):
         if isinstance(self.memory, AgentMemory):
@@ -2868,8 +2868,8 @@ class Agent:
         self,
         run_messages: RunMessages,
         session_id: str,
-        user_id: Optional[str] = None,
-        messages: Optional[Sequence[Union[Dict, Message]]] = None,
+        user_id: str | None = None,
+        messages: Sequence[dict | Message] | None = None,
     ) -> None:
         if isinstance(self.memory, AgentMemory):
             self.memory = cast(AgentMemory, self.memory)
@@ -2918,8 +2918,8 @@ class Agent:
         self,
         run_messages: RunMessages,
         session_id: str,
-        user_id: Optional[str] = None,
-        messages: Optional[Sequence[Union[Dict, Message]]] = None,
+        user_id: str | None = None,
+        messages: Sequence[dict | Message] | None = None,
     ) -> None:
         if isinstance(self.memory, AgentMemory):
             self.memory = cast(AgentMemory, self.memory)
@@ -2968,8 +2968,8 @@ class Agent:
         run_response: RunResponse,
         run_messages: RunMessages,
         session_id: str,
-        user_id: Optional[str] = None,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        user_id: str | None = None,
+        response_format: dict | Type[BaseModel] | None = None,
         stream_intermediate_steps: bool = False,
     ) -> Iterator[RunResponse]:
         self.model = cast(Model, self.model)
@@ -3549,9 +3549,9 @@ class Agent:
         self,
         model: Model,
         session_id: str,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         async_mode: bool = False,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        knowledge_filters: dict[str, Any] | None = None,
     ) -> None:
         agent_tools = self.get_tools(
             session_id=session_id, async_mode=async_mode, user_id=user_id, knowledge_filters=knowledge_filters
@@ -3722,8 +3722,8 @@ class Agent:
             except Exception as e:
                 log_warning(f"Failed to resolve context for '{key}': {e}")
 
-    def get_agent_data(self) -> Dict[str, Any]:
-        agent_data: Dict[str, Any] = {}
+    def get_agent_data(self) -> dict[str, Any]:
+        agent_data: dict[str, Any] = {}
         if self.name is not None:
             agent_data["name"] = self.name
         if self.agent_id is not None:
@@ -3732,8 +3732,8 @@ class Agent:
             agent_data["model"] = self.model.to_dict()
         return agent_data
 
-    def get_session_data(self) -> Dict[str, Any]:
-        session_data: Dict[str, Any] = {}
+    def get_session_data(self) -> dict[str, Any]:
+        session_data: dict[str, Any] = {}
         if self.session_name is not None:
             session_data["session_name"] = self.session_name
         if self.session_state is not None and len(self.session_state) > 0:
@@ -3752,10 +3752,9 @@ class Agent:
             session_data["audio"] = [aud.to_dict() for aud in self.audio]  # type: ignore
         return session_data
 
-    def get_agent_session(self, session_id: str, user_id: Optional[str] = None) -> AgentSession:
-        from time import time
-
+    def get_agent_session(self, session_id: str, user_id: str | None = None) -> AgentSession:
         """Get an AgentSession object, which can be saved to the database"""
+        from time import time
         if self.memory is not None:
             if isinstance(self.memory, AgentMemory):
                 self.memory = cast(AgentMemory, self.memory)
@@ -4007,7 +4006,7 @@ class Agent:
                 self.load_agent_session(session=self.agent_session)
         return self.agent_session
 
-    def write_to_storage(self, session_id: str, user_id: Optional[str] = None) -> Optional[AgentSession]:
+    def write_to_storage(self, session_id: str, user_id: str | None = None) -> AgentSession | None:
         """Save the AgentSession to storage
 
         Returns:
@@ -4038,7 +4037,7 @@ class Agent:
                         )
                     )
 
-    def load_session(self, force: bool = False) -> Optional[str]:
+    def load_session(self, force: bool = False) -> str | None:
         """Load an existing session from the database and return the session_id.
         If a session does not exist, create a new session.
 
@@ -4107,7 +4106,7 @@ class Agent:
         )
         return self._formatter.format(msg, **format_variables)  # type: ignore
 
-    def get_system_message(self, session_id: str, user_id: Optional[str] = None) -> Optional[Message]:
+    def get_system_message(self, session_id: str, user_id: str | None = None) -> Message | None:
         """Return the system message for the Agent.
 
         1. If the system_message is provided, use that.
@@ -4416,14 +4415,14 @@ class Agent:
     def get_user_message(
         self,
         *,
-        message: Optional[Union[str, List]],
-        audio: Optional[Sequence[Audio]] = None,
-        images: Optional[Sequence[Image]] = None,
-        videos: Optional[Sequence[Video]] = None,
-        files: Optional[Sequence[File]] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        message: str | list | None = None,
+        audio: Sequence[Audio] | None = None,
+        images: Sequence[Image] | None = None,
+        videos: Sequence[Video] | None = None,
+        files: Sequence[File] | None = None,
+        knowledge_filters: dict[str, Any] | None = None,
         **kwargs: Any,
-    ) -> Optional[Message]:
+    ) -> Message | None:
         """Return the user message for the Agent.
 
         1. If the user_message is provided, use that.
@@ -4614,7 +4613,7 @@ class Agent:
                         messages_to_add_to_run_response.append(_m_parsed)
                         run_messages.messages.append(_m_parsed)
                         run_messages.extra_messages.append(_m_parsed)
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to validate message: {e}")
             # Add the extra messages to the run_response
             if len(messages_to_add_to_run_response) > 0:
@@ -4673,7 +4672,7 @@ class Agent:
         elif isinstance(message, dict):
             try:
                 user_message = Message.model_validate(message)
-            except Exception as e:
+            except (ValueError, TypeError) as e:
                 log_warning(f"Failed to validate message: {e}")
         # Add user message to run_messages
         if user_message is not None:
@@ -4969,7 +4968,7 @@ class Agent:
                     member_agent_task += (
                         f"\n\n<additional_information>\n{additional_information}\n</additional_information>"
                     )
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Failed to add additional information to the member agent: {e}")
 
             member_agent_session_id = member_agent.session_id
@@ -5003,14 +5002,14 @@ class Agent:
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
             yield self.team_response_separator
 
@@ -5282,7 +5281,7 @@ class Agent:
                     import json
 
                     fn_path.write_text(json.dumps(self.run_response.content, indent=2))
-            except Exception as e:
+            except (OSError, TypeError, ValueError) as e:
                 log_warning(f"Failed to save output to file: {e}")
 
     def update_run_response_with_reasoning(
@@ -6065,7 +6064,7 @@ class Agent:
             return update_user_memory
 
     def get_chat_history_function(self, session_id: str) -> Callable:
-        def get_chat_history(num_chats: Optional[int] = None) -> str:
+        def get_chat_history(num_chats: int | None = None) -> str:
             """Use this function to get the chat history between the user and agent.
 
             Args:
@@ -6084,7 +6083,7 @@ class Agent:
             """
             import json
 
-            history: List[Dict[str, Any]] = []
+            history: list[dict[str, Any]] = []
             if isinstance(self.memory, AgentMemory):
                 agent_chats = self.memory.get_message_pairs()
 
@@ -6149,7 +6148,7 @@ class Agent:
         return get_tool_call_history
 
     def search_knowledge_base_function(
-        self, knowledge_filters: Optional[Dict[str, Any]] = None, async_mode: bool = False
+        self, knowledge_filters: dict[str, Any] | None = None, async_mode: bool = False
     ) -> Callable:
         """Factory function to create a search_knowledge_base function with filters."""
 
@@ -6222,11 +6221,11 @@ class Agent:
             return search_knowledge_base
 
     def search_knowledge_base_with_agentic_filters_function(
-        self, knowledge_filters: Optional[Dict[str, Any]] = None, async_mode: bool = False
+        self, knowledge_filters: dict[str, Any] | None = None, async_mode: bool = False
     ) -> Callable:
         """Factory function to create a search_knowledge_base function with filters."""
 
-        def search_knowledge_base(query: str, filters: Optional[Dict[str, Any]] = None) -> str:
+        def search_knowledge_base(query: str, filters: dict[str, Any] | None = None) -> str:
             """Use this function to search the knowledge base for information about a query.
 
             Args:
@@ -6883,12 +6882,12 @@ class Agent:
                             response_content_batch = JSON(
                                 run_response.content.model_dump_json(exclude_none=True), indent=2
                             )
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             log_warning(f"Failed to convert response to JSON: {e}")
                     else:
                         try:
                             response_content_batch = JSON(json.dumps(run_response.content), indent=4)
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             log_warning(f"Failed to convert response to JSON: {e}")
 
                 # Create panel for response
@@ -7533,7 +7532,7 @@ class Agent:
 
             log_error(f"Failed to add reasoning metrics to extra_data: {str(e)}")
 
-    def _get_effective_filters(self, knowledge_filters: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    def _get_effective_filters(self, knowledge_filters: dict[str, Any] | None = None) -> dict[str, Any] | None:
         """
         Determine which knowledge filters to use, with priority to run-level filters.
 
@@ -7563,7 +7562,7 @@ class Agent:
         return effective_filters
 
     def get_previous_sessions_messages_function(
-        self, num_history_sessions: Optional[int] = 2, user_id: Optional[str] = None
+        self, num_history_sessions: int | None = 2, user_id: str | None = None
     ) -> Callable:
         """Factory function to create a get_previous_session_messages function.
 
@@ -7624,14 +7623,14 @@ class Agent:
 
     def cli_app(
         self,
-        message: Optional[str] = None,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        message: str | None = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         user: str = "User",
         emoji: str = ":sunglasses:",
         stream: bool = False,
         markdown: bool = False,
-        exit_on: Optional[List[str]] = None,
+        exit_on: list[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """Run an interactive command-line interface to interact with the agent."""
@@ -7663,8 +7662,8 @@ class Agent:
                 message=message, stream=stream, markdown=markdown, user_id=user_id, session_id=session_id, **kwargs
             )
 
-    def get_agent_config_dict(self) -> Dict[str, Any]:
-        tools: List[Dict[str, Any]] = []
+    def get_agent_config_dict(self) -> dict[str, Any]:
+        tools: list[dict[str, Any]] = []
         if self.tools is not None:
             if not hasattr(self, "_tools_for_model") or self._tools_for_model is None:
                 team_model = self.model
@@ -7739,14 +7738,14 @@ class Agent:
 
     async def acli_app(
         self,
-        message: Optional[str] = None,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        message: str | None = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         user: str = "User",
         emoji: str = ":sunglasses:",
         stream: bool = False,
         markdown: bool = False,
-        exit_on: Optional[List[str]] = None,
+        exit_on: list[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """
