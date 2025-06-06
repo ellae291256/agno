@@ -16,8 +16,10 @@ def mock_openweather_api():
 
 
 @pytest.fixture
-def openweather_tools():
+def openweather_tools(mock_openweather_api):
     """Create an OpenWeatherTools instance with a mock API key."""
+    with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
+        return OpenWeatherTools()
     with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
         return OpenWeatherTools()
 
@@ -32,6 +34,146 @@ def test_initialization_without_api_key():
 def test_init_with_selective_tools():
     """Test initialization with only selected tools."""
     with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
+        tools = OpenWeatherTools(
+            current_weather=True,
+            forecast=False,
+            air_pollution=True,
+            geocoding=False,
+        )
+
+        assert "get_current_weather" in [func.name for func in tools.functions.values()]
+        assert "get_forecast" not in [func.name for func in tools.functions.values()]
+        assert "get_air_pollution" in [func.name for func in tools.functions.values()]
+        assert "geocode_location" not in [func.name for func in tools.functions.values()]
+
+
+def test_get_current_weather_success(openweather_tools, mock_openweather_api):
+    """Test successful current weather retrieval."""
+    # First mock the geocode response
+    geocode_response = MagicMock()
+    geocode_response.json.return_value = [{"name": "London", "lat": 51.5074, "lon": -0.1278}]
+    mock_openweather_api.return_value = geocode_response
+
+    weather_response = MagicMock()
+    weather_response.json.return_value = {
+        "main": {"temp": 20, "humidity": 50},
+        "weather": [{"description": "clear sky"}],
+    }
+    mock_openweather_api.return_value = weather_response
+
+    result = openweather_tools.get_current_weather(city="London")
+    assert result["temperature"] == 20
+    assert result["description"] == "clear sky"
+
+
+def test_get_forecast_success(openweather_tools, mock_openweather_api):
+    """Test successful forecast retrieval."""
+    # First mock the geocode response
+    geocode_response = MagicMock()
+    geocode_response.json.return_value = [{"name": "London", "lat": 51.5074, "lon": -0.1278}]
+    mock_openweather_api.return_value = geocode_response
+
+    forecast_response = MagicMock()
+    forecast_response.json.return_value = {
+        "list": [
+            {
+                "dt": 1234567890,
+                "main": {"temp": 20, "humidity": 50},
+                "weather": [{"description": "clear sky"}],
+            }
+        ]
+    }
+    mock_openweather_api.return_value = forecast_response
+
+    result = openweather_tools.get_forecast(city="London")
+    assert len(result) == 1
+    assert result[0]["temperature"] == 20
+    assert result[0]["description"] == "clear sky"
+
+
+def test_get_air_pollution_success(openweather_tools, mock_openweather_api):
+    """Test successful air pollution retrieval."""
+    # First mock the geocode response
+    geocode_response = MagicMock()
+    geocode_response.json.return_value = [{"name": "London", "lat": 51.5074, "lon": -0.1278}]
+    mock_openweather_api.return_value = geocode_response
+
+    pollution_response = MagicMock()
+    pollution_response.json.return_value = {
+        "list": [{"main": {"aqi": 1}}]
+    }
+    mock_openweather_api.return_value = pollution_response
+
+    result = openweather_tools.get_air_pollution(city="London")
+    assert result[0]["aqi"] == 1
+
+
+def test_error_handling(openweather_tools, mock_openweather_api):
+    """Test error handling for API errors."""
+    # First mock the geocode response
+    geocode_response = MagicMock()
+    geocode_response.json.return_value = [{"name": "London", "lat": 51.5074, "lon": -0.1278}]
+    mock_openweather_api.return_value = geocode_response
+
+    # Mock an API error
+    mock_openweather_api.side_effect = Exception("API Error")
+
+    with pytest.raises(Exception, match="API Error"):
+        openweather_tools.get_current_weather(city="London")
+
+
+def test_geocode_location_empty_result(openweather_tools, mock_openweather_api):
+    """Test geocode location with empty result."""
+    # Mock an empty geocode response
+    geocode_response = MagicMock()
+    geocode_response.json.return_value = []
+    mock_openweather_api.return_value = geocode_response
+
+    with pytest.raises(ValueError, match="Location not found"):
+        openweather_tools.get_current_weather(city="NonExistentCity")
+
+
+def test_get_current_weather_with_geocode_error(openweather_tools, mock_openweather_api):
+    """Test get current weather with geocode error."""
+    # Mock a geocode error
+    mock_openweather_api.side_effect = Exception("Geocode Error")
+
+    with pytest.raises(Exception, match="Geocode Error"):
+        openweather_tools.get_current_weather(city="London")
+
+
+def test_units_parameter(openweather_tools, mock_openweather_api):
+    """Test units parameter."""
+    # First mock the geocode response
+    geocode_response = MagicMock()
+    geocode_response.json.return_value = [{"name": "London", "lat": 51.5074, "lon": -0.1278}]
+    mock_openweather_api.return_value = geocode_response
+
+    weather_response = MagicMock()
+    weather_response.json.return_value = {
+        "main": {"temp": 20, "humidity": 50},
+        "weather": [{"description": "clear sky"}],
+    }
+    mock_openweather_api.return_value = weather_response
+
+    result = openweather_tools.get_current_weather(city="London")
+    assert result["temperature"] == 20
+    assert result["description"] == "clear sky"
+
+    # Set up the mock to return different responses for different calls
+    mock_openweather_api.side_effect = [geocode_response, weather_response]
+
+    # Create a tool with imperial units
+    with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
+        imperial_tools = OpenWeatherTools(units="imperial")
+
+    # Reset the mock
+    mock_openweather_api.reset_mock()
+    mock_openweather_api.side_effect = [geocode_response, weather_response]
+
+    result = imperial_tools.get_current_weather(city="London")
+    assert result["temperature"] == 20
+    assert result["description"] == "clear sky"
         tools = OpenWeatherTools(
             current_weather=True,
             forecast=False,

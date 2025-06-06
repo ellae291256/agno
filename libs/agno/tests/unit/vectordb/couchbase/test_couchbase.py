@@ -1,4 +1,3 @@
-import copy
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -486,20 +485,20 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     mock_bucket.collections.return_value = collections_manager
 
     # Mock scope
-    mock_scope = Mock(spec=Scope)
-    mock_scope.name = "test_scope"
-    mock_bucket.scope.return_value = mock_scope
+    _mock_scope = Mock(spec=Scope)
+    _mock_scope.name = "test_scope"
+    mock_bucket.scope.return_value = _mock_scope
 
     # Mock collection
     mock_collection = Mock(spec=Collection)
     mock_collection.name = "test_collection"
-    mock_scope.collection.return_value = mock_collection
+    _mock_scope.collection.return_value = mock_collection
 
     # Set up the scope to have the collection
-    mock_scope.collections = [mock_collection]
+    _mock_scope.collections = [mock_collection]
 
     # Set up the collections manager to return scopes
-    collections_manager.get_all_scopes.return_value = [mock_scope]
+    collections_manager.get_all_scopes.return_value = [_mock_scope]
 
     # Create CouchbaseSearch instance with cluster-level index
     fts = CouchbaseSearch(
@@ -578,10 +577,10 @@ def test_search_cluster_level(mock_cluster, mock_embedder):
     """Test searching with cluster-level index."""
     # Setup mock search result
     mock_search_result = Mock()
-    mock_row = Mock()
-    mock_row.id = "test_id"
-    mock_row.score = 0.95
-    mock_search_result.rows.return_value = [mock_row]
+    _mock_row = Mock()
+    _mock_row.id = "test_id"
+    _mock_row.score = 0.95
+    mock_search_result.rows.return_value = [_mock_row]
     mock_cluster.search.return_value = mock_search_result
 
     # Setup mock KV response
@@ -633,11 +632,11 @@ async def test_async_create(couchbase_fts):
     """Test the async_create method."""
     with patch.object(
         couchbase_fts, "_async_create_collection_and_scope", new_callable=AsyncMock
-    ) as mock_create_coll_scope, patch.object(
+    ) as _mock_create_coll_scope, patch.object(
         couchbase_fts, "_async_create_fts_index", new_callable=AsyncMock
     ) as mock_create_fts:
         await couchbase_fts.async_create()
-        mock_create_coll_scope.assert_called_once()
+        _mock_create_coll_scope.assert_called_once()
         mock_create_fts.assert_called_once()
 
 
@@ -647,18 +646,18 @@ async def test_async_doc_exists(couchbase_fts):
     document = Document(content="test content")
 
     # Mock async_id_exists method
-    with patch.object(couchbase_fts, "async_id_exists", new_callable=AsyncMock) as mock_async_id_exists:
+    with patch.object(couchbase_fts, "async_id_exists", new_callable=AsyncMock) as _mock_async_id_exists:
         # Test document exists
-        mock_async_id_exists.return_value = True
+        _mock_async_id_exists.return_value = True
         assert await couchbase_fts.async_doc_exists(document) is True
-        mock_async_id_exists.assert_called_once()
+        _mock_async_id_exists.assert_called_once()
 
         # Test document doesn't exist
-        mock_async_id_exists.return_value = False
+        _mock_async_id_exists.return_value = False
         # Reset call count for the next assertion
-        mock_async_id_exists.reset_mock()
+        _mock_async_id_exists.reset_mock()
         assert await couchbase_fts.async_doc_exists(document) is False
-        mock_async_id_exists.assert_called_once()
+        _mock_async_id_exists.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -668,8 +667,8 @@ async def test_async_id_exists(couchbase_fts):
     mock_get_result = Mock()
     mock_collection_inst.exists = AsyncMock(return_value=mock_get_result)
 
-    with patch.object(CouchbaseSearch, "get_async_collection", new_callable=AsyncMock) as mock_get_async_collection:
-        mock_get_async_collection.return_value = mock_collection_inst
+    with patch.object(CouchbaseSearch, "get_async_collection", new_callable=AsyncMock) as _mock_get_async_collection:
+        _mock_get_async_collection.return_value = mock_collection_inst
 
         mock_get_result.exists = True
         assert await couchbase_fts.async_id_exists("test_id") is True
@@ -694,8 +693,8 @@ async def test_async_name_exists(couchbase_fts):
     # query method on AsyncScope is synchronous and returns an object with an async rows() iterator
     mock_scope_inst.query = Mock(return_value=mock_query_result)
 
-    with patch.object(CouchbaseSearch, "get_async_scope", new_callable=AsyncMock) as mock_get_async_scope:
-        mock_get_async_scope.return_value = mock_scope_inst
+    with patch.object(CouchbaseSearch, "get_async_scope", new_callable=AsyncMock) as _mock_get_async_scope:
+        _mock_get_async_scope.return_value = mock_scope_inst
 
         async def mock_rows_found():
             yield {"name": "test_doc"}
@@ -845,7 +844,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _search_args, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -921,7 +920,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _search_args, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -944,7 +943,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 

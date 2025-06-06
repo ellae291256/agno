@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import FirecrawlApp, V1ScrapeOptions  # type: ignore[attr-defined]
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
@@ -17,7 +19,8 @@ class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
         try:
             return super().default(obj)
-        except TypeError:
+        except TypeError as e:
+            # Fallback to string representation for non-serializable objects
             return str(obj)
 
 
@@ -37,14 +40,14 @@ class FirecrawlTools(Toolkit):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        formats: Optional[List[str]] = None,
+        formats: Optional[list[str]] = None,
         limit: int = 10,
         poll_interval: int = 30,
         scrape: bool = True,
         crawl: bool = False,
         mapping: bool = False,
         search: bool = False,
-        search_params: Optional[Dict[str, Any]] = None,
+        search_params: Optional[dict[str, Any]] = None,
         api_url: Optional[str] = "https://api.firecrawl.dev",
         **kwargs,
     ):
@@ -52,7 +55,7 @@ class FirecrawlTools(Toolkit):
         if not self.api_key:
             logger.error("FIRECRAWL_API_KEY not set. Please set the FIRECRAWL_API_KEY environment variable.")
 
-        self.formats: Optional[List[str]] = formats
+        self.formats: Optional[list[str]] = formats
         self.limit: int = limit
         self.poll_interval: int = poll_interval
         self.app: FirecrawlApp = FirecrawlApp(api_key=self.api_key, api_url=api_url)
@@ -65,7 +68,7 @@ class FirecrawlTools(Toolkit):
         elif not scrape:
             crawl = True
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if scrape:
             tools.append(self.scrape_website)
         if crawl:

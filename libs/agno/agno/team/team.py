@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import threading
@@ -9,16 +11,10 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
-    Dict,
     Iterator,
-    List,
     Literal,
-    Optional,
     Sequence,
-    Set,
-    Tuple,
     Type,
-    Union,
     cast,
     overload,
 )
@@ -1999,7 +1995,7 @@ class Team:
             for future in as_completed(futures):
                 try:
                     future.result()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     log_warning(f"Error in memory/summary operation: {str(e)}")
 
     async def _amake_memories_and_summaries(
@@ -2022,8 +2018,8 @@ class Team:
         if tasks:
             try:
                 await asyncio.gather(*tasks)
-            except Exception as e:
-                log_warning(f"Error in memory/summary operation: {str(e)}")
+            except Exception:
+                log_warning("Error in memory/summary operation")
 
     def _get_response_format(self) -> Optional[Union[Dict, Type[BaseModel]]]:
         self.model = cast(Model, self.model)
@@ -2295,7 +2291,6 @@ class Team:
                                         border_style="yellow",
                                     )
                                     panels.append(member_tool_calls_panel)
-                                    live_console.update(Group(*panels))
 
                         show_markdown = False
                         if member_markdown:
@@ -2365,7 +2360,6 @@ class Team:
                             border_style="yellow",
                         )
                         panels.append(team_tool_calls_panel)
-                        live_console.update(Group(*panels))
 
                 response_content_batch: Union[str, JSON, Markdown] = self._parse_response_content(
                     run_response, tags_to_include_in_markdown, show_markdown=team_markdown
@@ -3762,12 +3756,12 @@ class Team:
         elif isinstance(run_response.content, BaseModel):
             try:
                 return JSON(run_response.content.model_dump_json(exclude_none=True), indent=2)
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Failed to convert response to JSON: {e}")
         else:
             try:
                 return JSON(json.dumps(run_response.content), indent=4)
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Failed to convert response to JSON: {e}")
 
     def cli_app(
@@ -4064,8 +4058,8 @@ class Team:
                     next_action = get_next_action(reasoning_steps[-1])
                     if next_action == NextAction.FINAL_ANSWER:
                         break
-                except Exception as e:
-                    log_error(f"Reasoning error: {e}")
+                except Exception:
+                    log_error("Reasoning error")
                     break
 
             log_debug(f"Total Reasoning steps: {len(all_reasoning_steps)}")
@@ -4245,8 +4239,8 @@ class Team:
                     next_action = get_next_action(reasoning_steps[-1])
                     if next_action == NextAction.FINAL_ANSWER:
                         break
-                except Exception as e:
-                    log_error(f"Reasoning error: {e}")
+                except Exception:
+                    log_error("Reasoning error")
                     break
 
             log_debug(f"Total Reasoning steps: {len(all_reasoning_steps)}")
@@ -5003,7 +4997,7 @@ class Team:
                                         if prop_name != "title"
                                     }
                                     formatted_def_properties[field_name] = formatted_field_properties
-                            if len(formatted_def_properties) > 0:
+                            if formatted_def_properties:
                                 response_model_properties["$defs"][def_name] = formatted_def_properties
 
                     if len(response_model_properties) > 0:
@@ -5294,7 +5288,7 @@ class Team:
                             import json
 
                             yield f"Agent {member_agent.name}: {json.dumps(member_agent_run_response.content, indent=2)}"
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             yield f"Agent {member_agent.name}: Error - {str(e)}"
 
                 # Update the memory
@@ -5446,7 +5440,7 @@ class Team:
                             import json
 
                             return f"Agent {member_name}: {json.dumps(response.content, indent=2)}"
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             return f"Agent {member_name}: Error - {str(e)}"
 
                     return f"Agent {member_name}: No Response"
@@ -5635,14 +5629,14 @@ class Team:
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
                     except Exception as e:
-                        yield str(e)
+                        yield f"Error serializing response: {e}"  # type: ignore
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
                     except Exception as e:
-                        yield str(e)
+                        yield f"Error serializing response: {e}"  # type: ignore
 
             # Afterward, switch back to the team logger
             use_team_logger()
@@ -5816,14 +5810,14 @@ class Team:
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
                     except Exception as e:
-                        yield str(e)
+                        yield f"Error serializing response: {e}"  # type: ignore
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
                     except Exception as e:
-                        yield str(e)
+                        yield f"Error serializing response: {e}"  # type: ignore
 
             # Afterward, switch back to the team logger
             use_team_logger()
@@ -6022,14 +6016,14 @@ class Team:
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
 
             # Afterward, switch back to the team logger
@@ -6163,14 +6157,14 @@ class Team:
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
 
             # Afterward, switch back to the team logger
@@ -6718,8 +6712,8 @@ class Team:
 
             # Add the metrics message to the reasoning_messages
             run_response.extra_data.reasoning_messages.append(metrics_message)
-        except Exception as e:
-            log_error(f"Failed to add reasoning metrics to extra_data: {str(e)}")
+        except Exception:
+            log_error("Failed to add reasoning metrics to extra_data")
 
     ###########################################################################
     # Knowledge
@@ -6760,7 +6754,7 @@ class Team:
                 return self.retriever(**retriever_kwargs)
             except Exception as e:
                 log_warning(f"Retriever failed: {e}")
-                raise e
+                raise RuntimeError(f"Retriever failed: {e}") from e
         try:
             if self.knowledge is None or self.knowledge.vector_db is None:
                 return None
@@ -6780,7 +6774,7 @@ class Team:
             return [doc.to_dict() for doc in relevant_docs]
         except Exception as e:
             log_warning(f"Error searching knowledge base: {e}")
-            raise e
+            raise RuntimeError(f"Error searching knowledge base: {e}") from e
 
     async def aget_relevant_docs_from_knowledge(
         self, query: str, num_documents: Optional[int] = None, filters: Optional[Dict[str, Any]] = None, **kwargs
@@ -6839,7 +6833,7 @@ class Team:
             return [doc.to_dict() for doc in relevant_docs]
         except Exception as e:
             log_warning(f"Error searching knowledge base: {e}")
-            raise e
+            raise
 
     def _convert_documents_to_string(self, docs: List[Dict[str, Any]]) -> str:
         if docs is None or len(docs) == 0:
@@ -7143,8 +7137,8 @@ class Team:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
-            log_debug(f"Could not create team event: {e}")
+        except Exception:
+            log_debug("Could not create team event")
 
     async def _alog_team_run(self, session_id: str, user_id: Optional[str] = None) -> None:
         if not self.telemetry and not self.monitoring:
@@ -7167,8 +7161,8 @@ class Team:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
-            log_debug(f"Could not create team event: {e}")
+        except Exception:
+            log_debug("Could not create team event")
 
     def _log_team_session(self, session_id: str, user_id: Optional[str] = None):
         if not (self.telemetry or self.monitoring):
@@ -7187,7 +7181,7 @@ class Team:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
+        except Exception:
             log_debug(f"Could not create team monitor: {e}")
 
     def _get_agentic_or_user_search_filters(
@@ -7234,7 +7228,7 @@ class Team:
                 ),
             )
 
-        except Exception as e:
+        except Exception:
             log_debug(f"Could not create team on platform: {e}")
             print(f"Could not create team on platform: {e}")
 
@@ -7256,7 +7250,7 @@ class Team:
                     workflow_id=self.workflow_id,
                 ),
             )
-        except Exception as e:
+        except Exception:
             print(f"Could not create team on platform: {e}")
             log_debug(f"Could not create team on platform: {e}")
 
