@@ -18,10 +18,10 @@ class AzureOpenAITools(Toolkit):
     """
 
     # Define valid parameter options as class constants
-    VALID_MODELS = ["dall-e-3", "dall-e-2"]
-    VALID_SIZES = ["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]
-    VALID_QUALITIES = ["standard", "hd"]
-    VALID_STYLES = ["vivid", "natural"]
+    VALID_MODELS = ("dall-e-3", "dall-e-2")
+    VALID_SIZES = ("256x256", "512x512", "1024x1024", "1792x1024", "1024x1792")
+    VALID_QUALITIES = ("standard", "hd")
+    VALID_STYLES = ("vivid", "natural")
 
     def __init__(
         self,
