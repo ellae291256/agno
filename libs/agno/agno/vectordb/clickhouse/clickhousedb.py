@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.vectordb.clickhouse.index import HNSW
 
@@ -32,12 +34,16 @@ class Clickhouse(VectorDb):
         asyncclient: Optional[clickhouse_connect.driver.asyncclient.AsyncClient] = None,
         embedder: Optional[Embedder] = None,
         distance: Distance = Distance.cosine,
-        index: Optional[HNSW] = HNSW(),
+        index: HNSW | None = None,
     ):
         # Store connection parameters as instance attributes
         self.host = host
         self.username = username
         self.password = password
+        if index is None:
+            self.index = HNSW()
+        else:
+            self.index = index
         self.port = port
         self.dsn = dsn
         self.compress = compress
@@ -106,7 +112,7 @@ class Clickhouse(VectorDb):
                 )
             )
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Error checking if table exists: {e}")
             return False
 
     async def async_table_exists(self) -> bool:
@@ -145,7 +151,7 @@ class Clickhouse(VectorDb):
                 )
                 self.client.command("SET allow_experimental_vector_similarity_index = 1")
             else:
-                raise NotImplementedError(f"Not implemented index {type(self.index)!r} is passed")
+                raise ValueError(f"Not implemented index {type(self.index)!r} is passed")
 
             self.client.command("SET enable_json_type = 1")
 
@@ -189,7 +195,7 @@ class Clickhouse(VectorDb):
                 )
                 await async_client.command("SET allow_experimental_vector_similarity_index = 1")
             else:
-                raise NotImplementedError(f"Not implemented index {type(self.index)!r} is passed")
+                raise ValueError(f"Not implemented index {type(self.index)!r} is passed")
 
             await self.async_client.command("SET enable_json_type = 1")  # type: ignore
 
@@ -289,17 +295,17 @@ class Clickhouse(VectorDb):
 
     def insert(
         self,
-        documents: List[Document],
-        filters: Optional[Dict[str, Any]] = None,
+        documents: list[Document],
+        filters: dict[str, Any] | None = None,
     ) -> None:
-        rows: List[List[Any]] = []
+        rows: list[list[Any]] = []
         for document in documents:
             document.embed(embedder=self.embedder)
             cleaned_content = document.content.replace("\x00", "\ufffd")
             content_hash = md5(cleaned_content.encode()).hexdigest()
             _id = document.id or content_hash
 
-            row: List[Any] = [
+            row: list[Any] = [
                 _id,
                 document.name,
                 document.meta_data,
@@ -464,8 +470,8 @@ class Clickhouse(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """Search for documents asynchronously."""
         async_client = await self._ensure_async_client()
 
@@ -477,7 +483,7 @@ class Clickhouse(VectorDb):
         parameters = self._get_base_parameters()
         where_query = ""
         # if filters:
-        #     query_filters: List[str] = []
+        #     query_filters: list[str] = []
         #     for key, value in filters.values():
         #         query_filters.append(f"{{{key}_key:String}} = {{{key}_value:String}}")
         #         parameters[f"{key}_key"] = key
@@ -512,7 +518,7 @@ class Clickhouse(VectorDb):
             return []
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results.result_rows:
             search_results.append(
                 Document(

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     import lancedb
@@ -178,17 +180,16 @@ class LanceDb(VectorDb):
         Args:
             document (Document): Document to validate
         """
+        if self.table is None:
+            return False
         try:
-            if self.table is not None:
-                cleaned_content = document.content.replace("\x00", "\ufffd")
-                doc_id = md5(cleaned_content.encode()).hexdigest()
-                result = self.table.search().where(f"{self._id}='{doc_id}'").to_arrow()
-                return len(result) > 0
+            cleaned_content = document.content.replace("\x00", "\ufffd")
+            doc_id = md5(cleaned_content.encode()).hexdigest()
+            result = self.table.search().where(f"{self._id}='{doc_id}'").to_arrow()
+            return len(result) > 0
         except Exception:
             # Search sometimes fails with stale cache data, it means the doc doesn't exist
             return False
-
-        return False
 
     async def async_doc_exists(self, document: Document) -> bool:
         """
@@ -262,13 +263,13 @@ class LanceDb(VectorDb):
 
         log_debug(f"Inserted {len(data)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Asynchronously insert documents into the database.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (dict[str, Any] | None): Filters to apply while inserting documents
         """
         if len(documents) <= 0:
             log_debug("No documents to insert")
@@ -323,30 +324,30 @@ class LanceDb(VectorDb):
             logger.error(f"Error during async document insertion: {e}")
             raise
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into the database.
 
         Args:
-            documents (List[Document]): List of documents to upsert
-            filters (Optional[Dict[str, Any]]): Filters to apply while upserting
+            documents (list[Document]): List of documents to upsert
+            filters (dict[str, Any] | None): Filters to apply while upserting
         """
         self.insert(documents)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         await self.async_insert(documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
         Args:
             query (str): Query string to search for
             limit (int): Maximum number of results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search
+            filters (dict[str, Any] | None): Filters to apply to the search
 
         Returns:
-            List[Document]: List of matching documents
+            list[Document]: List of matching documents
         """
         if self.connection:
             self.table = self.connection.open_table(name=self.table_name)
@@ -394,18 +395,18 @@ class LanceDb(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """
         Asynchronously search for documents matching the query.
 
         Args:
             query (str): Query string to search for
             limit (int): Maximum number of results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search
+            filters (dict[str, Any] | None): Filters to apply to the search
 
         Returns:
-            List[Document]: List of matching documents
+            list[Document]: List of matching documents
         """
         # TODO: Search is not yet supported in async (https://github.com/lancedb/lancedb/pull/2049)
         if self.connection:
@@ -453,15 +454,15 @@ class LanceDb(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def vector_search(self, query: str, limit: int = 5) -> List[Document]:
+    def vector_search(self, query: str, limit: int = 5) -> list[Document]:
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
-            return None
+            return []
 
         if self.table is None:
             logger.error("Table not initialized. Please create the table first")
-            return None  # type: ignore
+            return []
 
         results = self.table.search(
             query=query_embedding,
@@ -502,7 +503,7 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         if self.table is None:
             logger.error("Table not initialized. Please create the table first")
             return []
@@ -518,8 +519,8 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def _build_search_results(self, results) -> List[Document]:  # TODO: typehint pandas?
-        search_results: List[Document] = []
+    def _build_search_results(self, results) -> list[Document]:  # TODO: typehint pandas?
+        search_results: list[Document] = []
         try:
             for _, item in results.iterrows():
                 payload = json.loads(item["payload"])
@@ -597,4 +598,4 @@ class LanceDb(VectorDb):
             return False
 
     async def async_name_exists(self, name: str) -> bool:
-        raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")
+        raise NotImplementedError()
