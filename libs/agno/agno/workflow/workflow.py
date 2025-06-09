@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
+from typing import Any, AsyncGenerator, AsyncIterator, Callable, Optional, Union, cast, get_args
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -47,7 +47,7 @@ class Workflow:
     # Session name
     session_name: Optional[str] = None
     # Session state stored in the database
-    session_state: Dict[str, Any] = field(default_factory=dict)
+    session_state: dict[str, Any] = field(default_factory=dict)
 
     # --- Workflow Memory ---
     memory: Optional[Union[WorkflowMemory, Memory]] = None
@@ -55,7 +55,7 @@ class Workflow:
     # --- Workflow Storage ---
     storage: Optional[Storage] = None
     # Extra data stored with this workflow
-    extra_data: Optional[Dict[str, Any]] = None
+    extra_data: Optional[dict[str, Any]] = None
 
     # --- Debug & Monitoring ---
     # Enable debug logs
@@ -68,14 +68,14 @@ class Workflow:
 
     # --- Run Info: DO NOT SET ---
     run_id: Optional[str] = None
-    run_input: Optional[Dict[str, Any]] = None
+    run_input: Optional[dict[str, Any]] = None
     run_response: Optional[RunResponse] = None
     # Images generated during this session
-    images: Optional[List[ImageArtifact]] = None
+    images: Optional[list[ImageArtifact]] = None
     # Videos generated during this session
-    videos: Optional[List[VideoArtifact]] = None
+    videos: Optional[list[VideoArtifact]] = None
     # Audio generated during this session
-    audio: Optional[List[AudioArtifact]] = None
+    audio: Optional[list[AudioArtifact]] = None
 
     def __init__(
         self,
@@ -86,10 +86,10 @@ class Workflow:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         session_name: Optional[str] = None,
-        session_state: Optional[Dict[str, Any]] = None,
+        session_state: Optional[dict[str, Any]] = None,
         memory: Optional[Union[WorkflowMemory, Memory]] = None,
         storage: Optional[Storage] = None,
-        extra_data: Optional[Dict[str, Any]] = None,
+        extra_data: Optional[dict[str, Any]] = None,
         debug_mode: bool = False,
         monitoring: bool = False,
         telemetry: bool = True,
@@ -104,7 +104,7 @@ class Workflow:
 
         self.session_id = session_id
         self.session_name = session_name
-        self.session_state: Dict[str, Any] = session_state or {}
+        self.session_state: dict[str, Any] = session_state or {}
 
         self.memory = memory
         self.storage = storage
@@ -127,7 +127,7 @@ class Workflow:
         # The run function provided by the subclass
         self._subclass_run: Optional[Callable] = None
         # Parameters of the run function
-        self._run_parameters: Optional[Dict[str, Any]] = None
+        self._run_parameters: Optional[dict[str, Any]] = None
         # Return type of the run function
         self._run_return_type: Optional[str] = None
 
@@ -187,7 +187,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -814,6 +814,7 @@ class Workflow:
             log_debug(f"Registered workflow: {self.name} (ID: {self.workflow_id})")
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
+            return
 
     def register_workflow(self, force: bool = False) -> None:
         """Register this workflow with Agno's platform.
@@ -843,6 +844,7 @@ class Workflow:
             log_debug(f"Registered workflow: {self.name} (ID: {self.workflow_id})")
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
+            return
 
     def to_config_dict(self) -> Dict[str, Any]:
         """Convert the workflow to a config dictionary including all agents and teams.

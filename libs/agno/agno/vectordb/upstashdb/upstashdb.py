@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 try:
     from upstash_vector import Index, Vector
@@ -96,9 +98,6 @@ class UpstashVectorDb(VectorDb):
 
         Returns:
             bool: True if the index exists and is accessible, False otherwise.
-
-        Raises:
-            Exception: If there's an error communicating with Upstash.
         """
         try:
             self.index.info()

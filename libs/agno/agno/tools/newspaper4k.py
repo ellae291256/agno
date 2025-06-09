@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -20,10 +22,10 @@ class Newspaper4kTools(Toolkit):
     """
 
     def __init__(
-        self, read_article: bool = True, include_summary: bool = False, article_length: Optional[int] = None, **kwargs
+        self, read_article: bool = True, include_summary: bool = False, article_length: int | None = None, **kwargs
     ):
         self.include_summary: bool = include_summary
-        self.article_length: Optional[int] = article_length
+        self.article_length: int | None = article_length
 
         tools = []
         if read_article:
@@ -31,7 +33,7 @@ class Newspaper4kTools(Toolkit):
 
         super().__init__(name="newspaper4k_tools", tools=tools, **kwargs)
 
-    def get_article_data(self, url: str) -> Optional[Dict[str, Any]]:
+    def get_article_data(self, url: str) -> dict[str, Any] | None:
         """Read and get article data from a URL.
 
         Args:
@@ -40,29 +42,29 @@ class Newspaper4kTools(Toolkit):
         Returns:
             Dict[str, Any]: The article data.
         """
-
         try:
             article = newspaper.article(url)
-            article_data = {}
-            if article.title:
-                article_data["title"] = article.title
-            if article.authors:
-                article_data["authors"] = article.authors
-            if article.text:
-                article_data["text"] = article.text
-            if self.include_summary and article.summary:
-                article_data["summary"] = article.summary
-
-            try:
-                if article.publish_date:
-                    article_data["publish_date"] = article.publish_date.isoformat() if article.publish_date else None
-            except Exception:
-                pass
-
-            return article_data
         except Exception as e:
             logger.warning(f"Error reading article from {url}: {e}")
             return None
+
+        article_data = {}
+        if article.title:
+            article_data["title"] = article.title
+        if article.authors:
+            article_data["authors"] = article.authors
+        if article.text:
+            article_data["text"] = article.text
+        if self.include_summary and article.summary:
+            article_data["summary"] = article.summary
+
+        try:
+            if article.publish_date:
+                article_data["publish_date"] = article.publish_date.isoformat() if article.publish_date else None
+        except Exception:
+            pass
+
+        return article_data
 
     def read_article(self, url: str) -> str:
         """Use this function to read an article from a URL.
@@ -73,16 +75,12 @@ class Newspaper4kTools(Toolkit):
         Returns:
             str: JSON containing the article author, publish date, and text.
         """
+        log_debug(f"Reading news: {url}")
+        article_data = self.get_article_data(url)
+        if not article_data:
+            return f"Error reading article from {url}: No data found."
 
-        try:
-            log_debug(f"Reading news: {url}")
-            article_data = self.get_article_data(url)
-            if not article_data:
-                return f"Error reading article from {url}: No data found."
+        if self.article_length and "text" in article_data:
+            article_data["text"] = article_data["text"][: self.article_length]
 
-            if self.article_length and "text" in article_data:
-                article_data["text"] = article_data["text"][: self.article_length]
-
-            return json.dumps(article_data, indent=2)
-        except Exception as e:
-            return f"Error reading article from {url}: {e}"
+        return json.dumps(article_data, indent=2)

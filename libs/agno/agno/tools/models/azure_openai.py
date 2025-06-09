@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Literal
 from uuid import uuid4
 
 from requests import post
