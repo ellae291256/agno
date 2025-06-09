@@ -13,8 +13,9 @@ from agno.tools.visualization import VisualizationTools
 @pytest.fixture
 def temp_output_dir():
     """Create a temporary directory for test outputs."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        yield temp_dir
+    temp_dir = tempfile.mkdtemp()
+    yield temp_dir
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @pytest.fixture
@@ -406,12 +407,12 @@ def test_custom_filename(viz_tools):
     test_data = {"A": 10, "B": 20}
     custom_filename = "custom_chart.png"
 
-    with patch("matplotlib.pyplot.savefig"):
+    with patch("matplotlib.pyplot.savefig") as mock_savefig:
         result = viz_tools.create_bar_chart(data=test_data, filename=custom_filename)
 
-        result_dict = json.loads(result)
-        assert result_dict["status"] == "success"
-        assert custom_filename in result_dict["file_path"]
+    result_dict = json.loads(result)
+    assert result_dict["status"] == "success"
+    assert custom_filename in result_dict["file_path"]
 
 
 @patch("matplotlib.pyplot.savefig", side_effect=Exception("Save failed"))
@@ -429,8 +430,11 @@ def test_error_handling(mock_savefig, viz_tools):
 def test_matplotlib_import_error():
     """Test handling of matplotlib import error."""
     with patch.dict("sys.modules", {"matplotlib": None}):
-        with pytest.raises(ImportError, match="matplotlib is not installed"):
+        try:
             VisualizationTools()
+            assert False, "Expected ImportError"
+        except ImportError as e:
+            assert "matplotlib is not installed" in str(e)
 
 
 def test_basic_initialization_has_correct_functions(basic_viz_tools):

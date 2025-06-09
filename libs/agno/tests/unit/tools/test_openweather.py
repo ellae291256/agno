@@ -12,14 +12,17 @@ from agno.tools.openweather import OpenWeatherTools
 def mock_openweather_api():
     """Create a mock OpenWeatherMap API client."""
     with patch("agno.tools.openweather.requests.get") as mock_get:
-        yield mock_get
+        with patch("agno.tools.openweather.requests.post"):
+            yield mock_get
 
 
 @pytest.fixture
 def openweather_tools():
     """Create an OpenWeatherTools instance with a mock API key."""
     with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
-        return OpenWeatherTools()
+        with patch("agno.tools.openweather.requests.get"):
+            with patch("agno.tools.openweather.requests.post"):
+                return OpenWeatherTools()
 
 
 def test_initialization_without_api_key():

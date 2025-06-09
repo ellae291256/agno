@@ -1,4 +1,3 @@
-import copy
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -17,7 +16,7 @@ from couchbase.exceptions import (
 )
 from couchbase.management.search import SearchIndex
 from couchbase.options import ClusterOptions
-from couchbase.result import GetResult, MultiMutationResult
+from couchbase.result import GetResult
 from couchbase.scope import Scope
 
 from agno.document import Document
@@ -499,7 +498,7 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     mock_scope.collections = [mock_collection]
 
     # Set up the collections manager to return scopes
-    collections_manager.get_all_scopes.return_value = [mock_scope]
+    collections_manager.get_all_scopes.return_value = [Mock()]
 
     # Create CouchbaseSearch instance with cluster-level index
     fts = CouchbaseSearch(
@@ -545,9 +544,7 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
 def test_get_count_cluster_level(mock_cluster, mock_embedder):
     """Test getting document count from cluster-level index."""
     # Setup mock search indexes manager
-    mock_search_indexes = Mock()
-    mock_search_indexes.get_indexed_documents_count.return_value = 42
-    mock_cluster.search_indexes.return_value = mock_search_indexes
+    mock_cluster.search_indexes.return_value.get_indexed_documents_count.return_value = 42
 
     # Create CouchbaseSearch instance with cluster-level index
     fts = CouchbaseSearch(
@@ -845,7 +842,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -944,7 +941,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
