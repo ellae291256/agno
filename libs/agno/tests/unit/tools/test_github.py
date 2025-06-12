@@ -137,8 +137,8 @@ def test_get_pull_request_with_details(mock_github):
     mock_pr.user.login = "test-user"
     mock_pr.user.avatar_url = "https://github.com/avatars/test-user.png"
     mock_pr.created_at.isoformat.return_value = "2024-03-01T12:00:00"
-    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0)
-    mock_pr.updated_at = datetime(2024, 3, 2, 12, 0, 0)
+    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    mock_pr.updated_at = datetime(2024, 3, 2, 12, 0, 0, tzinfo=datetime.timezone.utc)
     mock_pr.mergeable = True
     mock_pr.mergeable_state = "clean"
     mock_pr.additions = 100
@@ -152,7 +152,7 @@ def test_get_pull_request_with_details(mock_github):
     mock_issue1.state = "open"
     mock_issue1.user.login = "test-user"
     mock_issue1.pull_request = None
-    mock_issue1.created_at = datetime(2024, 2, 4, 12, 0, 0)
+    mock_issue1.created_at = datetime(2024, 2, 4, 12, 0, 0, tzinfo=datetime.timezone.utc)
 
     mock_issue2 = MagicMock(spec=Issue)
     mock_issue2.number = 2
@@ -161,7 +161,7 @@ def test_get_pull_request_with_details(mock_github):
     mock_issue2.state = "closed"
     mock_issue2.user.login = "another-user"
     mock_issue2.pull_request = None
-    mock_issue2.created_at = datetime(2024, 2, 3, 12, 0, 0)
+    mock_issue2.created_at = datetime(2024, 2, 3, 12, 0, 0, tzinfo=datetime.timezone.utc)
 
     mock_repo.get_issues.return_value = [mock_issue1, mock_issue2]
 
@@ -197,7 +197,7 @@ def test_create_issue(mock_github):
     mock_issue.state = "open"
     mock_issue.user.login = "test-user"
     mock_issue.body = "Issue description"
-    mock_issue.created_at = datetime(2024, 2, 4, 12, 0, 0)
+    mock_issue.created_at = datetime(2024, 2, 4, 12, 0, 0, tzinfo=datetime.timezone.utc)
 
     mock_repo.create_issue.return_value = mock_issue
 
@@ -266,9 +266,10 @@ def test_error_handling(mock_github):
 
 def test_search_repositories_basic(mock_github, mock_paginated_list):
     """Test basic repository search functionality."""
-    mock_client, _ = mock_github
+    _, _ = mock_github
     github_tools = GithubTools()
 
+    mock_client = MagicMock()
     mock_client.search_repositories.return_value = mock_paginated_list
 
     result = github_tools.search_repositories("awesome python")
@@ -302,9 +303,10 @@ def test_search_repositories_empty_results(mock_github):
 
 def test_search_repositories_with_sorting(mock_github, mock_paginated_list):
     """Test repository search with sorting parameters."""
-    mock_client, _ = mock_github
+    _, _ = mock_github
     github_tools = GithubTools()
 
+    mock_client = MagicMock()
     mock_client.search_repositories.return_value = mock_paginated_list
 
     result = github_tools.search_repositories("python", sort="stars", order="desc")
@@ -318,9 +320,10 @@ def test_search_repositories_with_sorting(mock_github, mock_paginated_list):
 
 def test_search_repositories_with_language_filter(mock_github, mock_paginated_list):
     """Test repository search with language filter."""
-    mock_client, _ = mock_github
+    _, _ = mock_github
     github_tools = GithubTools()
 
+    mock_client = MagicMock()
     mock_client.search_repositories.return_value = mock_paginated_list
 
     result = github_tools.search_repositories("project language:python")
@@ -332,9 +335,10 @@ def test_search_repositories_with_language_filter(mock_github, mock_paginated_li
 
 def test_search_repositories_rate_limit_error(mock_github):
     """Test repository search with rate limit error."""
-    mock_client, _ = mock_github
+    _, _ = mock_github
     github_tools = GithubTools()
 
+    mock_client = MagicMock()
     mock_client.search_repositories.side_effect = GithubException(
         status=403, data={"message": "API rate limit exceeded"}
     )
@@ -347,10 +351,11 @@ def test_search_repositories_rate_limit_error(mock_github):
 
 def test_search_repositories_pagination(mock_github):
     """Test repository search with pagination."""
-    mock_client, _ = mock_github
+    _, _ = mock_github
     github_tools = GithubTools()
 
     # Create mock repos for different pages
+    mock_client = MagicMock()
     mock_repos_page1 = [
         MagicMock(
             full_name="test-org/repo1",
@@ -426,7 +431,7 @@ def test_search_repositories_pagination(mock_github):
 
 def test_get_pull_request_count(mock_github):
     """Test getting pull request count."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -529,7 +534,7 @@ def test_get_repository_stars(mock_github):
 
 def test_get_pull_request_comments(mock_github):
     """Test getting comments on a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -541,8 +546,8 @@ def test_get_pull_request_comments(mock_github):
     mock_comment1.id = 1057297855
     mock_comment1.body = "This is a comment"
     mock_comment1.user.login = "test-user"
-    mock_comment1.created_at = datetime(2023, 1, 1)
-    mock_comment1.updated_at = datetime(2023, 1, 2)
+    mock_comment1.created_at = datetime(2023, 1, 1, tzinfo=datetime.timezone.utc)
+    mock_comment1.updated_at = datetime(2023, 1, 2, tzinfo=datetime.timezone.utc)
     mock_comment1.path = "file.txt"
     mock_comment1.position = 0
     mock_comment1.commit_id = "abc123"
@@ -584,7 +589,7 @@ def test_get_pull_request_comments(mock_github):
 
 def test_create_pull_request_comment(mock_github):
     """Test creating a comment on a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -635,7 +640,7 @@ def test_create_pull_request_comment(mock_github):
 
 def test_edit_pull_request_comment(mock_github):
     """Test editing a pull request comment."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Create mock comment with string properties instead of MagicMock properties
@@ -779,8 +784,8 @@ def test_get_pull_request_with_comprehensive_details(mock_github):
     mock_pr.title = "Comprehensive PR"
     mock_pr.user.login = "test-user"
     mock_pr.state = "open"
-    mock_pr.created_at = datetime(2023, 3, 1, 12, 0, 0)
-    mock_pr.updated_at = datetime(2023, 3, 2, 12, 0, 0)
+    mock_pr.created_at = datetime(2023, 3, 1, 12, 0, 0, tzinfo=datetime.timezone.utc)
+    mock_pr.updated_at = datetime(2023, 3, 2, 12, 0, 0, tzinfo=datetime.timezone.utc)
     mock_pr.html_url = "https://github.com/test-org/test-repo/pull/101"
     mock_pr.body = "This is a comprehensive pull request"
     mock_pr.base = MagicMock()
@@ -803,7 +808,7 @@ def test_get_pull_request_with_comprehensive_details(mock_github):
     mock_review_comment1.id = 1001
     mock_review_comment1.body = "This is a review comment"
     mock_review_comment1.user.login = "reviewer1"
-    mock_review_comment1.created_at = datetime(2023, 3, 1, 14, 0, 0)
+    mock_review_comment1.created_at = datetime(2023, 3, 1, 14, 0, 0, tzinfo=datetime.timezone.utc)
     mock_review_comment1.path = "file.txt"
     mock_review_comment1.position = 10
     mock_review_comment1.commit_id = "abc123"
@@ -814,7 +819,7 @@ def test_get_pull_request_with_comprehensive_details(mock_github):
     mock_issue_comment1.id = 2001
     mock_issue_comment1.body = "This is an issue comment"
     mock_issue_comment1.user.login = "commenter1"
-    mock_issue_comment1.created_at = datetime(2023, 3, 1, 15, 0, 0)
+    mock_issue_comment1.created_at = datetime(2023, 3, 1, 15, 0, 0, tzinfo=datetime.timezone.utc)
     mock_issue_comment1.html_url = "https://github.com/test-org/test-repo/pull/101/issue-comments/2001"
 
     # Mock PR commits
@@ -822,7 +827,7 @@ def test_get_pull_request_with_comprehensive_details(mock_github):
     mock_commit.sha = "abc123def456"
     mock_commit.commit.message = "Implement feature"
     mock_commit.commit.author.name = "Author Name"
-    mock_commit.commit.author.date = datetime(2023, 3, 1, 10, 0, 0)
+    mock_commit.commit.author.date = datetime(2023, 3, 1, 10, 0, 0, tzinfo=datetime.timezone.utc)
     mock_commit.html_url = "https://github.com/test-org/test-repo/commit/abc123def456"
 
     # Mock PR files
@@ -887,7 +892,7 @@ def test_get_pull_request_with_comprehensive_details(mock_github):
 
 def test_get_repository_with_stats(mock_github):
     """Test getting comprehensive repository information including statistics."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Instead of mocking all the complex repository properties,
@@ -997,7 +1002,7 @@ def test_get_repository_with_stats(mock_github):
 
 def test_create_pull_request(mock_github):
     """Test creating a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock pull request
@@ -1062,7 +1067,7 @@ def test_create_pull_request(mock_github):
 
 def test_create_review_request(mock_github):
     """Test creating a review request for a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -1097,7 +1102,7 @@ def test_create_review_request(mock_github):
 
 def test_create_file(mock_github):
     """Test creating a file in a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file creation result
@@ -1151,7 +1156,7 @@ def test_create_file(mock_github):
 
 def test_get_file_content(mock_github):
     """Test getting file content from a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file content
@@ -1248,7 +1253,7 @@ def test_get_file_content(mock_github):
 
 def test_update_file(mock_github):
     """Test updating a file in a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file update result
@@ -1308,7 +1313,7 @@ def test_update_file(mock_github):
 
 def test_delete_file(mock_github):
     """Test deleting a file from a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock file deletion result
@@ -1348,7 +1353,7 @@ def test_delete_file(mock_github):
 
 def test_get_directory_content(mock_github):
     """Test getting directory contents from a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock directory contents
@@ -1407,7 +1412,7 @@ def test_get_directory_content(mock_github):
 
 def test_create_branch(mock_github):
     """Test creating a branch in a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository default branch
@@ -1458,7 +1463,7 @@ def test_create_branch(mock_github):
 
 def test_set_default_branch(mock_github):
     """Test setting the default branch for a repository."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock behavior to check if branch exists
@@ -1496,7 +1501,7 @@ def test_set_default_branch(mock_github):
 
 def test_search_code(mock_github):
     """Test searching code in GitHub repositories."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock code search results
