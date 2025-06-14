@@ -300,7 +300,7 @@ def test_crawl_with_multiple_urls_and_errors(crawl4ai_tools, mock_async_crawler)
         nonlocal call_count
         call_count += 1
         if call_count == 2:
-            raise Exception("Connection failed")
+            raise RuntimeError("Connection failed")
         return create_mock_crawler_result(raw_markdown=f"Content from {url}")
 
     mock_async_crawler.arun = mock_arun

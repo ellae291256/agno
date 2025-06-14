@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import functools
 import runpy
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -33,7 +35,7 @@ class PythonTools(Toolkit):
         self.safe_globals: dict = safe_globals or globals()
         self.safe_locals: dict = safe_locals or locals()
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if run_code:
             tools.append(self.run_python_code)
         if save_and_run:
@@ -87,7 +89,7 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return f"successfully ran {str(file_path)}"
-        except Exception as e:
+        except (OSError, IOError, RuntimeError) as e:
             logger.error(f"Error saving and running code: {e}")
             return f"Error saving and running code: {e}"
 
@@ -114,7 +116,7 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return f"successfully ran {str(file_path)}"
-        except Exception as e:
+        except (OSError, IOError, RuntimeError) as e:
             logger.error(f"Error running file: {e}")
             return f"Error running file: {e}"
 
@@ -129,7 +131,7 @@ class PythonTools(Toolkit):
             file_path = self.base_dir.joinpath(file_name)
             contents = file_path.read_text(encoding="utf-8")
             return str(contents)
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Error reading file: {e}")
             return f"Error reading file: {e}"
 
@@ -142,7 +144,7 @@ class PythonTools(Toolkit):
             log_info(f"Reading files in : {self.base_dir}")
             files = [str(file_path.name) for file_path in self.base_dir.iterdir()]
             return ", ".join(files)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error reading files: {e}")
             return f"Error reading files: {e}"
 
@@ -171,7 +173,7 @@ class PythonTools(Toolkit):
                 return str(variable_value)
             else:
                 return "successfully ran python code"
-        except Exception as e:
+        except (SyntaxError, NameError, RuntimeError) as e:
             logger.error(f"Error running python code: {e}")
             return f"Error running python code: {e}"
 
@@ -192,7 +194,7 @@ class PythonTools(Toolkit):
 
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"
 
@@ -213,6 +215,6 @@ class PythonTools(Toolkit):
 
             subprocess.check_call([sys.executable, "-m", "uv", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
-        except Exception as e:
+        except subprocess.CalledProcessError as e:
             logger.error(f"Error installing package {package_name}: {e}")
             return f"Error installing package {package_name}: {e}"
