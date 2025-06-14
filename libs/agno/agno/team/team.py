@@ -7269,6 +7269,7 @@ class Team:
             )
         except Exception as e:
             log_debug(f"Could not create team event: {e}")
+            raise
 
     async def _alog_team_run(self, session_id: str, user_id: Optional[str] = None) -> None:
         if not self.telemetry and not self.monitoring:
@@ -7293,6 +7294,7 @@ class Team:
             )
         except Exception as e:
             log_debug(f"Could not create team event: {e}")
+            raise
 
     def _log_team_session(self, session_id: str, user_id: Optional[str] = None):
         if not (self.telemetry or self.monitoring):
@@ -7313,10 +7315,11 @@ class Team:
             )
         except Exception as e:
             log_debug(f"Could not create team monitor: {e}")
+            raise
 
     def _get_agentic_or_user_search_filters(
-        self, filters: Optional[Dict[str, Any]], effective_filters: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, filters: dict[str, Any] | None, effective_filters: dict[str, Any] | None
+    ) -> dict[str, Any]:
         """Helper function to determine the final filters to use for the search.
 
         Args:
@@ -7361,6 +7364,7 @@ class Team:
         except Exception as e:
             log_debug(f"Could not create team on platform: {e}")
             print(f"Could not create team on platform: {e}")
+            raise
 
     async def _aregister_team(self) -> None:
         self._set_monitoring()
@@ -7383,8 +7387,9 @@ class Team:
         except Exception as e:
             print(f"Could not create team on platform: {e}")
             log_debug(f"Could not create team on platform: {e}")
+            raise
 
-    def to_platform_dict(self) -> Dict[str, Any]:
+    def to_platform_dict(self) -> dict[str, Any]:
         model = None
         if self.model is not None:
             model = {
@@ -7392,7 +7397,7 @@ class Team:
                 "model": self.model.id,
                 "provider": self.model.provider,
             }
-        tools: List[Dict[str, Any]] = []
+        tools: list[dict[str, Any]] = []
         if self.tools is not None:
             if not hasattr(self, "_tools_for_model") or self._tools_for_model is None:
                 team_model = self.model

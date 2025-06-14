@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
+from typing import Any, AsyncGenerator, AsyncIterator, Callable, Optional, Union, cast, get_args
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -187,7 +187,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -616,6 +616,7 @@ class Workflow:
                         self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
                 except Exception as e:
                     log_warning(f"Failed to load runs from memory: {e}")
+                    raise
             else:
                 try:
                     if "runs" in session.memory:
@@ -623,8 +624,10 @@ class Workflow:
                             self.memory.runs = [WorkflowRun(**m) for m in session.memory["runs"]]
                         except Exception as e:
                             logger.warning(f"Failed to load runs from memory: {e}")
+                            raise
                 except Exception as e:
                     logger.warning(f"Failed to load WorkflowMemory: {e}")
+                    raise
 
         log_debug(f"-*- WorkflowSession loaded: {session.session_id}")
 
@@ -814,6 +817,7 @@ class Workflow:
             log_debug(f"Registered workflow: {self.name} (ID: {self.workflow_id})")
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
+            raise
 
     def register_workflow(self, force: bool = False) -> None:
         """Register this workflow with Agno's platform.
@@ -843,6 +847,7 @@ class Workflow:
             log_debug(f"Registered workflow: {self.name} (ID: {self.workflow_id})")
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
+            raise
 
     def to_config_dict(self) -> Dict[str, Any]:
         """Convert the workflow to a config dictionary including all agents and teams.
