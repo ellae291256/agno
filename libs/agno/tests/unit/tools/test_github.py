@@ -63,7 +63,7 @@ def mock_paginated_list(mock_search_repos):
 
 def test_list_pull_requests(mock_github):
     """Test listing pull requests."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -124,7 +124,7 @@ def test_list_pull_requests(mock_github):
 
 def test_get_pull_request_with_details(mock_github):
     """Test getting a pull request with detailed information."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -186,7 +186,7 @@ def test_get_pull_request_with_details(mock_github):
 
 def test_create_issue(mock_github):
     """Test creating an issue."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     mock_issue = MagicMock(spec=Issue)
@@ -213,7 +213,7 @@ def test_create_issue(mock_github):
 
 def test_get_repository(mock_github):
     """Test getting repository information."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository data
@@ -243,7 +243,7 @@ def test_get_repository(mock_github):
 
 def test_error_handling(mock_github):
     """Test error handling for various scenarios."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Test repository not found
@@ -529,7 +529,7 @@ def test_get_repository_stars(mock_github):
 
 def test_get_pull_request_comments(mock_github):
     """Test getting comments on a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -541,8 +541,8 @@ def test_get_pull_request_comments(mock_github):
     mock_comment1.id = 1057297855
     mock_comment1.body = "This is a comment"
     mock_comment1.user.login = "test-user"
-    mock_comment1.created_at = datetime(2023, 1, 1)
-    mock_comment1.updated_at = datetime(2023, 1, 2)
+    mock_comment1.created_at = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    mock_comment1.updated_at = datetime(2023, 1, 2, tzinfo=timezone.utc)
     mock_comment1.path = "file.txt"
     mock_comment1.position = 0
     mock_comment1.commit_id = "abc123"
@@ -584,7 +584,7 @@ def test_get_pull_request_comments(mock_github):
 
 def test_create_pull_request_comment(mock_github):
     """Test creating a comment on a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -635,7 +635,7 @@ def test_create_pull_request_comment(mock_github):
 
 def test_edit_pull_request_comment(mock_github):
     """Test editing a pull request comment."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Create mock comment with string properties instead of MagicMock properties

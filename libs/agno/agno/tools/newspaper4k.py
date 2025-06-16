@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -31,14 +33,14 @@ class Newspaper4kTools(Toolkit):
 
         super().__init__(name="newspaper4k_tools", tools=tools, **kwargs)
 
-    def get_article_data(self, url: str) -> Optional[Dict[str, Any]]:
+    def get_article_data(self, url: str) -> Optional[dict[str, Any]]:
         """Read and get article data from a URL.
 
         Args:
             url (str): The URL of the article.
 
         Returns:
-            Dict[str, Any]: The article data.
+            dict[str, Any]: The article data.
         """
 
         try:
@@ -85,4 +87,5 @@ class Newspaper4kTools(Toolkit):
 
             return json.dumps(article_data, indent=2)
         except Exception as e:
+            logger.warning(f"Error reading article from {url}: {e}")
             return f"Error reading article from {url}: {e}"

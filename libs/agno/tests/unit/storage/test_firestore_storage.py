@@ -27,7 +27,7 @@ def mock_firestore_client():
 @pytest.fixture
 def agent_storage(mock_firestore_client):
     """Create a FirestoreStorage instance for agent mode with mocked components."""
-    mock_client, mock_collection = mock_firestore_client
+    _, mock_collection = mock_firestore_client
 
     storage = FirestoreStorage(
         collection_name="agent_sessions", db_name="(default)", project_id="test-project", mode="agent"
@@ -39,7 +39,7 @@ def agent_storage(mock_firestore_client):
 @pytest.fixture
 def workflow_storage(mock_firestore_client):
     """Create a FirestoreStorage instance for workflow mode with mocked components."""
-    mock_client, mock_collection = mock_firestore_client
+    _, mock_collection = mock_firestore_client
 
     storage = FirestoreStorage(
         collection_name="workflow_sessions", db_name="(default)", project_id="test-project", mode="workflow"
@@ -77,17 +77,16 @@ def test_initialization():
         assert storage.db_name == "(default)"  # Default value
 
     # Test with environment variable
-    with patch("agno.storage.firestore.Client") as mock_client:
-        with patch("os.getenv", return_value="env-project"):
-            mock_collection = MagicMock()
-            mock_db = MagicMock()
-            mock_db.collection.return_value = mock_collection
-            mock_client.return_value = mock_db
+    with patch("agno.storage.firestore.Client") as mock_client, patch("os.getenv", return_value="env-project"):
+        mock_collection = MagicMock()
+        mock_db = MagicMock()
+        mock_db.collection.return_value = mock_collection
+        mock_client.return_value = mock_db
 
-            storage = FirestoreStorage(collection_name="test_collection")
+        storage = FirestoreStorage(collection_name="test_collection")
 
-            # Note: FirestoreStorage doesn't use os.getenv, so project will be None
-            mock_client.assert_called_once_with(database="(default)", project=None)
+        # Note: FirestoreStorage doesn't use os.getenv, so project will be None
+        mock_client.assert_called_once_with(database="(default)", project=None)
 
 
 def test_authentication_error():
@@ -434,7 +433,7 @@ def test_error_handling(agent_storage):
         assert result is None
 
     # Test exception handling in get_all_sessions
-    mock_collection.get.side_effect = Exception("Firestore error")
+    mock_collection.get.side_effect = RuntimeError("Firestore error")
 
     result = storage.get_all_sessions()
     assert result == []  # Should return empty list on error
@@ -442,7 +441,7 @@ def test_error_handling(agent_storage):
     # Test exception handling in upsert
     mock_collection.get.side_effect = None
     mock_doc_ref = MagicMock()
-    mock_doc_ref.set.side_effect = Exception("Firestore error")
+    mock_doc_ref.set.side_effect = RuntimeError("Firestore error")
     mock_collection.document.return_value = mock_doc_ref
 
     result = storage.upsert(AgentSession(session_id="test", agent_id="test"))

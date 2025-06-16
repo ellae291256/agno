@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Literal, Optional
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -75,12 +76,15 @@ class OpenAITools(Toolkit):
                 file=audio_file,
                 response_format="text",
             )
-        except Exception as e:  # type: ignore[return]
+        except FileNotFoundError as e:
+            log_error(f"Failed to transcribe audio: File not found {audio_path}: {str(e)}")
+            return f"Failed to transcribe audio: File not found {audio_path}"
+        except Exception as e:
             log_error(f"Failed to transcribe audio: {str(e)}")
             return f"Failed to transcribe audio: {str(e)}"
 
         log_debug(f"Transcript: {transcript}")
-        return transcript  # type: ignore[return-value]
+        return transcript
 
     def generate_image(
         self,
@@ -105,14 +109,14 @@ class OpenAITools(Toolkit):
                 response = OpenAIClient(api_key=self.api_key).images.generate(
                     model=self.image_model,
                     prompt=prompt,
-                    **extra_params,  # type: ignore
+                    **extra_params,
                 )
             else:
                 response = OpenAIClient(api_key=self.api_key).images.generate(
                     model=self.image_model,
                     prompt=prompt,
                     response_format="b64_json",
-                    **extra_params,  # type: ignore
+                    **extra_params,
                 )
             data = None
             if hasattr(response, "data") and response.data:
@@ -133,6 +137,9 @@ class OpenAITools(Toolkit):
                 )
                 return "Image generated successfully."
             return "Failed to generate image: No content received from API."
+        except FileNotFoundError as e:
+            log_error(f"Failed to generate image: File not found: {e}")
+            return f"Failed to generate image: File not found"
         except Exception as e:
             log_error(f"Failed to generate image using {self.image_model}: {e}")
             return f"Failed to generate image: {e}"
@@ -172,4 +179,5 @@ class OpenAITools(Toolkit):
             )
             return f"Speech generated successfully with ID: {media_id}"
         except Exception as e:
+            log_error(f"Failed to generate speech: {str(e)}")
             return f"Failed to generate speech: {str(e)}"
