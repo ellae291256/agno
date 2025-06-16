@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Dict, Optional, Union, get_args, get_origin
+from typing import Any, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -9,7 +9,7 @@ from agno.utils.log import logger
 def is_origin_union_type(origin: Any) -> bool:
     import sys
 
-    if sys.version_info.minor >= 10:
+    if sys.version_info >= (3, 10):
         from types import UnionType  # type: ignore
 
         return origin in [Union, UnionType]
@@ -137,8 +137,8 @@ def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
                     schema = get_json_schema_for_arg(arg)
                     if schema:
                         types.append(schema)
-                except Exception:
-                    continue
+                except Exception as e:
+                    logger.warning(f"Failed to get schema for union arg {arg}: {e}")
             return {"anyOf": types} if types else None
 
     if isinstance(type_hint, type) and issubclass(type_hint, Enum):
@@ -188,9 +188,9 @@ def get_json_schema_for_arg(type_hint: Any) -> Optional[Dict[str, Any]]:
 
 
 def get_json_schema(
-    type_hints: Dict[str, Any], param_descriptions: Optional[Dict[str, str]] = None, strict: bool = False
-) -> Dict[str, Any]:
-    json_schema: Dict[str, Any] = {
+    type_hints: dict[str, Any], param_descriptions: dict[str, str] | None = None, strict: bool = False
+) -> dict[str, Any]:
+    json_schema: dict[str, Any] = {
         "type": "object",
         "properties": {},
     }
@@ -228,7 +228,7 @@ def get_json_schema(
             else:
                 logger.warning(f"Could not parse argument {parameter_name} of type {type_hint}")
         except Exception as e:
-            logger.error(f"Error processing argument {parameter_name}: {str(e)}")
+            logger.error(f"Error processing argument {parameter_name}: {e}")
             continue
 
     return json_schema
