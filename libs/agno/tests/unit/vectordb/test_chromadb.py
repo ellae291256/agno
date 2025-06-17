@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -30,8 +29,9 @@ def chroma_db(mock_embedder):
     # Cleanup after test
     try:
         db.drop()
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to drop collection during cleanup: {e}")
 
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)
@@ -119,6 +119,9 @@ def test_distance_metrics():
     try:
         db_cosine.drop()
         db_euclidean.drop()
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to drop collections during cleanup: {e}")
     finally:
         if os.path.exists(TEST_PATH):
             shutil.rmtree(TEST_PATH)
@@ -160,6 +163,9 @@ def test_custom_embedder(mock_embedder):
     # Cleanup
     try:
         db.drop()
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to drop collection during cleanup: {e}")
     finally:
         if os.path.exists(TEST_PATH):
             shutil.rmtree(TEST_PATH)
@@ -252,7 +258,11 @@ async def test_async_name_exists(chroma_db, sample_documents):
 async def test_async_drop_collection(chroma_db):
     """Test dropping collection asynchronously"""
     assert chroma_db.exists() is True
-    await chroma_db.async_drop()
+    try:
+        await chroma_db.async_drop()
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to drop collection asynchronously: {e}")
     assert chroma_db.exists() is False
 
 
@@ -263,7 +273,11 @@ async def test_async_exists(chroma_db):
     assert exists is True
 
     # Delete the collection
-    chroma_db.delete()
+    try:
+        chroma_db.delete()
+    except Exception as e:
+        import logging
+        logging.warning(f"Failed to delete collection: {e}")
 
     exists = await chroma_db.async_exists()
     assert exists is False

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import asdict
-from typing import Any, List, Optional, Type
+from typing import Any, Optional, Type
 
 
 def isinstanceany(obj: Any, class_list: List[Type]) -> bool:
@@ -24,7 +26,7 @@ def str_to_int(inp: Optional[str]) -> Optional[int]:
     try:
         val = int(inp)
         return val
-    except Exception:
+    except ValueError:
         return None
 
 
@@ -39,7 +41,7 @@ def get_image_str(repo: str, tag: str) -> str:
     return f"{repo}:{tag}"
 
 
-def dataclass_to_dict(dataclass_object, exclude: Optional[set[str]] = None, exclude_none: bool = False) -> dict:
+def dataclass_to_dict(dataclass_object, exclude: set[str] | None = None, exclude_none: bool = False) -> dict:
     final_dict = asdict(dataclass_object)
     if exclude:
         for key in exclude:
