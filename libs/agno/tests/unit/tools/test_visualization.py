@@ -401,17 +401,17 @@ def test_histogram_with_no_valid_numeric_data(viz_tools):
     assert "No valid numeric data" in result_dict["error"]
 
 
-def test_custom_filename(viz_tools):
+@patch("matplotlib.pyplot.savefig")
+def test_custom_filename(mock_savefig, viz_tools):
     """Test chart creation with custom filename."""
     test_data = {"A": 10, "B": 20}
     custom_filename = "custom_chart.png"
 
-    with patch("matplotlib.pyplot.savefig"):
-        result = viz_tools.create_bar_chart(data=test_data, filename=custom_filename)
+    result = viz_tools.create_bar_chart(data=test_data, filename=custom_filename)
 
-        result_dict = json.loads(result)
-        assert result_dict["status"] == "success"
-        assert custom_filename in result_dict["file_path"]
+    result_dict = json.loads(result)
+    assert result_dict["status"] == "success"
+    assert custom_filename in result_dict["file_path"]
 
 
 @patch("matplotlib.pyplot.savefig", side_effect=Exception("Save failed"))
@@ -426,11 +426,11 @@ def test_error_handling(mock_savefig, viz_tools):
     assert "Save failed" in result_dict["error"]
 
 
-def test_matplotlib_import_error():
+@patch.dict("sys.modules", {"matplotlib": None})
+def test_matplotlib_import_error(mock_modules):
     """Test handling of matplotlib import error."""
-    with patch.dict("sys.modules", {"matplotlib": None}):
-        with pytest.raises(ImportError, match="matplotlib is not installed"):
-            VisualizationTools()
+    with pytest.raises(ImportError, match="matplotlib is not installed"):
+        VisualizationTools()
 
 
 def test_basic_initialization_has_correct_functions(basic_viz_tools):
