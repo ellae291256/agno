@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -486,20 +488,20 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     mock_bucket.collections.return_value = collections_manager
 
     # Mock scope
-    mock_scope = Mock(spec=Scope)
-    mock_scope.name = "test_scope"
-    mock_bucket.scope.return_value = mock_scope
+    _mock_scope = Mock(spec=Scope)
+    _mock_scope.name = "test_scope"
+    mock_bucket.scope.return_value = _mock_scope
 
     # Mock collection
     mock_collection = Mock(spec=Collection)
     mock_collection.name = "test_collection"
-    mock_scope.collection.return_value = mock_collection
+    _mock_scope.collection.return_value = mock_collection
 
     # Set up the scope to have the collection
-    mock_scope.collections = [mock_collection]
+    _mock_scope.collections = [mock_collection]
 
     # Set up the collections manager to return scopes
-    collections_manager.get_all_scopes.return_value = [mock_scope]
+    collections_manager.get_all_scopes.return_value = [_mock_scope]
 
     # Create CouchbaseSearch instance with cluster-level index
     fts = CouchbaseSearch(
@@ -761,7 +763,6 @@ async def test_async_insert(couchbase_fts, mock_embedder):
         assert first_call_args_filtered[1]["name"] == documents[0].name
         assert first_call_args_filtered[1]["filters"] == filters
 
-
 @pytest.mark.asyncio
 async def test_async_upsert(couchbase_fts, mock_embedder):
     """Test the async_upsert method with batched concurrent upserts."""
@@ -801,7 +802,6 @@ async def test_async_upsert(couchbase_fts, mock_embedder):
         assert isinstance(first_call_args_filtered[0], str)
         assert first_call_args_filtered[1]["name"] == documents[0].name
         assert first_call_args_filtered[1]["filters"] == filters
-
 
 @pytest.mark.asyncio
 async def test_async_search_scope_level(couchbase_fts, mock_embedder):
@@ -1005,9 +1005,8 @@ async def test_async_drop(couchbase_fts):
 @pytest.mark.asyncio
 async def test_async_exists(couchbase_fts):
     """Test the async_exists method."""
-    mock_bucket_inst = AsyncMock(spec=AsyncBucket)
     mock_collections_mgr = AsyncMock()  # This is the collections manager object
-    mock_bucket_inst.collections = Mock(return_value=mock_collections_mgr)  # .collections() is sync
+    couchbase_fts._async_bucket.collections = Mock(return_value=mock_collections_mgr)  # .collections() is sync
 
     mock_scope_obj = Mock()
     mock_scope_obj.name = couchbase_fts.scope_name
