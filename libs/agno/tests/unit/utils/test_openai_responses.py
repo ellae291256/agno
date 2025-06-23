@@ -1,7 +1,7 @@
 """Tests for openai_responses module"""
 
 import copy
-from typing import Dict, List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -98,7 +98,7 @@ def test_sanitize_response_schema_nested_objects():
 
     class NestedModel(BaseModel):
         name: str = Field(..., description="Name")
-        nested: Dict[str, Dict[str, int]] = Field(..., description="Nested dict")
+        nested: dict[str, dict[str, int]] = Field(..., description="Nested dict")
 
     original_schema = NestedModel.model_json_schema()
     schema = copy.deepcopy(original_schema)
@@ -120,7 +120,7 @@ def test_sanitize_response_schema_array_items():
 
     class ArrayModel(BaseModel):
         name: str = Field(..., description="Name")
-        items: List[Dict[str, int]] = Field(..., description="Array of dicts")
+        items: list[dict[str, int]] = Field(..., description="Array of dicts")
 
     original_schema = ArrayModel.model_json_schema()
     schema = copy.deepcopy(original_schema)
