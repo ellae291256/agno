@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from os import getenv
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import uuid4
 
 from agno.agent import Agent
@@ -75,12 +77,12 @@ class OpenAITools(Toolkit):
                 file=audio_file,
                 response_format="text",
             )
-        except Exception as e:  # type: ignore[return]
+        except Exception as e:
             log_error(f"Failed to transcribe audio: {str(e)}")
             return f"Failed to transcribe audio: {str(e)}"
 
         log_debug(f"Transcript: {transcript}")
-        return transcript  # type: ignore[return-value]
+        return transcript
 
     def generate_image(
         self,
@@ -105,14 +107,14 @@ class OpenAITools(Toolkit):
                 response = OpenAIClient(api_key=self.api_key).images.generate(
                     model=self.image_model,
                     prompt=prompt,
-                    **extra_params,  # type: ignore
+                    **extra_params,
                 )
             else:
                 response = OpenAIClient(api_key=self.api_key).images.generate(
                     model=self.image_model,
                     prompt=prompt,
                     response_format="b64_json",
-                    **extra_params,  # type: ignore
+                    **extra_params,
                 )
             data = None
             if hasattr(response, "data") and response.data:

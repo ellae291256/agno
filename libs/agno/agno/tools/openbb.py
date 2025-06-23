@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, List, Literal, Optional
+from typing import Any, Literal, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -33,7 +35,7 @@ class OpenBBTools(Toolkit):
 
         self.provider: Literal["benzinga", "fmp", "intrinio", "polygon", "tiingo", "tmx", "yfinance"] = provider
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if stock_price:
             tools.append(self.get_stock_price)
         if search_symbols:
@@ -45,7 +47,7 @@ class OpenBBTools(Toolkit):
         if price_targets:
             tools.append(self.get_price_targets)
 
-        super().__init__(name="yfinance_tools", tools=tools, **kwargs)
+        super().__init__(name=f"{provider}_tools", tools=tools, **kwargs)
 
     def get_stock_price(self, symbol: str) -> str:
         """Use this function to get the current stock price for a stock symbol or list of symbols.
@@ -116,7 +118,7 @@ class OpenBBTools(Toolkit):
             result = self.obb.equity.estimates.consensus(symbol=symbol, provider=self.provider).to_polars()  # type: ignore
             return json.dumps(result.to_dicts(), indent=2, default=str)
         except Exception as e:
-            return f"Error fetching company news for {symbol}: {e}"
+            return f"Error fetching price targets for {symbol}: {e}"
 
     def get_company_news(self, symbol: str, num_stories: int = 10) -> str:
         """Use this function to get company news for a stock symbol or list of symbols.

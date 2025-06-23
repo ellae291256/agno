@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import uuid
 from hashlib import md5
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from warnings import filterwarnings
@@ -237,13 +239,13 @@ class Weaviate(VectorDb):
         finally:
             await client.close()
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Insert documents into Weaviate.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (dict[str, Any] | None): Filters to apply while inserting documents
         """
         log_debug(f"Inserting {len(documents)} documents into Weaviate.")
         collection = self.get_client().collections.get(self.collection)
@@ -277,13 +279,13 @@ class Weaviate(VectorDb):
             )
             log_debug(f"Inserted document: {document.name} ({meta_data})")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Insert documents into Weaviate asynchronously.
 
         Args:
-            documents (List[Document]): List of documents to insert
-            filters (Optional[Dict[str, Any]]): Filters to apply while inserting documents
+            documents (list[Document]): List of documents to insert
+            filters (dict[str, Any] | None): Filters to apply while inserting documents
         """
         log_debug(f"Inserting {len(documents)} documents into Weaviate asynchronously.")
         if not documents:
@@ -338,15 +340,15 @@ class Weaviate(VectorDb):
         log_debug(f"Upserting {len(documents)} documents into Weaviate.")
         self.insert(documents)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into Weaviate asynchronously.
         When documents with the same ID already exist, they will be replaced.
         Otherwise, new documents will be created.
 
         Args:
-            documents (List[Document]): List of documents to upsert
-            filters (Optional[Dict[str, Any]]): Filters to apply while upserting
+            documents (list[Document]): List of documents to upsert
+            filters (dict[str, Any] | None): Filters to apply while upserting
         """
         if not documents:
             return
@@ -382,17 +384,17 @@ class Weaviate(VectorDb):
         finally:
             await client.close()
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a search based on the configured search type.
 
         Args:
             query (str): The search query.
             limit (int): Maximum number of results to return.
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search.
+            filters (dict[str, Any] | None): Filters to apply to the search.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         if self.search_type == SearchType.vector:
             return self.vector_search(query, limit, filters)
@@ -405,18 +407,18 @@ class Weaviate(VectorDb):
             return []
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """
         Perform a search based on the configured search type asynchronously.
 
         Args:
             query (str): The search query.
             limit (int): Maximum number of results to return.
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search.
+            filters (dict[str, Any] | None): Filters to apply to the search.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         if self.search_type == SearchType.vector:
             return await self.async_vector_search(query, limit, filters)
@@ -428,7 +430,7 @@ class Weaviate(VectorDb):
             logger.error(f"Invalid search type '{self.search_type}'.")
             return []
 
-    def vector_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def vector_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         try:
             query_embedding = self.embedder.get_embedding(query)
             if query_embedding is None:
@@ -446,7 +448,7 @@ class Weaviate(VectorDb):
                 filters=filter_expr,
             )
 
-            search_results: List[Document] = self.get_search_results(response)
+            search_results: list[Document] = self.get_search_results(response)
 
             if self.reranker:
                 search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -461,8 +463,8 @@ class Weaviate(VectorDb):
             return []
 
     async def async_vector_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         """
         Perform a vector search in Weaviate asynchronously.
 
@@ -471,7 +473,7 @@ class Weaviate(VectorDb):
             limit (int): Maximum number of results to return.
 
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -506,7 +508,7 @@ class Weaviate(VectorDb):
             logger.error(f"Error searching for documents: {e}")
             return []
 
-    def keyword_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         try:
             collection = self.get_client().collections.get(self.collection)
             filter_expr = self._build_filter_expression(filters)
@@ -520,7 +522,7 @@ class Weaviate(VectorDb):
                 filters=filter_expr,
             )
 
-            search_results: List[Document] = self.get_search_results(response)
+            search_results: list[Document] = self.get_search_results(response)
 
             if self.reranker:
                 search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -709,7 +711,7 @@ class Weaviate(VectorDb):
             Configure.VectorIndex: The configured vector index instance.
         """
         # Get the Weaviate distance metric
-        distance = getattr(VectorDistances, distance_metric.name)
+        distance = VectorDistances[distance_metric.name]
 
         # Define vector index configurations based on enum value
         configs = {
@@ -753,15 +755,15 @@ class Weaviate(VectorDb):
         """Indicate that upsert functionality is available."""
         return True
 
-    def _build_filter_expression(self, filters: Optional[Dict[str, Any]]) -> Optional[Filter]:
+    def _build_filter_expression(self, filters: dict[str, Any] | None) -> Filter | None:
         """
         Build a filter expression for Weaviate queries.
 
         Args:
-            filters (Optional[Dict[str, Any]]): Dictionary of filters to apply.
+            filters (dict[str, Any] | None): Dictionary of filters to apply.
 
         Returns:
-            Optional[Filter]: The constructed filter expression, or None if no filters provided.
+            Filter | None: The constructed filter expression, or None if no filters provided.
         """
         if not filters:
             return None

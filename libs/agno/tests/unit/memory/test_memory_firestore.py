@@ -208,7 +208,7 @@ def test_delete_memory(memory_db):
 
 def test_clear(memory_db):
     """Test clearing all memories."""
-    db, mock_root_collection, _ = memory_db
+    db, _, _ = memory_db
 
     # Mock documents
     mock_docs = []

@@ -1,4 +1,7 @@
-from typing import AsyncIterator, Iterator, List, Set, Union
+from __future__ import annotations
+
+from collections.abc import AsyncIterator
+from typing import Iterator, Union
 
 from agno.exceptions import RunCancelledException
 from agno.models.message import Message
