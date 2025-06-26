@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import json
 from os import getenv
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
 
 try:
-    from firecrawl import FirecrawlApp, ScrapeOptions  # type: ignore[attr-defined]
+    from firecrawl import FirecrawlApp
 except ImportError:
     raise ImportError("`firecrawl-py` not installed. Please install using `pip install firecrawl-py`")
 
@@ -104,7 +106,7 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["formats"] = self.formats
 
         params["poll_interval"] = self.poll_interval
 
@@ -132,7 +134,7 @@ class FirecrawlTools(Toolkit):
         if self.limit or limit:
             params["limit"] = self.limit or limit
         if self.formats:
-            params["scrape_options"] = ScrapeOptions(formats=self.formats)  # type: ignore
+            params["formats"] = self.formats
         if self.search_params:
             params.update(self.search_params)
 

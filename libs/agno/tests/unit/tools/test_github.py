@@ -64,7 +64,7 @@ def mock_paginated_list(mock_search_repos):
 
 def test_list_pull_requests(mock_github):
     """Test listing pull requests."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -125,7 +125,7 @@ def test_list_pull_requests(mock_github):
 
 def test_get_pull_request_with_details(mock_github):
     """Test getting a pull request with detailed information."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -187,7 +187,7 @@ def test_get_pull_request_with_details(mock_github):
 
 def test_create_issue(mock_github):
     """Test creating an issue."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     mock_issue = MagicMock(spec=Issue)
@@ -214,7 +214,7 @@ def test_create_issue(mock_github):
 
 def test_get_repository(mock_github):
     """Test getting repository information."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository data

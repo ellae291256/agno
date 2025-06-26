@@ -77,17 +77,16 @@ def test_initialization():
         assert storage.db_name == "(default)"  # Default value
 
     # Test with environment variable
-    with patch("agno.storage.firestore.Client") as mock_client:
-        with patch("os.getenv", return_value="env-project"):
-            mock_collection = MagicMock()
-            mock_db = MagicMock()
-            mock_db.collection.return_value = mock_collection
-            mock_client.return_value = mock_db
+    with patch("agno.storage.firestore.Client") as mock_client, patch("os.getenv", return_value="env-project"):
+        mock_collection = MagicMock()
+        mock_db = MagicMock()
+        mock_db.collection.return_value = mock_collection
+        mock_client.return_value = mock_db
 
-            storage = FirestoreStorage(collection_name="test_collection")
+        storage = FirestoreStorage(collection_name="test_collection")
 
-            # Note: FirestoreStorage doesn't use os.getenv, so project will be None
-            mock_client.assert_called_once_with(database="(default)", project=None)
+        # Note: FirestoreStorage doesn't use os.getenv, so project will be None
+        mock_client.assert_called_once_with(database="(default)", project=None)
 
 
 def test_authentication_error():
