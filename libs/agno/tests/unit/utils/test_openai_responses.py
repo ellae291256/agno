@@ -1,7 +1,6 @@
 """Tests for openai_responses module"""
 
 import copy
-from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 

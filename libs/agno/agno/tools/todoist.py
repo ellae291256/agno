@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import logger
@@ -93,10 +95,10 @@ class TodoistTools(Toolkit):
     def create_task(
         self,
         content: str,
-        project_id: Optional[str] = None,
-        due_string: Optional[str] = None,
-        priority: Optional[int] = None,
-        labels: Optional[List[str]] = None,
+        project_id: str | None = None,
+        due_string: str | None = None,
+        priority: int | None = None,
+        labels: list[str] | None = None,
     ) -> str:
         """
         Create a new task in Todoist.
@@ -135,16 +137,16 @@ class TodoistTools(Toolkit):
     def update_task(
         self,
         task_id: str,
-        content: Optional[str] = None,
-        description: Optional[str] = None,
-        labels: Optional[List[str]] = None,
-        priority: Optional[int] = None,
-        due_string: Optional[str] = None,
-        due_date: Optional[str] = None,
-        due_datetime: Optional[str] = None,
-        due_lang: Optional[str] = None,
-        assignee_id: Optional[str] = None,
-        section_id: Optional[str] = None,
+        content: str | None = None,
+        description: str | None = None,
+        labels: list[str] | None = None,
+        priority: int | None = None,
+        due_string: str | None = None,
+        due_date: str | None = None,
+        due_datetime: str | None = None,
+        due_lang: str | None = None,
+        assignee_id: str | None = None,
+        section_id: str | None = None,
     ) -> str:
         """
         Update an existing task with the specified parameters.
@@ -167,7 +169,7 @@ class TodoistTools(Toolkit):
         """
         try:
             # Build updates dictionary with only provided parameters
-            updates: Dict[str, Any] = {}
+            updates: dict[str, Any] = {}
             if content is not None:
                 updates["content"] = content
             if description is not None:

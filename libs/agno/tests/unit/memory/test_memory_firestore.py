@@ -266,9 +266,10 @@ def test_recursive_deletion(memory_db):
 
 def test_error_handling(memory_db):
     """Test error handling in various operations."""
-    db, _, mock_client = memory_db
+    db, _, _ = memory_db
 
     # Test read_memories with exception
+    mock_client = db.client
     mock_client.collection.side_effect = Exception("Firestore error")
 
     memories = db.read_memories(user_id="test-user")

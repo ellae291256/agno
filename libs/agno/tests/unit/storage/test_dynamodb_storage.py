@@ -336,6 +336,7 @@ def test_mode_switching():
 def test_serialization_deserialization(agent_storage):
     """Test serialization and deserialization of items."""
     storage, _ = agent_storage
+    _ = _
 
     # Test serialization
     test_item = {

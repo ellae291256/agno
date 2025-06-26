@@ -4,6 +4,6 @@ from agno.vectordb.distance import Distance
 
 __all__ = [
     "Clickhouse",
-    "HNSW",
     "Distance",
+    "HNSW",
 ]

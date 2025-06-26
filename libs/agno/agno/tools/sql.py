@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, logger
@@ -108,7 +110,7 @@ class SQLTools(Toolkit):
             logger.error(f"Error getting table schema: {e}")
             return f"Error getting table schema: {e}"
 
-    def run_sql_query(self, query: str, limit: Optional[int] = 10) -> str:
+    def run_sql_query(self, query: str, limit: int | None = 10) -> str:
         """Use this function to run a SQL query and return the result.
 
         Args:
@@ -126,7 +128,7 @@ class SQLTools(Toolkit):
             logger.error(f"Error running query: {e}")
             return f"Error running query: {e}"
 
-    def run_sql(self, sql: str, limit: Optional[int] = None) -> List[dict]:
+    def run_sql(self, sql: str, limit: int | None = None) -> list[dict]:
         """Internal function to run a sql query.
 
         Args:
@@ -134,7 +136,7 @@ class SQLTools(Toolkit):
             limit (int, optional): The number of rows to return. Defaults to None.
 
         Returns:
-            List[dict]: The result of the query.
+            list[dict]: The result of the query.
         """
         log_debug(f"Running sql |\n{sql}")
 

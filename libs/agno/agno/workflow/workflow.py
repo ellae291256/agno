@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
+from typing import Any, AsyncGenerator, AsyncIterator, Callable, Union, cast, get_args
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -187,7 +187,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -299,7 +299,7 @@ class Workflow:
             result = await self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.arun() failed: {e}")
-            raise e
+            raise
 
         # Handle async iterator results
         if isinstance(result, (AsyncIterator, AsyncGenerator)):
@@ -478,8 +478,8 @@ class Workflow:
                 field_value = getattr(self, f.name)
                 field_value.session_id = self.session_id
 
-    def get_workflow_data(self) -> Dict[str, Any]:
-        workflow_data: Dict[str, Any] = {}
+    def get_workflow_data(self) -> dict[str, Any]:
+        workflow_data: dict[str, Any] = {}
         if self.name is not None:
             workflow_data["name"] = self.name
         if self.workflow_id is not None:
@@ -616,6 +616,7 @@ class Workflow:
                         self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
                 except Exception as e:
                     log_warning(f"Failed to load runs from memory: {e}")
+                    raise
             else:
                 try:
                     if "runs" in session.memory:
@@ -623,8 +624,10 @@ class Workflow:
                             self.memory.runs = [WorkflowRun(**m) for m in session.memory["runs"]]
                         except Exception as e:
                             logger.warning(f"Failed to load runs from memory: {e}")
+                            raise
                 except Exception as e:
                     logger.warning(f"Failed to load WorkflowMemory: {e}")
+                    raise
 
         log_debug(f"-*- WorkflowSession loaded: {session.session_id}")
 
@@ -726,17 +729,17 @@ class Workflow:
         # -*- Delete session
         self.storage.delete_session(session_id=session_id)
 
-    def deep_copy(self, *, update: Optional[Dict[str, Any]] = None) -> Workflow:
+    def deep_copy(self, *, update: dict[str, Any] | None = None) -> Workflow:
         """Create and return a deep copy of this Workflow, optionally updating fields.
 
         Args:
-            update (Optional[Dict[str, Any]]): Optional dictionary of fields for the new Workflow.
+            update (dict[str, Any] | None): Optional dictionary of fields for the new Workflow.
 
         Returns:
             Workflow: A new Workflow instance.
         """
         # Extract the fields to set for the new Workflow
-        fields_for_new_workflow: Dict[str, Any] = {}
+        fields_for_new_workflow: dict[str, Any] = {}
 
         for f in fields(self):
             field_value = getattr(self, f.name)
@@ -814,6 +817,7 @@ class Workflow:
             log_debug(f"Registered workflow: {self.name} (ID: {self.workflow_id})")
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
+            raise
 
     def register_workflow(self, force: bool = False) -> None:
         """Register this workflow with Agno's platform.
@@ -843,15 +847,16 @@ class Workflow:
             log_debug(f"Registered workflow: {self.name} (ID: {self.workflow_id})")
         except Exception as e:
             log_warning(f"Failed to register workflow: {e}")
+            raise
 
-    def to_config_dict(self) -> Dict[str, Any]:
+    def to_config_dict(self) -> dict[str, Any]:
         """Convert the workflow to a config dictionary including all agents and teams.
 
         Returns:
-            Dict[str, Any]: Dictionary representation of the workflow config.
+            dict[str, Any]: Dictionary representation of the workflow config.
         """
         # Basic workflow information
-        config: Dict[str, Any] = {
+        config: dict[str, Any] = {
             "name": self.name,
             "description": self.description,
             "type": "workflow",
@@ -861,8 +866,8 @@ class Workflow:
             },
         }
 
-        agents: List[Dict[str, Any]] = []
-        teams: List[Dict[str, Any]] = []
+        agents: list[dict[str, Any]] = []
+        teams: list[dict[str, Any]] = []
 
         for attr_name in dir(self.__class__):
             # Skip private/special attributes and methods
