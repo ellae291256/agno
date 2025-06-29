@@ -1,7 +1,6 @@
 import asyncio
 from io import BytesIO
 from pathlib import Path
-from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -115,17 +114,13 @@ def test_large_text_file(tmp_path):
 def test_invalid_encoding(tmp_path):
     # Test handling of invalid encoding
     text_path = tmp_path / "invalid.txt"
-    try:
-        with open(text_path, "wb") as f:
-            f.write(b"\xff\xfe\x00\x00")  # Invalid UTF-8
+    with open(text_path, "wb") as f:
+        f.write(b"\xff\xfe\x00\x00")  # Invalid UTF-8
 
-        reader = TextReader()
-        documents = reader.read(text_path)
-        assert len(documents) == 0
-    finally:
-        # Clean up the file
-        if text_path.exists():
-            text_path.unlink()
+    reader = TextReader()
+    documents = reader.read(text_path)
+    assert len(documents) == 0
+    text_path.unlink()
 
 
 def test_cp950_encoding(tmp_path):

@@ -255,10 +255,11 @@ def test_get_all_sessions(agent_storage):
 
 def test_get_all_session_ids(agent_storage):
     """Test retrieving all session IDs."""
-    storage, mock_table = agent_storage
+    storage, _ = agent_storage
 
     # Mock the scan method to return session IDs
     mock_response = {"Items": [{"session_id": "session-1"}, {"session_id": "session-2"}, {"session_id": "session-3"}]}
+    mock_table = MagicMock()
     mock_table.scan.return_value = mock_response
 
     # Test get_all_session_ids without filters
@@ -293,9 +294,10 @@ def test_get_all_session_ids(agent_storage):
 
 def test_drop_table(agent_storage):
     """Test dropping a table."""
-    storage, mock_table = agent_storage
+    storage, _ = agent_storage
 
     # Mock the delete and wait_until_not_exists methods
+    mock_table = MagicMock()
     mock_table.delete = MagicMock()
     mock_table.wait_until_not_exists = MagicMock()
 

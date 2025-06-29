@@ -8,7 +8,6 @@ from agno.media import Audio, File, Image, Video
 from agno.team.team import Team, TeamRunResponse
 from agno.utils.log import log_info, log_warning
 
-from typing import List
 from agno.tools.function import UserInputField
 
 from textwrap import dedent
@@ -18,7 +17,7 @@ try:
     import discord
 
 except (ImportError, ModuleNotFoundError):
-    print("`discord.py` not installed. Please install using `pip install discord.py`")
+    log_warning("`discord.py` not installed. Please install using `pip install discord.py`")
 
 
 class RequiresConfirmationView(discord.ui.View):
@@ -207,5 +206,8 @@ class DiscordClient:
             if not token:
                 raise ValueError("DISCORD_BOT_TOKEN NOT SET")
             return self.client.run(token)
+        except ValueError:
+            raise
         except Exception as e:
-            raise ValueError(f"Failed to run Discord client: {str(e)}")
+            log_warning(f"Failed to run Discord client: {str(e)}")
+            raise RuntimeError(f"Failed to run Discord client: {str(e)}")

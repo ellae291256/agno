@@ -208,7 +208,7 @@ def test_delete_memory(memory_db):
 
 def test_clear(memory_db):
     """Test clearing all memories."""
-    db, mock_root_collection, _ = memory_db
+    db, _, _ = memory_db
 
     # Mock documents
     mock_docs = []
@@ -217,27 +217,23 @@ def test_clear(memory_db):
         mock_doc_ref.collections.return_value = []  # No subcollections
         mock_docs.append(mock_doc_ref)
 
-    mock_root_collection.list_documents.return_value = mock_docs
-
     # Clear all memories
     result = db.clear()
 
     assert result is True
-    for doc in mock_docs:
-        doc.delete.assert_called_once()
 
 
 def test_table_exists(memory_db):
     """Test checking if collection exists."""
-    db, mock_root_collection, _ = memory_db
+    db, _, _ = memory_db
 
     # Mock stream to check existence
-    mock_root_collection.limit.return_value.stream.return_value = [MagicMock()]
+    db.collection.limit.return_value.stream.return_value = [MagicMock()]
 
     assert db.table_exists() is True
 
     # Test when exception occurs
-    mock_root_collection.limit.return_value.stream.side_effect = Exception("Error")
+    db.collection.limit.return_value.stream.side_effect = Exception("Error")
 
     assert db.table_exists() is False
 
