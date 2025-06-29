@@ -1,4 +1,3 @@
-import copy
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -270,15 +269,15 @@ def test_drop(mock_bucket, couchbase_fts):
     with patch.object(couchbase_fts, "exists", return_value=True):
         # Test successful drop
         couchbase_fts.drop()
-        mock_collections_mgr.drop_collection.assert_called_once_with(
+        mock_bucket.collections.return_value.drop_collection.assert_called_once_with(
             collection_name=couchbase_fts.collection_name, scope_name=couchbase_fts.scope_name
         )
 
     # Test when collection doesn't exist
-    mock_collections_mgr.drop_collection.reset_mock()
+    mock_bucket.collections.return_value.drop_collection.reset_mock()
     with patch.object(couchbase_fts, "exists", return_value=False):
         couchbase_fts.drop()
-        mock_collections_mgr.drop_collection.assert_not_called()
+        mock_bucket.collections.return_value.drop_collection.assert_not_called()
 
 
 def test_exists(couchbase_fts, mock_scope):
@@ -337,6 +336,7 @@ def test_init_empty_bucket_name():
             cluster_options=ClusterOptions(authenticator=PasswordAuthenticator("username", "password")),
             search_index="test_index",
         )
+        pass
 
 
 def test_get_cluster_connection_error():
@@ -344,30 +344,28 @@ def test_get_cluster_connection_error():
         mock_cluster.side_effect = Exception("Connection failed")
 
         with pytest.raises(ConnectionError, match="Failed to connect to Couchbase"):
-            couchbase_fts = CouchbaseSearch(
+            CouchbaseSearch(
                 bucket_name="test_bucket",
                 scope_name="test_scope",
                 collection_name="test_collection",
                 couchbase_connection_string="couchbase://localhost",
                 cluster_options=ClusterOptions(authenticator=PasswordAuthenticator("username", "password")),
                 search_index="test_index",
-            )
-            couchbase_fts.create()
+            ).create()
 
 
 def test_get_bucket_not_exists(mock_cluster):
     mock_cluster.bucket.side_effect = BucketDoesNotExistException("Bucket does not exist")
 
     with pytest.raises(BucketDoesNotExistException):
-        couchbase_fts = CouchbaseSearch(
+        CouchbaseSearch(
             bucket_name="nonexistent_bucket",
             scope_name="test_scope",
             collection_name="test_collection",
             couchbase_connection_string="couchbase://localhost",
             cluster_options=ClusterOptions(authenticator=PasswordAuthenticator("username", "password")),
             search_index="test_index",
-        )
-        couchbase_fts.create()
+        ).create()
 
 
 def test_create_scope_collection_exists(couchbase_fts, mock_bucket):
@@ -540,6 +538,8 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     upsert_call = mock_search_indexes.upsert_index.call_args[0][0]
     assert isinstance(upsert_call, SearchIndex)
     assert upsert_call.name == "test_index"
+    _ = collections_manager
+    _ = mock_scope
 
 
 def test_get_count_cluster_level(mock_cluster, mock_embedder):
@@ -572,6 +572,7 @@ def test_get_count_cluster_level(mock_cluster, mock_embedder):
     # Verify count was retrieved from cluster-level index
     mock_search_indexes.get_indexed_documents_count.assert_called_once_with("test_index")
     assert count == 42
+    _ = mock_search_indexes
 
 
 def test_search_cluster_level(mock_cluster, mock_embedder):
@@ -626,6 +627,10 @@ def test_search_cluster_level(mock_cluster, mock_embedder):
     assert isinstance(results[0], Document)
     assert results[0].id == "test_id"
     assert results[0].name == "test doc"
+    _ = mock_search_result
+    _ = mock_row
+    _ = mock_get_result
+    _ = mock_kv_response
 
 
 @pytest.mark.asyncio
@@ -847,7 +852,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -872,7 +877,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query filter scope kv")
         mock_get_async_scope.assert_called_once()
         mock_scope_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_scope_inst.search.call_args
+        _, search_kwargs_f = mock_scope_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 5
         assert search_kwargs_f["options"]["raw"] == filters
 
@@ -926,7 +931,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -949,7 +954,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
