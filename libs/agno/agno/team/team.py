@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import json
 from collections import ChainMap, defaultdict, deque
@@ -9,16 +11,12 @@ from typing import (
     Any,
     AsyncIterator,
     Callable,
-    Dict,
     Iterator,
-    List,
     Literal,
-    Optional,
     Sequence,
     Set,
     Tuple,
     Type,
-    Union,
     cast,
     get_args,
     overload,
@@ -6060,7 +6058,7 @@ class Team:
                         # If the content is empty but we have tool calls
                         elif member_agent_run_response.tools is not None and len(member_agent_run_response.tools) > 0:
                             yield ",".join([tool.result for tool in member_agent_run_response.tools if tool.result])  # type: ignore
-                    elif issubclass(type(member_agent_run_response.content), BaseModel):
+                    elif isinstance(member_agent_run_response.content, BaseModel):
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
                     else:
                         import json
@@ -6299,7 +6297,7 @@ class Team:
                                     tool_str += f"{tool.result},"
                             yield tool_str.rstrip(",")
 
-                    elif issubclass(type(member_agent_run_response.content), BaseModel):
+                    elif isinstance(member_agent_run_response.content, BaseModel):
                         yield member_agent_run_response.content.model_dump_json(indent=2)  # type: ignore
                     else:
                         import json
@@ -6997,18 +6995,22 @@ class Team:
     ###########################################################################
 
     def get_relevant_docs_from_knowledge(
-        self, query: str, num_documents: Optional[int] = None, filters: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> Optional[List[Union[Dict[str, Any], str]]]:
+        self, query: str, num_documents: int | None = None, filters: dict[str, Any] | None = None, **kwargs
+    ) -> list[dict[str, Any] | str] | None:
         """Return a list of references from the knowledge base"""
         from agno.document import Document
 
         # Validate the filters against known valid filter keys
         if self.knowledge is not None:
-            valid_filters, invalid_keys = self.knowledge.validate_filters(filters)  # type: ignore
+            try:
+                valid_filters, invalid_keys = self.knowledge.validate_filters(filters)  # type: ignore
+            except Exception as e:
+                log_warning(f"Error validating filters: {e}")
+                valid_filters = filters
+                invalid_keys = []
 
             # Warn about invalid filter keys
             if invalid_keys:
-                # type: ignore
                 log_warning(f"Invalid filter keys provided: {invalid_keys}. These filters will be ignored.")
                 log_info(f"Valid filter keys are: {self.knowledge.valid_metadata_filters}")  # type: ignore
 
@@ -7031,7 +7033,7 @@ class Team:
                 return self.retriever(**retriever_kwargs)
             except Exception as e:
                 log_warning(f"Retriever failed: {e}")
-                raise e
+                return None
         try:
             if self.knowledge is None or self.knowledge.vector_db is None:
                 return None
@@ -7051,21 +7053,25 @@ class Team:
             return [doc.to_dict() for doc in relevant_docs]
         except Exception as e:
             log_warning(f"Error searching knowledge base: {e}")
-            raise e
+            return None
 
     async def aget_relevant_docs_from_knowledge(
-        self, query: str, num_documents: Optional[int] = None, filters: Optional[Dict[str, Any]] = None, **kwargs
-    ) -> Optional[List[Union[Dict[str, Any], str]]]:
+        self, query: str, num_documents: int | None = None, filters: dict[str, Any] | None = None, **kwargs
+    ) -> list[dict[str, Any] | str] | None:
         """Get relevant documents from knowledge base asynchronously."""
         from agno.document import Document
 
         # Validate the filters against known valid filter keys
         if self.knowledge is not None:
-            valid_filters, invalid_keys = self.knowledge.validate_filters(filters)  # type: ignore
+            try:
+                valid_filters, invalid_keys = self.knowledge.validate_filters(filters)  # type: ignore
+            except Exception as e:
+                log_warning(f"Error validating filters: {e}")
+                valid_filters = filters
+                invalid_keys = []
 
             # Warn about invalid filter keys
             if invalid_keys:
-                # type: ignore
                 log_warning(f"Invalid filter keys provided: {invalid_keys}. These filters will be ignored.")
                 # type: ignore
                 log_info(f"Valid filter keys are: {self.knowledge.valid_metadata_filters}")
@@ -7089,7 +7095,7 @@ class Team:
                 return self.retriever(**retriever_kwargs)
             except Exception as e:
                 log_warning(f"Retriever failed: {e}")
-                raise e
+                return None
 
         try:
             if self.knowledge is None or self.knowledge.vector_db is None:
@@ -7110,9 +7116,9 @@ class Team:
             return [doc.to_dict() for doc in relevant_docs]
         except Exception as e:
             log_warning(f"Error searching knowledge base: {e}")
-            raise e
+            return None
 
-    def _convert_documents_to_string(self, docs: List[Union[Dict[str, Any], str]]) -> str:
+    def _convert_documents_to_string(self, docs: list[dict[str, Any] | str]) -> str:
         if docs is None or len(docs) == 0:
             return ""
 
@@ -7126,8 +7132,8 @@ class Team:
         return json.dumps(docs, indent=2)
 
     def _get_team_effective_filters(
-        self, knowledge_filters: Optional[Dict[str, Any]] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, knowledge_filters: dict[str, Any] | None = None
+    ) -> dict[str, Any] | None:
         """
         Determine effective filters for the team, considering:
         1. Team-level filters (self.knowledge_filters)
@@ -7151,7 +7157,7 @@ class Team:
         return effective_filters
 
     def search_knowledge_base_function(
-        self, knowledge_filters: Optional[Dict[str, Any]] = None, async_mode: bool = False
+        self, knowledge_filters: dict[str, Any] | None = None, async_mode: bool = False
     ) -> Function:
         """Factory function to create a search_knowledge_base function with filters."""
 
@@ -7223,11 +7229,11 @@ class Team:
         return Function.from_callable(search_knowledge_base_function, name="search_knowledge_base")
 
     def search_knowledge_base_with_agentic_filters_function(
-        self, knowledge_filters: Optional[Dict[str, Any]] = None, async_mode: bool = False
+        self, knowledge_filters: dict[str, Any] | None = None, async_mode: bool = False
     ) -> Function:
         """Factory function to create a search_knowledge_base function with filters."""
 
-        def search_knowledge_base(query: str, filters: Optional[Dict[str, Any]] = None) -> str:
+        def search_knowledge_base(query: str, filters: dict[str, Any] | None = None) -> str:
             """Use this function to search the knowledge base for information about a query.
 
             Args:
@@ -7510,6 +7516,8 @@ class Team:
 
         except Exception as e:
             log_debug(f"Could not create team on platform: {e}")
+            return
+            return
 
     async def _aregister_team(self) -> None:
         self._set_monitoring()
@@ -7532,7 +7540,7 @@ class Team:
         except Exception as e:
             log_debug(f"Could not create team on platform: {e}")
 
-    def to_platform_dict(self) -> Dict[str, Any]:
+    def to_platform_dict(self) -> dict[str, Any]:
         model = None
         if self.model is not None:
             model = {
@@ -7540,7 +7548,7 @@ class Team:
                 "model": self.model.id,
                 "provider": self.model.provider,
             }
-        tools: List[Dict[str, Any]] = []
+        tools: list[dict[str, Any]] = []
         if self.tools is not None:
             if not hasattr(self, "_tools_for_model") or self._tools_for_model is None:
                 team_model = self.model
