@@ -6067,7 +6067,8 @@ class Team:
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
                 except Exception as e:
-                    yield str(e)
+                    log_debug(f"Error processing member agent response: {e}")
+                    yield f"Error processing member agent response: {e}"
 
             # Afterward, switch back to the team logger
             use_team_logger()
@@ -6306,7 +6307,8 @@ class Team:
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
                 except Exception as e:
-                    yield str(e)
+                    log_debug(f"Error processing member agent response: {e}")
+                    yield f"Error processing member agent response: {e}"
 
             # Afterward, switch back to the team logger
             use_team_logger()
@@ -7510,6 +7512,7 @@ class Team:
 
         except Exception as e:
             log_debug(f"Could not create team on platform: {e}")
+            raise
 
     async def _aregister_team(self) -> None:
         self._set_monitoring()
@@ -7531,8 +7534,9 @@ class Team:
             )
         except Exception as e:
             log_debug(f"Could not create team on platform: {e}")
+            raise
 
-    def to_platform_dict(self) -> Dict[str, Any]:
+    def to_platform_dict(self) -> dict[str, Any]:
         model = None
         if self.model is not None:
             model = {
@@ -7540,7 +7544,7 @@ class Team:
                 "model": self.model.id,
                 "provider": self.model.provider,
             }
-        tools: List[Dict[str, Any]] = []
+        tools: list[dict[str, Any]] = []
         if self.tools is not None:
             if not hasattr(self, "_tools_for_model") or self._tools_for_model is None:
                 team_model = self.model

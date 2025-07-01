@@ -27,7 +27,7 @@ def mock_firestore_client():
 @pytest.fixture
 def agent_storage(mock_firestore_client):
     """Create a FirestoreStorage instance for agent mode with mocked components."""
-    mock_client, mock_collection = mock_firestore_client
+    _, mock_collection = mock_firestore_client
 
     storage = FirestoreStorage(
         collection_name="agent_sessions", db_name="(default)", project_id="test-project", mode="agent"
@@ -39,7 +39,7 @@ def agent_storage(mock_firestore_client):
 @pytest.fixture
 def workflow_storage(mock_firestore_client):
     """Create a FirestoreStorage instance for workflow mode with mocked components."""
-    mock_client, mock_collection = mock_firestore_client
+    _, mock_collection = mock_firestore_client
 
     storage = FirestoreStorage(
         collection_name="workflow_sessions", db_name="(default)", project_id="test-project", mode="workflow"
@@ -77,12 +77,11 @@ def test_initialization():
         assert storage.db_name == "(default)"  # Default value
 
     # Test with environment variable
-    with patch("agno.storage.firestore.Client") as mock_client:
-        with patch("os.getenv", return_value="env-project"):
-            mock_collection = MagicMock()
-            mock_db = MagicMock()
-            mock_db.collection.return_value = mock_collection
-            mock_client.return_value = mock_db
+    with patch("agno.storage.firestore.Client") as mock_client, patch("os.getenv", return_value="env-project"):
+        mock_collection = MagicMock()
+        mock_db = MagicMock()
+        mock_db.collection.return_value = mock_collection
+        mock_client.return_value = mock_db
 
             storage = FirestoreStorage(collection_name="test_collection")
 
@@ -92,14 +91,12 @@ def test_initialization():
 
 def test_authentication_error():
     """Test handling of authentication errors."""
-    with patch("agno.storage.firestore.Client") as mock_client:
-        from google.api_core import exceptions as google_exceptions
+    from google.api_core import exceptions as google_exceptions
 
+    with patch("agno.storage.firestore.Client") as mock_client, pytest.raises(ImportError, match="Failed to authenticate with Google Cloud"):
         # Mock authentication error during Client initialization
         mock_client.side_effect = google_exceptions.Unauthenticated("Not authenticated")
-
-        with pytest.raises(ImportError, match="Failed to authenticate with Google Cloud"):
-            FirestoreStorage(collection_name="test_collection")
+        FirestoreStorage(collection_name="test_collection")
 
 
 def test_agent_storage_crud(agent_storage):
