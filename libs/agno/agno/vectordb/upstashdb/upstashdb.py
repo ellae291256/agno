@@ -328,7 +328,6 @@ class UpstashVectorDb(VectorDb):
         """Optimize the index.
         This method is empty as Upstash automatically optimizes indexes.
         """
-        pass
 
     async def async_name_exists(self, name: str) -> bool:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")

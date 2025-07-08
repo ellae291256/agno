@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 try:
     import asyncio
@@ -377,7 +379,7 @@ class Milvus(VectorDb):
         )
         log_debug(f"Inserted hybrid document asynchronously: {document.name} ({document.meta_data})")
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents based on search type."""
         log_debug(f"Inserting {len(documents)} documents")
 
@@ -410,7 +412,7 @@ class Milvus(VectorDb):
 
         log_info(f"Inserted {len(documents)} documents")
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents asynchronously based on search type."""
         log_debug(f"Inserting {len(documents)} documents asynchronously")
 
@@ -455,7 +457,7 @@ class Milvus(VectorDb):
         """
         return True
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """
         Upsert documents into the database.
 
@@ -482,7 +484,7 @@ class Milvus(VectorDb):
             )
             log_debug(f"Upserted document: {document.name} ({document.meta_data})")
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         log_debug(f"Upserting {len(documents)} documents asynchronously")
 
         async def process_document(document):
@@ -518,7 +520,7 @@ class Milvus(VectorDb):
         """
         return MILVUS_DISTANCE_MAP.get(self.distance, "COSINE")
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
@@ -547,7 +549,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -565,8 +567,8 @@ class Milvus(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit, filters)
 
@@ -584,7 +586,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -601,7 +603,7 @@ class Milvus(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a hybrid search combining dense and sparse vector similarity.
 
@@ -661,7 +663,7 @@ class Milvus(VectorDb):
             )
 
             # Build search results
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for hits in results:
                 for hit in hits:
                     entity = hit.get("entity", {})
@@ -730,7 +732,7 @@ class Milvus(VectorDb):
             return True
         return False
 
-    def _build_expr(self, filters: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _build_expr(self, filters: dict[str, Any] | None) -> str | None:
         """Build Milvus expression from filters."""
         if not filters:
             return None

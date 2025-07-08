@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import lancedb
@@ -184,8 +186,9 @@ class LanceDb(VectorDb):
                 doc_id = md5(cleaned_content.encode()).hexdigest()
                 result = self.table.search().where(f"{self._id}='{doc_id}'").to_arrow()
                 return len(result) > 0
-        except Exception:
+        except Exception as e:
             # Search sometimes fails with stale cache data, it means the doc doesn't exist
+            logger.debug(f"Error checking doc existence: {e}")
             return False
 
         return False
@@ -502,7 +505,7 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def keyword_search(self, query: str, limit: int = 5) -> List[Document]:
+    def keyword_search(self, query: str, limit: int = 5) -> list[Document]:
         if self.table is None:
             logger.error("Table not initialized. Please create the table first")
             return []
@@ -516,10 +519,10 @@ class LanceDb(VectorDb):
             query_type="fts",
         ).limit(limit)
 
-        return results.to_pandas()
+        return self._build_search_results(results.to_pandas())
 
-    def _build_search_results(self, results) -> List[Document]:  # TODO: typehint pandas?
-        search_results: List[Document] = []
+    def _build_search_results(self, results) -> list[Document]:  # TODO: typehint pandas?
+        search_results: list[Document] = []
         try:
             for _, item in results.iterrows():
                 payload = json.loads(item["payload"])
@@ -593,7 +596,7 @@ class LanceDb(VectorDb):
             # Check if the name exists in any of the payloads
             return any(payload.get("name") == name for payload in payloads)
         except Exception as e:
-            logger.error(f"Error checking name existence: {e}")
+            logger.debug(f"Error checking name existence: {e}")
             return False
 
     async def async_name_exists(self, name: str) -> bool:
