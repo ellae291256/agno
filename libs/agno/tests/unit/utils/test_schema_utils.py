@@ -1,6 +1,9 @@
 """Tests for schema_utils module"""
 
-from typing import Dict, List, Optional
+from __future__ import annotations
+
+from collections.abc import Mapping, Sequence
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
