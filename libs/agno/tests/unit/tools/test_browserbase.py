@@ -89,9 +89,11 @@ def test_init_with_params():
 
 def test_init_with_missing_api_key():
     """Test initialization with missing API key raises ValueError."""
-    with patch.dict("os.environ", {}, clear=True):
-        with pytest.raises(ValueError, match="BROWSERBASE_API_KEY is required"):
-            BrowserbaseTools()
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        pytest.raises(ValueError, match="BROWSERBASE_API_KEY is required"),
+    ):
+        BrowserbaseTools()
 
 
 def test_init_with_missing_project_id():
@@ -99,9 +101,9 @@ def test_init_with_missing_project_id():
     with (
         patch.dict("os.environ", {"BROWSERBASE_API_KEY": TEST_API_KEY}, clear=True),
         patch("agno.tools.browserbase.Browserbase"),
+        pytest.raises(ValueError, match="BROWSERBASE_PROJECT_ID is required"),
     ):
-        with pytest.raises(ValueError, match="BROWSERBASE_PROJECT_ID is required"):
-            BrowserbaseTools()
+        BrowserbaseTools()
 
 
 def test_ensure_session(browserbase_tools, mock_browserbase):
