@@ -9,65 +9,65 @@ from agno.tools.todoist import TodoistTools
 
 
 @pytest.fixture
-def mock_todoist_api():
+@patch("agno.tools.todoist.TodoistAPI")
+def mock_todoist_api(mock_api):
     """Create a mock Todoist API client."""
-    with patch("agno.tools.todoist.TodoistAPI") as mock_api:
-        mock_client = Mock()
-        mock_api.return_value = mock_client
-        return mock_client
+    mock_client = Mock()
+    mock_api.return_value = mock_client
+    return mock_client
 
 
 @pytest.fixture
+@patch.dict("os.environ", {"TODOIST_API_TOKEN": "test_token"})
 def todoist_tools(mock_todoist_api):
     """Create TodoistTools instance with mocked API."""
-    with patch.dict("os.environ", {"TODOIST_API_TOKEN": "test_token"}):
-        tools = TodoistTools()
-        tools.api = mock_todoist_api
-        return tools
+    tools = TodoistTools()
+    tools.api = mock_todoist_api
+    return tools
 
 
-def test_init_with_api_token():
+@patch("agno.tools.todoist.TodoistAPI")
+@patch("os.getenv")
+def test_init_with_api_token(mock_getenv, mock_api):
     """Test initialization with provided API token."""
-    with patch("agno.tools.todoist.TodoistAPI") as mock_api:
-        with patch("os.getenv") as mock_getenv:
-            mock_getenv.return_value = "test_token"
-            TodoistTools()
-            mock_api.assert_called_once_with("test_token")
+    mock_getenv.return_value = "test_token"
+    TodoistTools()
+    mock_api.assert_called_once_with("test_token")
 
 
-def test_init_with_env_var():
+@patch("agno.tools.todoist.TodoistAPI")
+@patch("os.getenv")
+def test_init_with_env_var(mock_getenv, mock_api):
     """Test initialization with environment variable."""
-    with patch("agno.tools.todoist.TodoistAPI") as mock_api:
-        with patch("os.getenv") as mock_getenv:
-            mock_getenv.return_value = "env_token"
-            TodoistTools()
-            mock_api.assert_called_once_with("env_token")
+    mock_getenv.return_value = "env_token"
+    TodoistTools()
+    mock_api.assert_called_once_with("env_token")
 
 
+@patch.dict("os.environ", clear=True)
 def test_init_without_token():
     """Test initialization without API token."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="TODOIST_API_TOKEN not set"):
-            TodoistTools()
+    with pytest.raises(ValueError, match="TODOIST_API_TOKEN not set"):
+        TodoistTools()
 
 
+@patch.dict("os.environ", {"TODOIST_API_TOKEN": "test_token"})
 def test_init_with_selective_tools():
     """Test initialization with only selected tools."""
-    with patch.dict("os.environ", {"TODOIST_API_TOKEN": "test_token"}):
-        tools = TodoistTools(
-            create_task=True,
-            get_task=False,
-            update_task=True,
-            close_task=False,
-            delete_task=False,
-            get_active_tasks=True,
-            get_projects=False,
-        )
+    tools = TodoistTools(
+        create_task=True,
+        get_task=False,
+        update_task=True,
+        close_task=False,
+        delete_task=False,
+        get_active_tasks=True,
+        get_projects=False,
+    )
 
-        assert "create_task" in [func.name for func in tools.functions.values()]
-        assert "get_task" not in [func.name for func in tools.functions.values()]
-        assert "update_task" in [func.name for func in tools.functions.values()]
-        assert "close_task" not in [func.name for func in tools.functions.values()]
+    assert "create_task" in [func.name for func in tools.functions.values()]
+    assert "get_task" not in [func.name for func in tools.functions.values()]
+    assert "update_task" in [func.name for func in tools.functions.values()]
+    assert "close_task" not in [func.name for func in tools.functions.values()]
 
 
 def test_create_task_success(todoist_tools, mock_todoist_api):

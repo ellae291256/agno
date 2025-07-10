@@ -16,7 +16,7 @@ def mock_openweather_api():
 
 
 @pytest.fixture
-def openweather_tools():
+def openweather_tools(mock_openweather_api):
     """Create an OpenWeatherTools instance with a mock API key."""
     with patch.dict("os.environ", {"OPENWEATHER_API_KEY": "test_api_key"}):
         return OpenWeatherTools()

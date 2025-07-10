@@ -6319,7 +6319,7 @@ class Team:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     yield str(e)
 
             # Afterward, switch back to the team logger
@@ -6557,7 +6557,7 @@ class Team:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     yield str(e)
 
             # Afterward, switch back to the team logger

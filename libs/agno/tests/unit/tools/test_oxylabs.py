@@ -40,6 +40,14 @@ def mock_environment_variables():
         yield
 
 
+@pytest.fixture
+def mock_environment_variables_nested():
+    """Mock environment variables for Oxylabs credentials with nested context."""
+    with patch.dict("os.environ", {"OXYLABS_USERNAME": "test_user", "OXYLABS_PASSWORD": "test_pass"}):
+        with patch.dict("os.environ", {"OXYLABS_API_KEY": "test_key"}):
+            yield
+
+
 def create_mock_response(results=None, status_code=200):
     """Helper to create a mock response object matching the SDK structure."""
     mock_response = Mock()
@@ -82,12 +90,30 @@ class TestOxylabsToolsInitialization:
             with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
                 OxylabsTools()
 
+
+    def test_init_without_credentials_nested(self):
+        """Test initialization failure without credentials with nested context."""
+        # Ensure no environment variables are set
+        with patch.dict("os.environ", {}, clear=True):
+            with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
+                with patch.dict("os.environ", {}):
+                    OxylabsTools()
+
     def test_init_partial_credentials(self):
         """Test initialization failure with partial credentials."""
         # Ensure no environment variables are set
         with patch.dict("os.environ", {}, clear=True):
             with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
                 OxylabsTools(username="test_user")
+
+
+    def test_init_partial_credentials_nested(self):
+        """Test initialization failure with partial credentials with nested context."""
+        # Ensure no environment variables are set
+        with patch.dict("os.environ", {}, clear=True):
+            with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
+                with patch.dict("os.environ", {}):
+                    OxylabsTools(username="test_user")
 
 
 class TestSearchGoogle:

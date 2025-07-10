@@ -478,25 +478,25 @@ def test_create_fts_index_cluster_level(mock_cluster, mock_embedder):
     mock_cluster.search_indexes.return_value = mock_search_indexes
 
     # Mock bucket and collections
-    mock_bucket = Mock(spec=Bucket)
-    mock_cluster.bucket.return_value = mock_bucket
+    _mock_bucket = Mock(spec=Bucket)
+    mock_cluster.bucket.return_value = _mock_bucket
 
     # Mock collections manager
-    collections_manager = Mock()
-    mock_bucket.collections.return_value = collections_manager
+    _collections_manager = Mock()
+    _mock_bucket.collections.return_value = _collections_manager
 
     # Mock scope
-    mock_scope = Mock(spec=Scope)
-    mock_scope.name = "test_scope"
-    mock_bucket.scope.return_value = mock_scope
+    _mock_scope = Mock(spec=Scope)
+    _mock_scope.name = "test_scope"
+    _mock_bucket.scope.return_value = _mock_scope
 
     # Mock collection
-    mock_collection = Mock(spec=Collection)
-    mock_collection.name = "test_collection"
-    mock_scope.collection.return_value = mock_collection
+    _mock_collection = Mock(spec=Collection)
+    _mock_collection.name = "test_collection"
+    _mock_scope.collection.return_value = _mock_collection
 
     # Set up the scope to have the collection
-    mock_scope.collections = [mock_collection]
+    _mock_scope.collections = [_mock_collection]
 
     # Set up the collections manager to return scopes
     collections_manager.get_all_scopes.return_value = [mock_scope]
@@ -847,7 +847,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -872,7 +872,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query filter scope kv")
         mock_get_async_scope.assert_called_once()
         mock_scope_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_scope_inst.search.call_args
+        _, search_kwargs_f = mock_scope_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 5
         assert search_kwargs_f["options"]["raw"] == filters
 
@@ -926,7 +926,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()
@@ -949,7 +949,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query filter kv")
         mock_get_async_cluster_for_search.assert_called_once()
         mock_cluster_inst.search.assert_called_once()
-        search_args_f, search_kwargs_f = mock_cluster_inst.search.call_args
+        _, search_kwargs_f = mock_cluster_inst.search.call_args
         assert search_kwargs_f["options"]["limit"] == 3
         assert search_kwargs_f["options"]["raw"] == filters
 
