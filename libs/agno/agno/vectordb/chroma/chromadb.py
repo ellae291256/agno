@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -109,7 +111,7 @@ class ChromaDb(VectorDb):
             cleaned_content = document.content.replace("\x00", "\ufffd")
             if cleaned_content in existing_documents:  # type: ignore
                 return True
-        except Exception as e:
+        except (chromadb.errors.InvalidCollectionException, RuntimeError) as e:
             logger.error(f"Document does not exist: {e}")
         return False
 
@@ -125,11 +127,10 @@ class ChromaDb(VectorDb):
             bool: True if document exists, False otherwise."""
         if self.client:
             try:
-                collections: Collection = self.client.get_collection(name=self.collection_name)
-                for collection in collections:  # type: ignore
-                    if name in collection:
-                        return True
-            except Exception as e:
+                collection: Collection = self.client.get_collection(name=self.collection_name)
+                if name in collection.metadata.get("names", []):
+                    return True
+            except (chromadb.errors.InvalidCollectionException, RuntimeError) as e:
                 logger.error(f"Document with given name does not exist: {e}")
         return False
 
@@ -258,21 +259,21 @@ class ChromaDb(VectorDb):
         search_results: List[Document] = []
 
         ids = result.get("ids", [[]])[0]
-        metadata = result.get("metadatas", [{}])[0]
+        metadata_list = result.get("metadatas", [{}])[0]
         documents = result.get("documents", [[]])[0]
         embeddings = result.get("embeddings")[0]
         embeddings = [e.tolist() if hasattr(e, "tolist") else e for e in embeddings]
         distances = result.get("distances", [[]])[0]
 
         for idx, distance in enumerate(distances):
-            metadata[idx]["distances"] = distance
+            metadata_list[idx]["distances"] = distance
 
         try:
-            for idx, (id_, metadata, document) in enumerate(zip(ids, metadata, documents)):
+            for idx, (id_, meta_item, document) in enumerate(zip(ids, metadata_list, documents)):
                 search_results.append(
                     Document(
                         id=id_,
-                        meta_data=metadata,
+                        meta_data=meta_item,
                         content=document,
                         embedding=embeddings[idx],
                     )
@@ -296,7 +297,7 @@ class ChromaDb(VectorDb):
             return {}
 
         # If filters already use ChromaDB operators ($eq, $ne, etc.), return as is
-        if any(key.startswith("$") for key in filters.keys()):
+        if any(key.startswith("$") for key in filters):
             return filters
 
         # Convert simple key-value pairs to ChromaDB's format
@@ -332,7 +333,7 @@ class ChromaDb(VectorDb):
         try:
             self.client.get_collection(name=self.collection_name)
             return True
-        except Exception as e:
+        except (chromadb.errors.InvalidCollectionException, RuntimeError) as e:
             log_debug(f"Collection does not exist: {e}")
         return False
 
@@ -346,7 +347,7 @@ class ChromaDb(VectorDb):
             try:
                 collection: Collection = self.client.get_collection(name=self.collection_name)
                 return collection.count()
-            except Exception as e:
+            except (chromadb.errors.InvalidCollectionException, RuntimeError) as e:
                 logger.error(f"Error getting count: {e}")
         return 0
 
@@ -357,6 +358,6 @@ class ChromaDb(VectorDb):
         try:
             self.client.delete_collection(name=self.collection_name)
             return True
-        except Exception as e:
+        except (chromadb.errors.InvalidCollectionException, RuntimeError) as e:
             logger.error(f"Error clearing collection: {e}")
             return False
