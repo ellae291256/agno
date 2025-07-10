@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
 
 from agno.embedder.base import Embedder
 from agno.utils.log import logger
@@ -25,7 +24,7 @@ class FastEmbedEmbedder(Embedder):
     id: str = "BAAI/bge-small-en-v1.5"
     dimensions: int = 384
 
-    def get_embedding(self, text: str) -> List[float]:
+    def get_embedding(self, text: str) -> list[float]:
         model = TextEmbedding(model_name=self.id)
         embeddings = model.embed(text)
         embedding_list = list(embeddings)[0]
@@ -34,7 +33,7 @@ class FastEmbedEmbedder(Embedder):
 
         try:
             return list(embedding_list)
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             logger.warning(e)
             return []
 

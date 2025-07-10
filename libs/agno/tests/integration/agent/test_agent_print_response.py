@@ -403,17 +403,16 @@ def test_stream_vs_non_stream_behavior():
 
     mock_console = Mock(spec=Console)
 
-    with patch("rich.live.Live") as mock_live_class:
-        with patch("agno.agent.agent.create_panel") as mock_create_panel:
-            mock_live = Mock()
-            mock_live_class.return_value = mock_live
-            mock_live.__enter__ = Mock(return_value=mock_live)
-            mock_live.__exit__ = Mock(return_value=None)
+    with patch("rich.live.Live") as mock_live_class, patch("agno.agent.agent.create_panel") as mock_create_panel:
+        mock_live = Mock()
+        mock_live_class.return_value = mock_live
+        mock_live.__enter__ = Mock(return_value=mock_live)
+        mock_live.__exit__ = Mock(return_value=None)
 
-            # Test non-streaming first
-            with patch.object(agent, "run") as mock_run:
-                mock_response = Mock()
-                mock_response.content = "Non-streaming response"
+        # Test non-streaming first
+        with patch.object(agent, "run") as mock_run:
+            mock_response = Mock()
+            mock_response.content = "Non-streaming response"
                 mock_response.thinking = None
                 mock_response.formatted_tool_calls = []
                 mock_response.citations = None

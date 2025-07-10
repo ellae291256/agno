@@ -1,7 +1,9 @@
-from collections.abc import AsyncIterator
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, Dict, Iterator, List, Optional, Type, Union
+from typing import Any, Optional, Type, Union
 
 import httpx
 from pydantic import BaseModel
@@ -312,16 +314,16 @@ class OpenAIChat(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> ChatCompletion:
         """
         Send a chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             ChatCompletion: The chat completion response from the API.
@@ -366,22 +368,22 @@ class OpenAIChat(Model):
                 model_name=self.name,
                 model_id=self.id,
             ) from e
-        except Exception as e:
+        except (APIError, APIConnectionError, RateLimitError) as e:
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> ChatCompletion:
         """
         Sends an asynchronous chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             ChatCompletion: The chat completion response from the API.
@@ -426,22 +428,22 @@ class OpenAIChat(Model):
                 model_name=self.name,
                 model_id=self.id,
             ) from e
-        except Exception as e:
+        except (APIError, APIConnectionError, RateLimitError) as e:
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> Iterator[ChatCompletionChunk]:
         """
         Send a streaming chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             Iterator[ChatCompletionChunk]: An iterator of chat completion chunks.
@@ -489,22 +491,22 @@ class OpenAIChat(Model):
                 model_name=self.name,
                 model_id=self.id,
             ) from e
-        except Exception as e:
+        except (APIError, APIConnectionError, RateLimitError) as e:
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
+        tools: Optional[list[dict[str, Any]]] = None,
+        tool_choice: Optional[Union[str, dict[str, Any]]] = None,
     ) -> AsyncIterator[ChatCompletionChunk]:
         """
         Sends an asynchronous streaming chat completion request to the OpenAI API.
 
         Args:
-            messages (List[Message]): A list of messages to send to the model.
+            messages (list[Message]): A list of messages to send to the model.
 
         Returns:
             Any: An asynchronous iterator of chat completion chunks.
@@ -554,7 +556,7 @@ class OpenAIChat(Model):
                 model_name=self.name,
                 model_id=self.id,
             ) from e
-        except Exception as e:
+        except (APIError, APIConnectionError, RateLimitError) as e:
             log_error(f"Error from OpenAI API: {e}")
             raise ModelProviderError(message=str(e), model_name=self.name, model_id=self.id) from e
 
@@ -602,7 +604,7 @@ class OpenAIChat(Model):
     def parse_provider_response(
         self,
         response: ChatCompletion,
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
+        response_format: Optional[Union[dict, Type[BaseModel]]] = None,
     ) -> ModelResponse:
         """
         Parse the OpenAI response into a ModelResponse.
@@ -631,8 +633,8 @@ class OpenAIChat(Model):
         if response_message.tool_calls is not None and len(response_message.tool_calls) > 0:
             try:
                 model_response.tool_calls = [t.model_dump() for t in response_message.tool_calls]
-            except Exception as e:
-                log_warning(f"Error processing tool calls: {e}")
+            except Exception:
+                log_warning("Error processing tool calls")
 
         # Add audio transcript to content if available
         response_audio: Optional[ChatCompletionAudio] = response_message.audio
@@ -657,8 +659,8 @@ class OpenAIChat(Model):
                         expires_at=response_message.audio.expires_at,
                         transcript=response_message.audio.transcript,
                     )
-            except Exception as e:
-                log_warning(f"Error processing audio: {e}")
+            except Exception:
+                log_warning("Error processing audio")
 
         if hasattr(response_message, "reasoning_content") and response_message.reasoning_content is not None:
             model_response.reasoning_content = response_message.reasoning_content
@@ -723,8 +725,8 @@ class OpenAIChat(Model):
                                 sample_rate=24000,
                                 mime_type="pcm16",
                             )
-                    except Exception as e:
-                        log_warning(f"Error processing audio: {e}")
+                    except Exception:
+                        log_warning("Error processing audio")
 
         if hasattr(response_delta, "citations") and response_delta.citations:
             citations = Citations()

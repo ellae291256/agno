@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import csv
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -10,17 +12,17 @@ from agno.utils.log import log_debug, log_info, logger
 class CsvTools(Toolkit):
     def __init__(
         self,
-        csvs: Optional[List[Union[str, Path]]] = None,
+        csvs: Optional[list[str | Path]] = None,
         row_limit: Optional[int] = None,
         read_csvs: bool = True,
         list_csvs: bool = True,
         query_csvs: bool = True,
         read_column_names: bool = True,
         duckdb_connection: Optional[Any] = None,
-        duckdb_kwargs: Optional[Dict[str, Any]] = None,
+        duckdb_kwargs: Optional[dict[str, Any]] = None,
         **kwargs,
     ):
-        self.csvs: List[Path] = []
+        self.csvs: list[Path] = []
         if csvs:
             for _csv in csvs:
                 if isinstance(_csv, str):
@@ -31,9 +33,9 @@ class CsvTools(Toolkit):
                     raise ValueError(f"Invalid csv file: {_csv}")
         self.row_limit = row_limit
         self.duckdb_connection: Optional[Any] = duckdb_connection
-        self.duckdb_kwargs: Optional[Dict[str, Any]] = duckdb_kwargs
+        self.duckdb_kwargs: Optional[dict[str, Any]] = duckdb_kwargs
 
-        tools: List[Any] = []
+        tools: list[Any] = []
         if read_csvs:
             tools.append(self.read_csv_file)
         if list_csvs:
@@ -85,7 +87,10 @@ class CsvTools(Toolkit):
                 else:
                     csv_data = [row for row in reader]
             return json.dumps(csv_data)
-        except Exception as e:
+        except FileNotFoundError as e:
+            logger.error(f"Error reading csv: {e}")
+            return f"Error reading csv: {e}"
+        except csv.Error as e:
             logger.error(f"Error reading csv: {e}")
             return f"Error reading csv: {e}"
 
@@ -111,7 +116,10 @@ class CsvTools(Toolkit):
                 columns = reader.fieldnames
 
             return json.dumps(columns)
-        except Exception as e:
+        except FileNotFoundError as e:
+            logger.error(f"Error getting columns: {e}")
+            return f"Error getting columns: {e}"
+        except csv.Error as e:
             logger.error(f"Error getting columns: {e}")
             return f"Error getting columns: {e}"
 
@@ -179,6 +187,9 @@ class CsvTools(Toolkit):
 
             log_debug(f"Query result: {result_output}")
             return result_output
-        except Exception as e:
+        except duckdb.Error as e:
+            logger.error(f"Error querying csv: {e}")
+            return f"Error querying csv: {e}"
+        except FileNotFoundError as e:
             logger.error(f"Error querying csv: {e}")
             return f"Error querying csv: {e}"

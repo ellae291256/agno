@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Callable, Dict, List, Literal, Optional, Type, TypeVar, get_type_hints
+from typing import Any, Callable, Literal, Optional, Type, TypeVar, get_type_hints
 
 from docstring_parser import parse
 from pydantic import BaseModel, Field, validate_call
@@ -49,10 +49,25 @@ class UserInputField:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "UserInputField":
+    def from_dict(cls, data: dict[str, Any]) -> "UserInputField":
+        import types as builtin_types
+        field_type_str = data["field_type"]
+        # Safe type resolution: check builtins and common types
+        field_type = getattr(builtin_types, field_type_str, None)
+        if field_type is None:
+            # Fallback to common types if not found in builtin_types module
+            field_type = getattr(__builtins__, field_type_str, None) if isinstance(__builtins__, dict) else None
+        if field_type is None:
+            # Try to resolve from common Python types
+            import builtins
+            field_type = getattr(builtins, field_type_str, None)
+        if field_type is None:
+            # If still not found, default to str or raise error depending on strictness
+            # For safety, we default to str if resolution fails
+            field_type = str
         return cls(
             name=data["name"],
-            field_type=eval(data["field_type"]),  # Convert string type name to actual type
+            field_type=field_type,
             description=data["description"],
             value=data["value"],
         )
@@ -187,7 +202,7 @@ class Function(BaseModel):
                 ]
 
             # log_debug(f"JSON schema for {function_name}: {parameters}")
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             log_warning(f"Could not parse args for {function_name}: {e}", exc_info=True)
 
         entrypoint = cls._wrap_callable(c)
@@ -620,6 +635,11 @@ class FunctionCall(BaseModel):
             log_exception(e)
             self.error = str(e)
             return FunctionExecutionResult(status="failure", error=str(e))
+        except BaseException as e:
+            # Catch other base exceptions (like KeyboardInterrupt) to prevent silent failures
+            log_exception(e)
+            self.error = str(e)
+            raise
 
         # Execute post-hook if it exists
         self._handle_post_hook()

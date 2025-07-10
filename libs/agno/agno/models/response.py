@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from agno.media import AudioResponse, ImageArtifact
 from agno.models.message import Citations, MessageMetrics

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import functools
 import runpy
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 from agno.tools import Toolkit
 from agno.utils.log import log_debug, log_info, logger
@@ -88,7 +90,8 @@ class PythonTools(Toolkit):
             else:
                 return f"successfully ran {str(file_path)}"
         except Exception as e:
-            logger.error(f"Error saving and running code: {e}")
+            import traceback
+            logger.error(f"Error saving and running code: {e}\n{traceback.format_exc()}")
             return f"Error saving and running code: {e}"
 
     def run_python_file_return_variable(self, file_name: str, variable_to_return: Optional[str] = None) -> str:
@@ -115,7 +118,8 @@ class PythonTools(Toolkit):
             else:
                 return f"successfully ran {str(file_path)}"
         except Exception as e:
-            logger.error(f"Error running file: {e}")
+            import traceback
+            logger.error(f"Error running file: {e}\n{traceback.format_exc()}")
             return f"Error running file: {e}"
 
     def read_file(self, file_name: str) -> str:
@@ -130,7 +134,8 @@ class PythonTools(Toolkit):
             contents = file_path.read_text(encoding="utf-8")
             return str(contents)
         except Exception as e:
-            logger.error(f"Error reading file: {e}")
+            import traceback
+            logger.error(f"Error reading file: {e}\n{traceback.format_exc()}")
             return f"Error reading file: {e}"
 
     def list_files(self) -> str:
@@ -143,7 +148,8 @@ class PythonTools(Toolkit):
             files = [str(file_path.name) for file_path in self.base_dir.iterdir()]
             return ", ".join(files)
         except Exception as e:
-            logger.error(f"Error reading files: {e}")
+            import traceback
+            logger.error(f"Error reading files: {e}\n{traceback.format_exc()}")
             return f"Error reading files: {e}"
 
     def run_python_code(self, code: str, variable_to_return: Optional[str] = None) -> str:
@@ -172,7 +178,8 @@ class PythonTools(Toolkit):
             else:
                 return "successfully ran python code"
         except Exception as e:
-            logger.error(f"Error running python code: {e}")
+            import traceback
+            logger.error(f"Error running python code: {e}\n{traceback.format_exc()}")
             return f"Error running python code: {e}"
 
     def pip_install_package(self, package_name: str) -> str:
@@ -193,7 +200,8 @@ class PythonTools(Toolkit):
             subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
         except Exception as e:
-            logger.error(f"Error installing package {package_name}: {e}")
+            import traceback
+            logger.error(f"Error installing package {package_name}: {e}\n{traceback.format_exc()}")
             return f"Error installing package {package_name}: {e}"
 
     def uv_pip_install_package(self, package_name: str) -> str:
@@ -214,5 +222,6 @@ class PythonTools(Toolkit):
             subprocess.check_call([sys.executable, "-m", "uv", "pip", "install", package_name])
             return f"successfully installed package {package_name}"
         except Exception as e:
-            logger.error(f"Error installing package {package_name}: {e}")
+            import traceback
+            logger.error(f"Error installing package {package_name}: {e}\n{traceback.format_exc()}")
             return f"Error installing package {package_name}: {e}"
