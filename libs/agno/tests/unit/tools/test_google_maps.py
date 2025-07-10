@@ -112,7 +112,7 @@ def mock_client():
 
 def test_search_places(google_maps_tools):
     """Test the search_places method."""
-    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text:
+    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_search_text.return_value = MOCK_PLACES_V1_RESPONSE
 
         result = json.loads(google_maps_tools.search_places("test query"))
@@ -138,7 +138,7 @@ def test_search_places(google_maps_tools):
 
 def test_get_directions(google_maps_tools):
     """Test the get_directions method."""
-    with patch.object(google_maps_tools.client, "directions") as mock_directions:
+    with patch.object(google_maps_tools.client, "directions") as mock_directions, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_directions.return_value = MOCK_DIRECTIONS_RESPONSE
 
         result = eval(google_maps_tools.get_directions(origin="Test Origin", destination="Test Destination"))
@@ -150,7 +150,7 @@ def test_get_directions(google_maps_tools):
 
 def test_validate_address(google_maps_tools):
     """Test the validate_address method."""
-    with patch.object(google_maps_tools.client, "addressvalidation") as mock_validate:
+    with patch.object(google_maps_tools.client, "addressvalidation") as mock_validate, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_validate.return_value = MOCK_ADDRESS_VALIDATION_RESPONSE
 
         result = eval(google_maps_tools.validate_address("123 Test St"))
@@ -162,7 +162,7 @@ def test_validate_address(google_maps_tools):
 
 def test_geocode_address(google_maps_tools):
     """Test the geocode_address method."""
-    with patch.object(google_maps_tools.client, "geocode") as mock_geocode:
+    with patch.object(google_maps_tools.client, "geocode") as mock_geocode, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_geocode.return_value = MOCK_GEOCODE_RESPONSE
 
         result = eval(google_maps_tools.geocode_address("123 Test St"))
@@ -173,7 +173,7 @@ def test_geocode_address(google_maps_tools):
 
 def test_reverse_geocode(google_maps_tools):
     """Test the reverse_geocode method."""
-    with patch.object(google_maps_tools.client, "reverse_geocode") as mock_reverse:
+    with patch.object(google_maps_tools.client, "reverse_geocode") as mock_reverse, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_reverse.return_value = MOCK_GEOCODE_RESPONSE
 
         result = eval(google_maps_tools.reverse_geocode(40.7128, -74.0060))
@@ -184,7 +184,7 @@ def test_reverse_geocode(google_maps_tools):
 
 def test_get_distance_matrix(google_maps_tools):
     """Test the get_distance_matrix method."""
-    with patch.object(google_maps_tools.client, "distance_matrix") as mock_matrix:
+    with patch.object(google_maps_tools.client, "distance_matrix") as mock_matrix, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_matrix.return_value = MOCK_DISTANCE_MATRIX_RESPONSE
 
         result = eval(google_maps_tools.get_distance_matrix(origins=["Origin"], destinations=["Destination"]))
@@ -196,7 +196,7 @@ def test_get_distance_matrix(google_maps_tools):
 
 def test_get_elevation(google_maps_tools):
     """Test the get_elevation method."""
-    with patch.object(google_maps_tools.client, "elevation") as mock_elevation:
+    with patch.object(google_maps_tools.client, "elevation") as mock_elevation, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_elevation.return_value = MOCK_ELEVATION_RESPONSE
 
         result = eval(google_maps_tools.get_elevation(40.7128, -74.0060))
@@ -207,9 +207,9 @@ def test_get_elevation(google_maps_tools):
 
 def test_get_timezone(google_maps_tools):
     """Test the get_timezone method."""
-    with patch.object(google_maps_tools.client, "timezone") as mock_timezone:
+    with patch.object(google_maps_tools.client, "timezone") as mock_timezone, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_timezone.return_value = MOCK_TIMEZONE_RESPONSE
-        test_time = datetime(2024, 1, 1, 12, 0)
+        test_time = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
 
         result = eval(google_maps_tools.get_timezone(40.7128, -74.0060, test_time))
 
@@ -219,13 +219,13 @@ def test_get_timezone(google_maps_tools):
 
 def test_error_handling(google_maps_tools):
     """Test error handling in various methods."""
-    with patch.object(google_maps_tools.client, "places") as mock_places:
+    with patch.object(google_maps_tools.client, "places") as mock_places, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_places.side_effect = Exception("API Error")
 
         result = google_maps_tools.search_places("test query")
         assert result == "[]"
 
-    with patch.object(google_maps_tools.client, "directions") as mock_directions:
+    with patch.object(google_maps_tools.client, "directions") as mock_directions, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_directions.side_effect = Exception("API Error")
 
         result = google_maps_tools.get_directions("origin", "destination")
@@ -234,14 +234,13 @@ def test_error_handling(google_maps_tools):
 
 def test_initialization_without_api_key():
     """Test initialization without API key."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="GOOGLE_MAPS_API_KEY is not set"):
-            GoogleMapTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="GOOGLE_MAPS_API_KEY is not set"):
+        GoogleMapTools()
 
 
 def test_search_places_success(google_maps_tools):
     """Test the search_places method with successful response."""
-    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text:
+    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_search_text.return_value = MOCK_PLACES_V1_RESPONSE
 
         result = json.loads(google_maps_tools.search_places("test query"))
@@ -259,7 +258,7 @@ def test_search_places_success(google_maps_tools):
 
 def test_search_places_no_results(google_maps_tools):
     """Test search_places when no results are returned."""
-    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text:
+    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text, patch("agno.tools.google_maps.GoogleMapTools"):
         empty_response = MagicMock()
         empty_response.places = []
         mock_search_text.return_value = empty_response
@@ -270,7 +269,7 @@ def test_search_places_no_results(google_maps_tools):
 
 def test_search_places_error(google_maps_tools):
     """Test search_places when an error occurs."""
-    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text:
+    with patch.object(google_maps_tools.places_client, "search_text") as mock_search_text, patch("agno.tools.google_maps.GoogleMapTools"):
         mock_search_text.side_effect = Exception("API Error")
 
         result = json.loads(google_maps_tools.search_places("test query"))

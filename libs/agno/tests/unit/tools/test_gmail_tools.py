@@ -1,8 +1,8 @@
 """Unit tests for GmailTools class."""
 
 import base64
-from datetime import datetime
-from typing import Any, Dict
+from datetime import datetime, timezone
+from typing import Any
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
@@ -221,7 +221,7 @@ def test_get_emails_by_date(gmail_tools, mock_gmail_service):
     mock_gmail_service.users().messages().list().execute.return_value = mock_messages
     mock_gmail_service.users().messages().get().execute.return_value = mock_message_data
 
-    start_date = int(datetime(2024, 1, 1).timestamp())
+    start_date = int(datetime(2024, 1, 1, tzinfo=timezone.utc).timestamp())
     result = gmail_tools.get_emails_by_date(start_date, range_in_days=1)
 
     assert "Date Email" in result
@@ -485,7 +485,7 @@ def test_service_initialization():
         assert tools.service is None  # Service should not be initialized in __init__
 
         # Call a method that requires authentication
-        with patch.object(tools, "_auth"):
+        with patch.object(tools, "_auth"), patch("agno.tools.gmail.build") as mock_build:
             tools.get_latest_emails(count=1)
             mock_build.assert_called_once_with("gmail", "v1", credentials=mock_creds)
 
