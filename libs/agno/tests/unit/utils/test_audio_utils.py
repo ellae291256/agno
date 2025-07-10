@@ -258,6 +258,7 @@ def test_write_audio_to_file_relative_path():
 def test_write_audio_to_file_invalid_base64():
     """Test writing audio file with invalid base64 data."""
     # Create invalid base64 data
+    import binascii
     invalid_base64 = "invalid_base64_data!"
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
@@ -265,7 +266,7 @@ def test_write_audio_to_file_invalid_base64():
 
     try:
         # This should raise a binascii.Error
-        with pytest.raises(Exception):
+        with pytest.raises(binascii.Error):
             write_audio_to_file(invalid_base64, filename)
     finally:
         # Cleanup
