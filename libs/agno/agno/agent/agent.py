@@ -2834,7 +2834,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             mp = Message(**_im)
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message: {e}")
                     else:
                         log_warning(f"Unsupported message type: {type(_im)}")
@@ -2914,7 +2914,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             mp = Message(**_im)
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message during memory update: {e}")
                     else:
                         log_warning(f"Unsupported message type during memory update: {type(_im)}")
@@ -2971,7 +2971,7 @@ class Agent:
                     elif isinstance(_im, dict):
                         try:
                             mp = Message(**_im)
-                        except Exception as e:
+                        except (ValueError, TypeError) as e:
                             log_warning(f"Failed to validate message during memory update: {e}")
                     else:
                         log_warning(f"Unsupported message type: {type(_im)}")
@@ -3521,7 +3521,7 @@ class Agent:
                 elif isinstance(_im, dict):
                     try:
                         parsed_messages.append(Message(**_im))
-                    except Exception as e:
+                    except (ValueError, TypeError) as e:
                         log_warning(f"Failed to validate message during memory update: {e}")
                 else:
                     log_warning(f"Unsupported message type: {type(_im)}")
@@ -3547,7 +3547,7 @@ class Agent:
             try:
                 await asyncio.gather(*tasks)
             except Exception as e:
-                log_warning(f"Error in memory/summary operation: {str(e)}")
+                log_warning(f"Error in memory/summary operation: {e}")
 
             if self.stream_intermediate_steps:
                 yield self._handle_event(
@@ -3565,19 +3565,19 @@ class Agent:
             if isinstance(tool, Toolkit):
                 for func in tool.functions:
                     if iscoroutinefunction(tool.functions[func].entrypoint):
-                        raise Exception(
+                        raise ValueError(
                             f"Async tool {tool.name} can't be used with synchronous agent.run() or agent.print_response(). "
                             "Use agent.arun() or agent.aprint_response() instead to use this tool."
                         )
             elif isinstance(tool, Function):
                 if iscoroutinefunction(tool.entrypoint):
-                    raise Exception(
+                    raise ValueError(
                         f"Async function {tool.name} can't be used with synchronous agent.run() or agent.print_response(). "
                         "Use agent.arun() or agent.aprint_response() instead to use this tool."
                     )
             elif callable(tool):
                 if iscoroutinefunction(tool):
-                    raise Exception(
+                    raise ValueError(
                         f"Async function {tool.__name__} can't be used with synchronous agent.run() or agent.print_response(). "
                         "Use agent.arun() or agent.aprint_response() instead to use this tool."
                     )
@@ -4355,7 +4355,6 @@ class Agent:
             # Format the system message with the session state variables
             if self.add_state_in_messages:
                 sys_message_content = self.format_message_with_state_variables(sys_message_content)
-                print("HELLO", sys_message_content)
 
             # Add the JSON output prompt if response_model is provided and the model does not support native structured outputs or JSON schema outputs
             # or if use_json_mode is True
@@ -5003,7 +5002,7 @@ class Agent:
         return run_messages
 
     def get_messages_for_parser_model(
-        self, model_response: ModelResponse, response_format: Optional[Union[Dict, Type[BaseModel]]]
+        self, model_response: ModelResponse, response_format: dict | Type[BaseModel] | None = None
     ) -> List[Message]:
         """Get the messages for the parser model."""
         system_content = (
@@ -5021,7 +5020,7 @@ class Agent:
         ]
 
     def get_messages_for_parser_model_stream(
-        self, run_response: RunResponse, response_format: Optional[Union[Dict, Type[BaseModel]]]
+        self, run_response: RunResponse, response_format: dict | Type[BaseModel] | None = None
     ) -> List[Message]:
         """Get the messages for the parser model."""
         system_content = (
@@ -5072,7 +5071,7 @@ class Agent:
         else:
             raise ValueError(f"Memory type {type(self.memory)} not supported")
 
-    def deep_copy(self, *, update: Optional[Dict[str, Any]] = None) -> Agent:
+    def deep_copy(self, *, update: dict[str, Any] | None = None) -> Agent:
         """Create and return a deep copy of this Agent, optionally updating fields.
 
         Args:
@@ -5115,10 +5114,10 @@ class Agent:
         elif field_name in ("memory", "storage", "model", "reasoning_model"):
             try:
                 return deepcopy(field_value)
-            except Exception:
+            except (TypeError, ValueError):
                 try:
                     return copy(field_value)
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 
@@ -5126,10 +5125,10 @@ class Agent:
         elif isinstance(field_value, (list, dict, set)):
             try:
                 return deepcopy(field_value)
-            except Exception:
+            except (TypeError, ValueError):
                 try:
                     return copy(field_value)
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 
@@ -5137,10 +5136,10 @@ class Agent:
         elif isinstance(field_value, BaseModel):
             try:
                 return field_value.model_copy(deep=True)
-            except Exception:
+            except (TypeError, ValueError):
                 try:
                     return field_value.model_copy(deep=False)
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     log_warning(f"Failed to copy field: {field_name} - {e}")
                     return field_value
 
@@ -5149,13 +5148,13 @@ class Agent:
             from copy import copy
 
             return copy(field_value)
-        except Exception:
+        except (TypeError, ValueError):
             # If copy fails, return as is
             return field_value
 
-    def get_transfer_function(self, member_agent: Agent, index: int, session_id: Optional[str] = None) -> Function:
+    def get_transfer_function(self, member_agent: Agent, index: int, session_id: str | None = None) -> Function:
         def _transfer_task_to_agent(
-            task_description: str, expected_output: str, additional_information: Optional[str] = None
+            task_description: str, expected_output: str, additional_information: str | None = None
         ) -> Iterator[str]:
             if member_agent.team_data is None:
                 member_agent.team_data = {}
@@ -5172,7 +5171,7 @@ class Agent:
                     member_agent_task += (
                         f"\n\n<additional_information>\n{additional_information}\n</additional_information>"
                     )
-            except Exception as e:
+            except (TypeError, ValueError) as e:
                 log_warning(f"Failed to add additional information to the member agent: {e}")
 
             member_agent_session_id = member_agent.session_id
@@ -5206,14 +5205,14 @@ class Agent:
                 elif issubclass(type(member_agent_run_response.content), BaseModel):
                     try:
                         yield member_agent_run_response.content.model_dump_json(indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
                 else:
                     try:
                         import json
 
                         yield json.dumps(member_agent_run_response.content, indent=2)
-                    except Exception as e:
+                    except (TypeError, ValueError) as e:
                         yield str(e)
             yield self.team_response_separator
 

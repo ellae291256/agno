@@ -4998,8 +4998,8 @@ class Team:
                     self._functions_for_model[func.name] = func
                     self._tools_for_model.append({"type": "function", "function": func.to_dict()})
                     log_debug(f"Added tool {func.name}")
-                except Exception as e:
-                    log_warning(f"Could not add tool {tool}: {e}")
+                except Exception:
+                    log_warning(f"Could not add tool {tool}")
 
     def get_members_system_message_content(self, indent: int = 0) -> str:
         system_message_content = ""
@@ -5098,9 +5098,9 @@ class Team:
             additional_information.append("Use markdown to format your answers.")
         # 1.3.2 Add the current datetime
         if self.add_datetime_to_instructions:
-            from datetime import datetime
+            from datetime import datetime, timezone
 
-            additional_information.append(f"The current time is {datetime.now()}")
+            additional_information.append(f"The current time is {datetime.now(timezone.utc)}")
 
         # 1.3.3 Add the current location
         if self.add_location_to_instructions:
@@ -5317,13 +5317,13 @@ class Team:
         self,
         *,
         session_id: str,
-        user_id: Optional[str] = None,
-        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
-        audio: Optional[Sequence[Audio]] = None,
-        images: Optional[Sequence[Image]] = None,
-        videos: Optional[Sequence[Video]] = None,
-        files: Optional[Sequence[File]] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        user_id: str | None = None,
+        message: str | list | dict | Message | BaseModel | None = None,
+        audio: Sequence[Audio] | None = None,
+        images: Sequence[Image] | None = None,
+        videos: Sequence[Video] | None = None,
+        files: Sequence[File] | None = None,
+        knowledge_filters: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> RunMessages:
         """This function returns a RunMessages object with the following attributes:
@@ -5400,13 +5400,13 @@ class Team:
 
     def _get_user_message(
         self,
-        message: Optional[Union[str, List, Dict, Message, BaseModel]] = None,
-        user_id: Optional[str] = None,
-        audio: Optional[Sequence[Audio]] = None,
-        images: Optional[Sequence[Image]] = None,
-        videos: Optional[Sequence[Video]] = None,
-        files: Optional[Sequence[File]] = None,
-        knowledge_filters: Optional[Dict[str, Any]] = None,
+        message: str | list | dict | Message | BaseModel | None = None,
+        user_id: str | None = None,
+        audio: Sequence[Audio] | None = None,
+        images: Sequence[Image] | None = None,
+        videos: Sequence[Video] | None = None,
+        files: Sequence[File] | None = None,
+        knowledge_filters: dict[str, Any] | None = None,
         **kwargs,
     ):
         # Get references from the knowledge base to use in the user message
@@ -5421,7 +5421,7 @@ class Team:
             elif isinstance(message, BaseModel):
                 message_str = message.model_dump_json(indent=2, exclude_none=True)
             else:
-                raise Exception("message must be a string or a callable when add_references is True")
+                raise ValueError("message must be a string or a callable when add_references is True")
 
             try:
                 retrieval_timer = Timer()
@@ -5441,8 +5441,8 @@ class Team:
                     self.run_response.extra_data.references.append(references)
                 retrieval_timer.stop()
                 log_debug(f"Time to get references: {retrieval_timer.elapsed:.4f}s")
-            except Exception as e:
-                log_warning(f"Failed to get references: {e}")
+            except Exception:
+                log_warning("Failed to get references")
 
         # Build user message if message is None, str or list
         user_message_content: str = ""
@@ -5774,7 +5774,7 @@ class Team:
             """
             import json
 
-            history: List[Dict[str, Any]] = []
+            history: list[dict[str, Any]] = []
             if isinstance(self.memory, TeamMemory):
                 team_chats = self.memory.get_all_messages()
 
@@ -5955,8 +5955,8 @@ class Team:
                             import json
 
                             yield f"Agent {member_agent.name}: {json.dumps(member_agent_run_response.content, indent=2)}"
-                    except Exception as e:
-                        yield f"Agent {member_agent.name}: Error - {str(e)}"
+                    except Exception:
+                        yield f"Agent {member_agent.name}: Error"
 
                 # Update the memory
                 member_name = member_agent.name if member_agent.name else f"agent_{member_agent_index}"
@@ -6085,8 +6085,8 @@ class Team:
                             import json
 
                             return f"Agent {member_name}: {json.dumps(response.content, indent=2)}"
-                    except Exception as e:
-                        return f"Agent {member_name}: Error - {str(e)}"
+                    except Exception:
+                        return f"Agent {member_name}: Error"
 
                     return f"Agent {member_name}: No Response"
 
@@ -7775,8 +7775,8 @@ class Team:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
-            log_debug(f"Could not create team event: {e}")
+        except Exception:
+            log_debug("Could not create team event")
 
     async def _alog_team_run(self, session_id: str, user_id: Optional[str] = None) -> None:
         if not self.telemetry and not self.monitoring:
@@ -7799,8 +7799,8 @@ class Team:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
-            log_debug(f"Could not create team event: {e}")
+        except Exception:
+            log_debug("Could not create team event")
 
     def _log_team_session(self, session_id: str, user_id: Optional[str] = None):
         if not (self.telemetry or self.monitoring):
@@ -7819,8 +7819,8 @@ class Team:
                 ),
                 monitor=self.monitoring,
             )
-        except Exception as e:
-            log_debug(f"Could not create team monitor: {e}")
+        except Exception:
+            log_debug("Could not create team monitor")
 
     def _get_agentic_or_user_search_filters(
         self, filters: Optional[Dict[str, Any]], effective_filters: Optional[Dict[str, Any]]

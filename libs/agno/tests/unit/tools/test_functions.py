@@ -1,4 +1,6 @@
-from typing import Any, Callable, Dict
+from __future__ import annotations
+
+from typing import Any, Callable
 
 import pytest
 from pydantic import ValidationError
@@ -694,10 +696,9 @@ def test_tool_decorator_with_agent_team_params():
 
 def test_tool_decorator_with_complex_types():
     """Test @tool decorator with complex parameter types."""
-    from typing import Dict, List, Optional
 
     @tool
-    def complex_types_func(param1: List[str], param2: Dict[str, int], param3: Optional[bool] = None) -> str:
+    def complex_types_func(param1: list[str], param2: dict[str, int], param3: bool | None = None) -> str:
         """Function with complex parameter types."""
         return "test"
 

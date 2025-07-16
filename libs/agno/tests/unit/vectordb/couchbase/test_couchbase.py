@@ -370,17 +370,17 @@ def test_get_bucket_not_exists(mock_cluster):
         couchbase_fts.create()
 
 
-def test_create_scope_collection_exists(couchbase_fts, mock_bucket):
+def test_create_scope_collection_exists(couchbase_fts):
     # Mock the collections().get_all_scopes() to return a scope with the _default name
-    mock_bucket.collections().create_scope.side_effect = ScopeAlreadyExistsException("Scope already exists")
-    mock_bucket.collections().create_collection.side_effect = CollectionAlreadyExistsException(
+    couchbase_fts._bucket.collections().create_scope.side_effect = ScopeAlreadyExistsException("Scope already exists")
+    couchbase_fts._bucket.collections().create_collection.side_effect = CollectionAlreadyExistsException(
         "Collection already exists"
     )
     # Call the method
     couchbase_fts._create_collection_and_scope()
 
-    mock_bucket.collections().create_scope.assert_called_once_with(scope_name=couchbase_fts.scope_name)
-    mock_bucket.collections().create_collection.assert_called_once_with(
+    couchbase_fts._bucket.collections().create_scope.assert_called_once_with(scope_name=couchbase_fts.scope_name)
+    couchbase_fts._bucket.collections().create_collection.assert_called_once_with(
         collection_name=couchbase_fts.collection_name, scope_name=couchbase_fts.scope_name
     )
 
@@ -847,7 +847,7 @@ async def test_async_search_scope_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("test query scope kv")
         mock_get_async_scope.assert_called_once()  # For the search part
         mock_scope_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_scope_inst.search.call_args
+        _, search_kwargs = mock_scope_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 5
 
         # __async_get_doc_from_kv will call get_async_collection then .get for each doc
@@ -926,7 +926,7 @@ async def test_async_search_cluster_level(couchbase_fts, mock_embedder):
         mock_embedder.get_embedding.assert_called_once_with("cluster query kv")
         mock_get_async_cluster_for_search.assert_called_once()  # For the search part
         mock_cluster_inst.search.assert_called_once()
-        search_args, search_kwargs = mock_cluster_inst.search.call_args
+        _, search_kwargs = mock_cluster_inst.search.call_args
         assert search_kwargs["options"]["limit"] == 3
 
         mock_get_async_collection_for_kv.assert_called_once()

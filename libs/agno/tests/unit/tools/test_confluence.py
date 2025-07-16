@@ -28,9 +28,8 @@ def confluence_tools(mock_confluence):
             "CONFLUENCE_USERNAME": "test_user",
             "CONFLUENCE_API_KEY": "test_api_key",
         },
-    ):
+    ), patch.object(ConfluenceTools, "confluence", mock_confluence, create=True):
         tools = ConfluenceTools()
-        tools.confluence = mock_confluence
         return tools
 
 
@@ -65,9 +64,8 @@ def test_init_with_constructor_parameters():
 
 def test_init_with_missing_credentials():
     """Test initialization with missing credentials."""
-    with patch.dict("os.environ", {}, clear=True):
-        with pytest.raises(ValueError):
-            ConfluenceTools()
+    with patch.dict("os.environ", {}, clear=True), pytest.raises(ValueError):
+        ConfluenceTools()
 
 
 # Space Tests
