@@ -1,6 +1,6 @@
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -111,7 +111,7 @@ class ChromaDb(VectorDb):
                 return True
         except Exception as e:
             logger.error(f"Document does not exist: {e}")
-        return False
+            return False
 
     async def async_doc_exists(self, document: Document) -> bool:
         """Check if a document exists asynchronously."""
@@ -125,10 +125,9 @@ class ChromaDb(VectorDb):
             bool: True if document exists, False otherwise."""
         if self.client:
             try:
-                collections: Collection = self.client.get_collection(name=self.collection_name)
-                for collection in collections:  # type: ignore
-                    if name in collection:
-                        return True
+                collection: Collection = self.client.get_collection(name=self.collection_name)
+                if name in collection.name:
+                    return True
             except Exception as e:
                 logger.error(f"Document with given name does not exist: {e}")
         return False
@@ -279,6 +278,7 @@ class ChromaDb(VectorDb):
                 )
         except Exception as e:
             logger.error(f"Error building search results: {e}")
+            return []
 
         if self.reranker:
             search_results = self.reranker.rerank(query=query, documents=search_results)
@@ -348,6 +348,7 @@ class ChromaDb(VectorDb):
                 return collection.count()
             except Exception as e:
                 logger.error(f"Error getting count: {e}")
+                return 0
         return 0
 
     def optimize(self) -> None:
