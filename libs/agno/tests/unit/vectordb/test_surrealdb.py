@@ -1,4 +1,4 @@
-from typing import Generator, List
+from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -220,7 +220,7 @@ def test_search(surrealdb_vector: SurrealDb, mock_surrealdb_client: MagicMock) -
 
     # Verify search query
     mock_surrealdb_client.query.assert_called_once()
-    args, kwargs = mock_surrealdb_client.query.call_args
+    args, _ = mock_surrealdb_client.query.call_args
     assert "SELECT" in args[0]
     assert "FROM test_collection" in args[0]
     assert "WHERE embedding <|2, 40|>" in args[0]
