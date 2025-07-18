@@ -1,4 +1,6 @@
-from typing import Generator, List
+from __future__ import annotations
+
+from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -172,7 +174,7 @@ def test_insert(surrealdb_vector, mock_surrealdb_client, sample_documents):
     assert mock_surrealdb_client.create.call_count == 3
 
     # Check args for first document
-    args, _ = mock_surrealdb_client.create.call_args_list[0]
+    args = mock_surrealdb_client.create.call_args_list[0][0]
     assert args[0] == "test_collection"
     assert "content" in args[1]
     assert "embedding" in args[1]
@@ -186,7 +188,7 @@ def test_upsert(surrealdb_vector, mock_surrealdb_client, sample_documents):
     assert mock_surrealdb_client.query.call_count == 3
 
     # Check args for first call
-    args, _ = mock_surrealdb_client.query.call_args_list[0]
+    args = mock_surrealdb_client.query.call_args_list[0][0]
     assert "UPSERT test_collection" in args[0]
     assert "SET content = $content" in args[0]
     assert "content" in args[1]
@@ -220,7 +222,7 @@ def test_search(surrealdb_vector: SurrealDb, mock_surrealdb_client: MagicMock) -
 
     # Verify search query
     mock_surrealdb_client.query.assert_called_once()
-    args, kwargs = mock_surrealdb_client.query.call_args
+    args, _ = mock_surrealdb_client.query.call_args
     assert "SELECT" in args[0]
     assert "FROM test_collection" in args[0]
     assert "WHERE embedding <|2, 40|>" in args[0]
