@@ -57,6 +57,7 @@ class TestValyuTools:
             with pytest.raises(ValueError, match="VALYU_API_KEY not set"):
                 ValyuTools()
 
+
     @patch.dict("os.environ", {"VALYU_API_KEY": "env_key"})
     def test_init_with_env_api_key(self, mock_valyu):
         """Test initialization with API key from environment."""

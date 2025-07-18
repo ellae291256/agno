@@ -40,6 +40,15 @@ def mock_environment_variables():
         yield
 
 
+@pytest.fixture
+def mock_oxylabs_client(mock_environment_variables):
+    """Mock the Oxylabs client."""
+    with patch("agno.tools.oxylabs.OxylabsClient") as mock_client:
+        mock_instance = Mock()
+        mock_client.return_value = mock_instance
+        yield mock_instance
+
+
 def create_mock_response(results=None, status_code=200):
     """Helper to create a mock response object matching the SDK structure."""
     mock_response = Mock()
@@ -78,16 +87,14 @@ class TestOxylabsToolsInitialization:
     def test_init_without_credentials(self):
         """Test initialization failure without credentials."""
         # Ensure no environment variables are set
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
-                OxylabsTools()
+        with patch.dict("os.environ", {}, clear=True), pytest.raises(ValueError, match="No Oxylabs credentials provided"):
+            OxylabsTools()
 
     def test_init_partial_credentials(self):
         """Test initialization failure with partial credentials."""
         # Ensure no environment variables are set
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
-                OxylabsTools(username="test_user")
+        with patch.dict("os.environ", {}, clear=True), pytest.raises(ValueError, match="No Oxylabs credentials provided"):
+            OxylabsTools(username="test_user")
 
 
 class TestSearchGoogle:

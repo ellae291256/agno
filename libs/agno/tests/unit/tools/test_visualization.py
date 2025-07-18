@@ -13,8 +13,9 @@ from agno.tools.visualization import VisualizationTools
 @pytest.fixture
 def temp_output_dir():
     """Create a temporary directory for test outputs."""
-    with tempfile.TemporaryDirectory() as temp_dir:
-        yield temp_dir
+    temp_dir = tempfile.mkdtemp()
+    yield temp_dir
+    shutil.rmtree(temp_dir)
 
 
 @pytest.fixture

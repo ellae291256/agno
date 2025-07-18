@@ -1,4 +1,4 @@
-from typing import Generator, List
+from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -172,7 +172,7 @@ def test_insert(surrealdb_vector, mock_surrealdb_client, sample_documents):
     assert mock_surrealdb_client.create.call_count == 3
 
     # Check args for first document
-    args, _ = mock_surrealdb_client.create.call_args_list[0]
+    args = mock_surrealdb_client.create.call_args_list[0][0]
     assert args[0] == "test_collection"
     assert "content" in args[1]
     assert "embedding" in args[1]
@@ -186,7 +186,7 @@ def test_upsert(surrealdb_vector, mock_surrealdb_client, sample_documents):
     assert mock_surrealdb_client.query.call_count == 3
 
     # Check args for first call
-    args, _ = mock_surrealdb_client.query.call_args_list[0]
+    args = mock_surrealdb_client.query.call_args_list[0][0]
     assert "UPSERT test_collection" in args[0]
     assert "SET content = $content" in args[0]
     assert "content" in args[1]
@@ -271,8 +271,6 @@ async def test_async_create(async_surrealdb_vector, mock_async_surrealdb_client)
     assert "DEFINE TABLE IF NOT EXISTS test_collection" in args
     assert "DEFINE INDEX IF NOT EXISTS vector_idx" in args
     assert f"DIMENSION {async_surrealdb_vector.embedder.dimensions}" in args
-
-
 @pytest.mark.asyncio
 async def test_async_doc_exists(async_surrealdb_vector, mock_async_surrealdb_client, sample_documents):
     """Test async document existence check"""
@@ -314,13 +312,11 @@ async def test_async_insert(async_surrealdb_vector, mock_async_surrealdb_client,
     assert mock_async_surrealdb_client.create.await_count == 3
 
     # Check args for first document
-    args, kwargs = mock_async_surrealdb_client.create.await_args_list[0]
+    args = mock_async_surrealdb_client.create.await_args_list[0][0]
     assert args[0] == "test_collection"
     assert "content" in args[1]
     assert "embedding" in args[1]
     assert "meta_data" in args[1]
-
-
 @pytest.mark.asyncio
 async def test_async_upsert(async_surrealdb_vector, mock_async_surrealdb_client, sample_documents):
     """Test async upserting documents"""
@@ -330,13 +326,12 @@ async def test_async_upsert(async_surrealdb_vector, mock_async_surrealdb_client,
     assert mock_async_surrealdb_client.query.await_count == 3
 
     # Check args for first call
-    args, kwargs = mock_async_surrealdb_client.query.await_args_list[0]
+    args = mock_async_surrealdb_client.query.await_args_list[0][0]
     assert "UPSERT test_collection" in args[0]
     assert "SET content = $content" in args[0]
     assert "content" in args[1]
     assert "embedding" in args[1]
     assert "meta_data" in args[1]
-
 
 @pytest.mark.asyncio
 async def test_async_search(async_surrealdb_vector: SurrealDb, mock_async_surrealdb_client: MagicMock) -> None:
@@ -363,13 +358,11 @@ async def test_async_search(async_surrealdb_vector: SurrealDb, mock_async_surrea
 
     # Verify search query
     mock_async_surrealdb_client.query.assert_awaited_once()
-    args, kwargs = mock_async_surrealdb_client.query.await_args
+    args = mock_async_surrealdb_client.query.await_args[0][0]
     assert "SELECT" in args[0]
     assert "FROM test_collection" in args[0]
     assert "WHERE embedding <|2, 40|>" in args[0]
     assert "LIMIT 2" in args[0]
-
-
 @pytest.mark.asyncio
 async def test_async_drop(async_surrealdb_vector, mock_async_surrealdb_client):
     """Test async dropping a collection"""
