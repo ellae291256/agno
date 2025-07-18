@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from sqlalchemy.dialects import mysql
@@ -120,7 +122,7 @@ class SingleStore(VectorDb):
         try:
             return inspect(self.db_engine).has_table(self.table.name, schema=self.schema)
         except Exception as e:
-            logger.error(e)
+            logger.error(f"Error checking table existence: {e}")
             return False
 
     def doc_exists(self, document: Document) -> bool:
