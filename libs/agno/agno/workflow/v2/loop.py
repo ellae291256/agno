@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import AsyncIterator, Awaitable, Callable, Iterator
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -85,8 +87,8 @@ class Loop:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        loop_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: StepOutput | list[StepOutput],
+        loop_step_outputs: dict[str, StepOutput] | None = None,
     ) -> StepInput:
         """Helper to update step input from step outputs (handles both single and multiple outputs)"""
         current_images = step_input.images or []
@@ -94,9 +96,9 @@ class Loop:
         current_audio = step_input.audio or []
 
         if isinstance(step_outputs, list):
-            all_images = sum([out.images or [] for out in step_outputs], [])
-            all_videos = sum([out.videos or [] for out in step_outputs], [])
-            all_audio = sum([out.audio or [] for out in step_outputs], [])
+            all_images = [img for out in step_outputs for img in (out.images or [])]
+            all_videos = [vid for out in step_outputs for vid in (out.videos or [])]
+            all_audio = [aud for out in step_outputs for aud in (out.audio or [])]
 
             # Use the last output's content for chaining
             previous_step_content = step_outputs[-1].content if step_outputs else None
@@ -186,6 +188,7 @@ class Loop:
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
                     # Continue with loop if end condition fails
+                    pass
 
         log_debug(f"Loop End: {self.name} ({iteration} iterations)", center=True, symbol="=")
 
@@ -313,6 +316,7 @@ class Loop:
                     log_debug(f"End condition returned: {should_break}, should_continue: {should_continue}")
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
+                    pass
 
             if early_termination:
                 should_continue = False
@@ -424,6 +428,7 @@ class Loop:
                         break
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
+                    pass
 
         # Use workflow logger for async loop completion
         log_debug(f"Async Loop End: {self.name} ({iteration} iterations)", center=True, symbol="=")
@@ -555,6 +560,7 @@ class Loop:
                     log_debug(f"End condition returned: {should_break}, should_continue: {should_continue}")
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
+                    pass
 
             if early_termination:
                 should_continue = False

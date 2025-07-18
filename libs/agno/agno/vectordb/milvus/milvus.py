@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 try:
     import asyncio
@@ -193,7 +195,7 @@ class Milvus(VectorDb):
 
     def _prepare_document_data(
         self, document: Document, include_vectors: bool = True
-    ) -> Dict[str, Union[str, List[float], Dict[int, float], None]]:
+    ) -> dict[str, str | list[float] | dict[int, float] | None]:
         """
         Prepare document data for insertion.
 
@@ -202,8 +204,8 @@ class Milvus(VectorDb):
             include_vectors: Whether to include vector data
 
         Returns:
-            Dictionary with document data where values can be strings, vectors (List[float]),
-            sparse vectors (Dict[int, float]), or None
+            Dictionary with document data where values can be strings, vectors (list[float]),
+            sparse vectors (dict[int, float]), or None
         """
         # Ensure document is embedded if vectors are needed
         if include_vectors and document.embedding is None:
@@ -218,7 +220,7 @@ class Milvus(VectorDb):
         meta_data_str = json.dumps(document.meta_data) if document.meta_data else "{}"
         usage_str = json.dumps(document.usage) if document.usage else "{}"
 
-        data: Dict[str, Union[str, List[float], Dict[int, float], None]] = {
+        data: dict[str, str | list[float] | dict[int, float] | None] = {
             "id": doc_id,
             "text": cleaned_content,
             "name": document.name,
@@ -231,19 +233,19 @@ class Milvus(VectorDb):
             if self.search_type == SearchType.hybrid:
                 data.update(
                     {
-                        "dense_vector": document.embedding,  # List[float] or None # Dict[int, float]
+                        "dense_vector": document.embedding,  # list[float] or None # dict[int, float]
                         "sparse_vector": self._get_sparse_vector(cleaned_content),
                     }
                 )
             else:
-                vector_data: Optional[List[float]] = document.embedding
+                vector_data: list[float] | None = document.embedding
                 data["vector"] = vector_data
 
         return data
 
     def _create_hybrid_collection(self) -> None:
         """Create a collection specifically for hybrid search."""
-        log_debug(f"Creating hybrid collection: {self.collection}")
+        log_debug(f"Creating hybrid collection: {self.collection!r}")
 
         schema = self._create_hybrid_schema()
         index_params = self._prepare_hybrid_index_params()
@@ -518,17 +520,17 @@ class Milvus(VectorDb):
         """
         return MILVUS_DISTANCE_MAP.get(self.distance, "COSINE")
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
         Args:
             query (str): Query string to search for
             limit (int): Maximum number of results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search
+            filters (dict[str, Any] | None): Filters to apply to the search
 
         Returns:
-            List[Document]: List of matching documents
+            list[Document]: List of matching documents
         """
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit)
@@ -547,7 +549,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -565,8 +567,8 @@ class Milvus(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit, filters)
 
@@ -584,7 +586,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -601,17 +603,17 @@ class Milvus(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a hybrid search combining dense and sparse vector similarity.
 
         Args:
             query (str): Query string to search for
             limit (int): Maximum number of results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search
+            filters (dict[str, Any] | None): Filters to apply to the search
 
         Returns:
-            List[Document]: List of matching documents
+            list[Document]: List of matching documents
         """
         from pymilvus import AnnSearchRequest, RRFRanker
 
@@ -661,7 +663,7 @@ class Milvus(VectorDb):
             )
 
             # Build search results
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for hits in results:
                 for hit in hits:
                     entity = hit.get("entity", {})
@@ -687,8 +689,8 @@ class Milvus(VectorDb):
             log_info(f"Found {len(search_results)} documents")
             return search_results
 
-        except Exception as e:
-            logger.error(f"Error during hybrid search: {e}")
+        except Exception:
+            logger.error(f"Error during hybrid search")
             return []
 
     def drop(self) -> None:
@@ -722,7 +724,7 @@ class Milvus(VectorDb):
         return self.client.has_collection(self.collection)
 
     def get_count(self) -> int:
-        return self.client.get_collection_stats(collection_name="test_collection")["row_count"]
+        return self.client.get_collection_stats(collection_name=self.collection)["row_count"]
 
     def delete(self) -> bool:
         if self.client:
@@ -730,7 +732,7 @@ class Milvus(VectorDb):
             return True
         return False
 
-    def _build_expr(self, filters: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _build_expr(self, filters: dict[str, Any] | None) -> str | None:
         """Build Milvus expression from filters."""
         if not filters:
             return None
@@ -740,22 +742,22 @@ class Milvus(VectorDb):
             if isinstance(v, (list, tuple)):
                 # For array values, use json_contains_any
                 values_str = json.dumps(v)
-                expr = f'json_contains_any(meta_data, {values_str}, "{k}")'
+                expr = f'json_contains_any(meta_data, {values_str}, {k!r})'
             elif isinstance(v, str):
                 # For string values
-                expr = f'meta_data["{k}"] == "{v}"'
+                expr = f'meta_data[{k!r}] == {v!r}'
             elif isinstance(v, bool):
                 # For boolean values
-                expr = f'meta_data["{k}"] == {str(v).lower()}'
+                expr = f'meta_data[{k!r}] == {str(v).lower()}'
             elif isinstance(v, (int, float)):
                 # For numeric values
-                expr = f'meta_data["{k}"] == {v}'
+                expr = f'meta_data[{k!r}] == {v}'
             elif v is None:
                 # For null values
-                expr = f'meta_data["{k}"] is null'
+                expr = f'meta_data[{k!r}] is null'
             else:
                 # For other types, convert to string
-                expr = f'meta_data["{k}"] == "{str(v)}"'
+                expr = f'meta_data[{k!r}] == {str(v)!r}'
 
             expressions.append(expr)
 

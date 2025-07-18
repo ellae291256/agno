@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -12,18 +14,16 @@ from agno.run.v2.workflow import (
 from agno.utils.log import log_debug, logger
 from agno.workflow.v2.step import Step, StepInput, StepOutput
 
-WorkflowSteps = List[
-    Union[
-        Callable[
-            [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
-        ],
-        Step,
-        "Steps",  # type: ignore # noqa: F821
-        "Loop",  # type: ignore # noqa: F821
-        "Parallel",  # type: ignore # noqa: F821
-        "Condition",  # type: ignore # noqa: F821
-        "Router",  # type: ignore # noqa: F821
+WorkflowSteps = list[
+    Callable[
+        [StepInput], StepOutput | Awaitable[StepOutput] | Iterator[StepOutput] | AsyncIterator[StepOutput]
     ]
+    | Step
+    | Steps  # type: ignore # noqa: F821
+    | Loop  # type: ignore # noqa: F821
+    | Parallel  # type: ignore # noqa: F821
+    | Condition  # type: ignore # noqa: F821
+    | Router  # type: ignore # noqa: F821
 ]
 
 
@@ -35,12 +35,12 @@ class Steps:
     steps: WorkflowSteps
 
     # Pipeline identification
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
 
     def __init__(
-        self, name: Optional[str] = None, description: Optional[str] = None, steps: Optional[List[Any]] = None
-    ):  # Change to List[Any]
+        self, name: str | None = None, description: str | None = None, steps: list[Any] | None = None
+    ):
         self.name = name
         self.description = description
         self.steps = steps if steps else []
@@ -73,8 +73,8 @@ class Steps:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        steps_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: StepOutput | list[StepOutput],
+        steps_step_outputs: dict[str, StepOutput] | None = None,
     ) -> StepInput:
         """Helper to update step input from step outputs - mirrors Condition/Router logic"""
         current_images = step_input.images or []
@@ -111,8 +111,8 @@ class Steps:
         )
 
     def execute(
-        self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+        self, step_input: StepInput, session_id: str | None = None, user_id: str | None = None
+    ) -> list[StepOutput]:
         """Execute all steps in sequence and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -160,7 +160,7 @@ class Steps:
             log_debug(f"Steps End: {self.name} ({len(all_results)} results)", center=True, symbol="-")
             return all_results
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Steps execution failed: {e}")
             return [
                 StepOutput(
@@ -175,11 +175,11 @@ class Steps:
         self,
         step_input: StepInput,
         workflow_run_response: WorkflowRunResponse,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         stream_intermediate_steps: bool = False,
-        step_index: Optional[Union[int, tuple]] = None,
-    ) -> Iterator[Union[WorkflowRunResponseEvent, TeamRunResponseEvent, RunResponseEvent, StepOutput]]:
+        step_index: int | tuple | None = None,
+    ) -> Iterator[WorkflowRunResponseEvent | TeamRunResponseEvent | RunResponseEvent | StepOutput]:
         """Execute all steps in sequence with streaming support"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -279,7 +279,7 @@ class Steps:
             for result in all_results:
                 yield result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Steps streaming failed: {e}")
             error_result = StepOutput(
                 step_name=self.name or "Steps",
@@ -290,8 +290,8 @@ class Steps:
             yield error_result
 
     async def aexecute(
-        self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+        self, step_input: StepInput, session_id: str | None = None, user_id: str | None = None
+    ) -> list[StepOutput]:
         """Execute all steps in sequence asynchronously and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -338,7 +338,7 @@ class Steps:
             log_debug(f"Steps End: {self.name} ({len(all_results)} results)", center=True, symbol="-")
             return all_results
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Async steps execution failed: {e}")
             return [
                 StepOutput(
@@ -353,11 +353,11 @@ class Steps:
         self,
         step_input: StepInput,
         workflow_run_response: WorkflowRunResponse,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         stream_intermediate_steps: bool = False,
-        step_index: Optional[Union[int, tuple]] = None,
-    ) -> AsyncIterator[Union[WorkflowRunResponseEvent, TeamRunResponseEvent, RunResponseEvent, StepOutput]]:
+        step_index: int | tuple | None = None,
+    ) -> AsyncIterator[WorkflowRunResponseEvent | TeamRunResponseEvent | RunResponseEvent | StepOutput]:
         """Execute all steps in sequence with async streaming support"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -454,7 +454,7 @@ class Steps:
             for result in all_results:
                 yield result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Async steps streaming failed: {e}")
             error_result = StepOutput(
                 step_name=self.name or "Steps",

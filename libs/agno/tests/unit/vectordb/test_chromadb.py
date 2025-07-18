@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -30,7 +31,7 @@ def chroma_db(mock_embedder):
     # Cleanup after test
     try:
         db.drop()
-    except Exception:
+    except OSError:
         pass
 
     if os.path.exists(TEST_PATH):
@@ -119,6 +120,8 @@ def test_distance_metrics():
     try:
         db_cosine.drop()
         db_euclidean.drop()
+    except OSError:
+        pass
     finally:
         if os.path.exists(TEST_PATH):
             shutil.rmtree(TEST_PATH)
@@ -160,6 +163,8 @@ def test_custom_embedder(mock_embedder):
     # Cleanup
     try:
         db.drop()
+    except OSError:
+        pass
     finally:
         if os.path.exists(TEST_PATH):
             shutil.rmtree(TEST_PATH)

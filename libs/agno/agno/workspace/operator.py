@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import cast
 
 from rich.prompt import Prompt
 
@@ -52,7 +54,7 @@ def create_workspace(
     from agno.utils.git import GitCloneProgress
     from agno.workspace.helpers import get_workspace_dir_path
 
-    current_dir: Path = Path(".").resolve()
+    current_dir: Path = Path.cwd()
 
     # Initialize Agno before creating a workspace
     agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
@@ -75,7 +77,7 @@ def create_workspace(
             # Display available starter templates and ask user to select one
             print_info("Select starter template or press Enter for default (agent-app)")
             for template_id, template_name in enumerate(templates, start=1):
-                print_info("  [b][{}][/b] {}".format(template_id, WorkspaceStarterTemplate(template_name).value))
+                print_info(f"  [b][{template_id}][/b] {WorkspaceStarterTemplate(template_name).value}")
 
             # Get starter template from the user
             template_choices = [str(idx) for idx, _ in enumerate(templates, start=1)]
@@ -127,7 +129,7 @@ def create_workspace(
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.GitCommandError as e:
         logger.error(e)
         return None
 
@@ -141,7 +143,6 @@ def create_workspace(
         except Exception as e:
             logger.warning(f"Failed to delete {_dot_git_folder}: {e}")
             logger.info("Please delete the .git folder manually")
-            pass
 
     agno_config.add_new_ws_to_config(ws_root_path=ws_root_path)
 
@@ -260,7 +261,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
             # We make a call to the api to create a new ws_schema
             logger.debug("Creating ws_schema")
             logger.debug(f"Getting teams for user: {agno_config.user.email}")
-            teams: Optional[List[TeamSchema]] = None
+            teams: list[TeamSchema] | None = None
             selected_team: Optional[TeamSchema] = None
             team_identifier: Optional[TeamIdentifier] = None
             with Live(transient=True) as live_log:
@@ -275,7 +276,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
                 print_info("Which account would you like to create this workspace in?")
                 print_info("  [b][1][/b] Personal (default)")
                 for team_idx, team_schema in enumerate(teams, start=2):
-                    print_info("  [b][{}][/b] {}".format(team_idx, team_schema.name))
+                    print_info(f"  [b][{team_idx}][/b] {team_schema.name}")
 
                 account_choices = ["1"] + [str(idx) for idx, _ in enumerate(teams, start=2)]
                 account_inp_raw = Prompt.ask("Account Number", choices=account_choices, default="1", show_choices=False)
@@ -387,7 +388,7 @@ def start_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Starting workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Starting workspace: {str(ws_config.ws_root_path.stem)}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -402,7 +403,7 @@ def start_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to deploy
-    resource_groups_to_create: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_create: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="create",
@@ -494,7 +495,7 @@ def stop_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Stopping workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Stopping workspace: {str(ws_config.ws_root_path.stem)}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -508,7 +509,7 @@ def stop_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to delete
-    resource_groups_to_delete: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_delete: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="delete",
@@ -600,7 +601,7 @@ def update_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Updating workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Updating workspace: {str(ws_config.ws_root_path.stem)}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -615,7 +616,7 @@ def update_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to update
-    resource_groups_to_update: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_update: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="create",
@@ -722,7 +723,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
     if ws_dir_name is None:
         # If the user does not provide a ws_name, that implies `ag set` is ran from
         # the workspace directory.
-        ws_root_path = Path(".").resolve()
+        ws_root_path = Path.cwd()
     else:
         # If the user provides a workspace name manually, we find the dir for that ws
         ws_config: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_dir_name(ws_dir_name)
@@ -733,7 +734,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
 
     ws_dir_is_valid: bool = ws_root_path is not None and ws_root_path.exists() and ws_root_path.is_dir()
     if not ws_dir_is_valid:
-        logger.error("Invalid workspace directory: {}".format(ws_root_path))
+        logger.error(f"Invalid workspace directory: {ws_root_path}")
         return
 
     ######################################################

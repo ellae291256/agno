@@ -1,4 +1,6 @@
-from typing import Any, Dict, Final, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any, Final
 
 try:
     from surrealdb import (
@@ -73,14 +75,14 @@ class SurrealDb(VectorDb):
 
     def __init__(
         self,
-        client: Optional[Union[BlockingWsSurrealConnection, BlockingHttpSurrealConnection]] = None,
-        async_client: Optional[Union[AsyncWsSurrealConnection, AsyncHttpSurrealConnection]] = None,
+        client: BlockingWsSurrealConnection | BlockingHttpSurrealConnection | None = None,
+        async_client: AsyncWsSurrealConnection | AsyncHttpSurrealConnection | None = None,
         collection: str = "documents",
         distance: Distance = Distance.cosine,
         efc: int = 150,
         m: int = 12,
         search_ef: int = 40,
-        embedder: Optional[Embedder] = None,
+        embedder: Embedder | None = None,
     ):
         """Initialize SurrealDB connection.
 
@@ -111,8 +113,8 @@ class SurrealDb(VectorDb):
             distance
         ]
 
-        self._client: Optional[Union[BlockingHttpSurrealConnection, BlockingWsSurrealConnection]] = client
-        self._async_client: Optional[Union[AsyncWsSurrealConnection, AsyncHttpSurrealConnection]] = async_client
+        self._client: BlockingHttpSurrealConnection | BlockingWsSurrealConnection | None = client
+        self._async_client: AsyncWsSurrealConnection | AsyncHttpSurrealConnection | None = async_client
 
         if self._client is None and self._async_client is None:
             msg = "Client and async client are not provided. Please provide one of them."
@@ -124,7 +126,7 @@ class SurrealDb(VectorDb):
         self.search_ef = search_ef
 
     @property
-    def async_client(self) -> Union[AsyncWsSurrealConnection, AsyncHttpSurrealConnection]:
+    def async_client(self) -> AsyncWsSurrealConnection | AsyncHttpSurrealConnection:
         """Check if the async client is initialized.
 
         Raises:
@@ -140,7 +142,7 @@ class SurrealDb(VectorDb):
         return self._async_client
 
     @property
-    def client(self) -> Union[BlockingHttpSurrealConnection, BlockingWsSurrealConnection]:
+    def client(self) -> BlockingHttpSurrealConnection | BlockingWsSurrealConnection:
         """Check if the client is initialized.
 
         Returns:
@@ -153,7 +155,7 @@ class SurrealDb(VectorDb):
         return self._client
 
     @staticmethod
-    def _build_filter_condition(filters: Optional[Dict[str, Any]] = None) -> str:
+    def _build_filter_condition(filters: dict[str, Any] | None = None) -> str:
         """Build filter condition for queries.
 
         Args:
@@ -213,7 +215,7 @@ class SurrealDb(VectorDb):
         result = self.client.query(self.NAME_EXISTS_QUERY.format(collection=self.collection), {"name": name})
         return bool(self._extract_result(result))
 
-    def insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents into the vector store.
 
         Args:
@@ -223,13 +225,13 @@ class SurrealDb(VectorDb):
         """
         for doc in documents:
             doc.embed(embedder=self.embedder)
-            meta_data: Dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
-            data: Dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
+            meta_data: dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
+            data: dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
             if filters:
                 data["meta_data"].update(filters)
             self.client.create(self.collection, data)
 
-    def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    def upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents into the vector store.
 
         Args:
@@ -239,8 +241,8 @@ class SurrealDb(VectorDb):
         """
         for doc in documents:
             doc.embed(embedder=self.embedder)
-            meta_data: Dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
-            data: Dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
+            meta_data: dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
+            data: dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
             if filters:
                 data["meta_data"].update(filters)
             thing = f"{self.collection}:{doc.id}" if doc.id else self.collection
@@ -322,7 +324,7 @@ class SurrealDb(VectorDb):
         return True
 
     @staticmethod
-    def _extract_result(query_result: Union[List[Dict[str, Any]], Dict[str, Any]]) -> Union[List[Any], Dict[str, Any]]:
+    def _extract_result(query_result: list[dict[str, Any]] | dict[str, Any]) -> list[Any] | dict[str, Any]:
         """Extract the actual result from SurrealDB query response.
 
         Args:
@@ -380,7 +382,7 @@ class SurrealDb(VectorDb):
         )
         return bool(self._extract_result(response))
 
-    async def async_insert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_insert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Insert documents into the vector store asynchronously.
 
         Args:
@@ -390,14 +392,14 @@ class SurrealDb(VectorDb):
         """
         for doc in documents:
             doc.embed(embedder=self.embedder)
-            meta_data: Dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
-            data: Dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
+            meta_data: dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
+            data: dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
             if filters:
                 data["meta_data"].update(filters)
             log_debug(f"Inserting document asynchronously: {doc.name} ({doc.meta_data})")
             await self.async_client.create(self.collection, data)
 
-    async def async_upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
+    async def async_upsert(self, documents: list[Document], filters: dict[str, Any] | None = None) -> None:
         """Upsert documents into the vector store asynchronously.
 
         Args:
@@ -407,8 +409,8 @@ class SurrealDb(VectorDb):
         """
         for doc in documents:
             doc.embed(embedder=self.embedder)
-            meta_data: Dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
-            data: Dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
+            meta_data: dict[str, Any] = doc.meta_data if isinstance(doc.meta_data, dict) else {}
+            data: dict[str, Any] = {"content": doc.content, "embedding": doc.embedding, "meta_data": meta_data}
             if filters:
                 data["meta_data"].update(filters)
             log_debug(f"Upserting document asynchronously: {doc.name} ({doc.meta_data})")
@@ -419,8 +421,8 @@ class SurrealDb(VectorDb):
         self,
         query: str,
         limit: int = 5,
-        filters: Optional[Dict[str, Any]] = None,
-    ) -> List[Document]:
+        filters: dict[str, Any] | None = None,
+    ) -> list[Document]:
         """Search for similar documents asynchronously.
 
         Args:

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import asyncio
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from chromadb import Client as ChromaDbClient
@@ -125,10 +127,9 @@ class ChromaDb(VectorDb):
             bool: True if document exists, False otherwise."""
         if self.client:
             try:
-                collections: Collection = self.client.get_collection(name=self.collection_name)
-                for collection in collections:  # type: ignore
-                    if name in collection:
-                        return True
+                collection: Collection = self.client.get_collection(name=self.collection_name)
+                if name in collection:
+                    return True
             except Exception as e:
                 logger.error(f"Document with given name does not exist: {e}")
         return False
@@ -221,20 +222,20 @@ class ChromaDb(VectorDb):
         """Upsert documents asynchronously by running in a thread."""
         await asyncio.to_thread(self.upsert, documents, filters)
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """Search the collection for a query.
 
         Args:
             query (str): Query to search for.
             limit (int): Number of results to return.
-            filters (Optional[Dict[str, Any]]): Filters to apply while searching.
+            filters (dict[str, Any] | None): Filters to apply while searching.
                 Supports ChromaDB's filtering operators:
                 - $eq, $ne: Equality/Inequality
                 - $gt, $gte, $lt, $lte: Numeric comparisons
                 - $in, $nin: List inclusion/exclusion
                 - $and, $or: Logical operators
         Returns:
-            List[Document]: List of search results.
+            list[Document]: List of search results.
         """
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
@@ -255,7 +256,7 @@ class ChromaDb(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
 
         ids = result.get("ids", [[]])[0]
         metadata = result.get("metadatas", [{}])[0]
