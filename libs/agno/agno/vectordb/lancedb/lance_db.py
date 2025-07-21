@@ -1,6 +1,6 @@
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 try:
     import lancedb
@@ -101,7 +101,7 @@ class LanceDb(VectorDb):
                 self.table = table
                 self.table_name = self.table.name
                 self._vector_col = self.table.schema.names[0]
-                self._id = self.tbl.schema.names[1]  # type: ignore
+                self._id = self.table.schema.names[1]  # type: ignore
             else:
                 if not table_name:
                     raise ValueError("Either table or table_name should be provided.")
@@ -184,8 +184,9 @@ class LanceDb(VectorDb):
                 doc_id = md5(cleaned_content.encode()).hexdigest()
                 result = self.table.search().where(f"{self._id}='{doc_id}'").to_arrow()
                 return len(result) > 0
-        except Exception:
+        except Exception as e:
             # Search sometimes fails with stale cache data, it means the doc doesn't exist
+            logger.error(f"Error checking document existence: {e}")
             return False
 
         return False
@@ -518,8 +519,8 @@ class LanceDb(VectorDb):
 
         return results.to_pandas()
 
-    def _build_search_results(self, results) -> List[Document]:  # TODO: typehint pandas?
-        search_results: List[Document] = []
+    def _build_search_results(self, results) -> list[Document]:  # TODO: typehint pandas?
+        search_results: list[Document] = []
         try:
             for _, item in results.iterrows():
                 payload = json.loads(item["payload"])
@@ -534,7 +535,7 @@ class LanceDb(VectorDb):
                     )
                 )
 
-        except Exception as e:
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
             logger.error(f"Error building search results: {e}")
 
         return search_results
@@ -592,7 +593,7 @@ class LanceDb(VectorDb):
 
             # Check if the name exists in any of the payloads
             return any(payload.get("name") == name for payload in payloads)
-        except Exception as e:
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
             logger.error(f"Error checking name existence: {e}")
             return False
 

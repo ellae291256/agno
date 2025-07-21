@@ -1497,7 +1497,7 @@ def test_set_default_branch(mock_github):
 
 def test_search_code(mock_github):
     """Test searching code in GitHub repositories."""
-    mock_client, mock_repo = mock_github
+    mock_client, _ = mock_github
     github_tools = GithubTools()
 
     # Mock code search results

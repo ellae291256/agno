@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 try:
     import asyncio
@@ -518,17 +520,17 @@ class Milvus(VectorDb):
         """
         return MILVUS_DISTANCE_MAP.get(self.distance, "COSINE")
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
         Args:
             query (str): Query string to search for
             limit (int): Maximum number of results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search
+            filters (dict[str, Any] | None): Filters to apply to the search
 
         Returns:
-            List[Document]: List of matching documents
+            list[Document]: List of matching documents
         """
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit)
@@ -547,7 +549,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -565,8 +567,8 @@ class Milvus(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit, filters)
 
@@ -584,7 +586,7 @@ class Milvus(VectorDb):
         )
 
         # Build search results
-        search_results: List[Document] = []
+        search_results: list[Document] = []
         for result in results[0]:
             search_results.append(
                 Document(
@@ -601,17 +603,17 @@ class Milvus(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a hybrid search combining dense and sparse vector similarity.
 
         Args:
             query (str): Query string to search for
             limit (int): Maximum number of results to return
-            filters (Optional[Dict[str, Any]]): Filters to apply to the search
+            filters (dict[str, Any] | None): Filters to apply to the search
 
         Returns:
-            List[Document]: List of matching documents
+            list[Document]: List of matching documents
         """
         from pymilvus import AnnSearchRequest, RRFRanker
 
@@ -661,7 +663,7 @@ class Milvus(VectorDb):
             )
 
             # Build search results
-            search_results: List[Document] = []
+            search_results: list[Document] = []
             for hits in results:
                 for hit in hits:
                     entity = hit.get("entity", {})
@@ -730,7 +732,7 @@ class Milvus(VectorDb):
             return True
         return False
 
-    def _build_expr(self, filters: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _build_expr(self, filters: dict[str, Any] | None) -> str | None:
         """Build Milvus expression from filters."""
         if not filters:
             return None

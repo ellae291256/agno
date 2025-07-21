@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from datetime import datetime
 from os import getenv
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Literal, Optional, Union, overload
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Literal, overload
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -245,7 +247,7 @@ class Workflow:
         return event
 
     def _transform_step_output_to_event(
-        self, step_output: StepOutput, workflow_run_response: WorkflowRunResponse, step_index: Optional[int] = None
+        self, step_output: StepOutput, workflow_run_response: WorkflowRunResponse, step_index: int | None = None
     ) -> StepOutputEvent:
         """Transform a StepOutput object into a StepOutputEvent for consistent streaming interface"""
         return StepOutputEvent(
@@ -303,10 +305,10 @@ class Workflow:
     def _create_step_input(
         self,
         execution_input: WorkflowExecutionInput,
-        previous_step_outputs: Optional[Dict[str, StepOutput]] = None,
-        shared_images: Optional[List[ImageArtifact]] = None,
-        shared_videos: Optional[List[VideoArtifact]] = None,
-        shared_audio: Optional[List[AudioArtifact]] = None,
+        previous_step_outputs: dict[str, StepOutput] | None = None,
+        shared_images: list[ImageArtifact] | None = None,
+        shared_videos: list[VideoArtifact] | None = None,
+        shared_audio: list[AudioArtifact] | None = None,
     ) -> StepInput:
         """Helper method to create StepInput with enhanced data flow support"""
 
@@ -339,7 +341,7 @@ class Workflow:
             else:
                 return len(self.steps)
 
-    def _convert_dict_to_step_metrics(self, step_name: str, metrics_dict: Dict[str, Any]) -> StepMetrics:
+    def _convert_dict_to_step_metrics(self, step_name: str, metrics_dict: dict[str, Any]) -> StepMetrics:
         """Convert dictionary metrics to StepMetrics object"""
         return StepMetrics.from_dict(
             {
@@ -351,7 +353,7 @@ class Workflow:
             }
         )
 
-    def _aggregate_workflow_metrics(self, step_responses: List[Union[StepOutput, List[StepOutput]]]) -> WorkflowMetrics:
+    def _aggregate_workflow_metrics(self, step_responses: list[StepOutput | list[StepOutput]]) -> WorkflowMetrics:
         """Aggregate metrics from all step responses into structured workflow metrics"""
         steps_dict = {}
         total_steps = 0
