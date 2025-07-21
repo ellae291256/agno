@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import asyncio
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional
 
 try:
     from packaging import version
@@ -225,7 +227,8 @@ class PineconeDb(VectorDb):
         try:
             self.client.describe_index(name)
             return True
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Index {name} does not exist: {e}")
             return False
 
     async def async_name_exists(self, name: str) -> bool:

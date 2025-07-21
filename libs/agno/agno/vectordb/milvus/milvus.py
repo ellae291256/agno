@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Union
 
 try:
     import asyncio
@@ -518,7 +520,7 @@ class Milvus(VectorDb):
         """
         return MILVUS_DISTANCE_MAP.get(self.distance, "COSINE")
 
-    def search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Search for documents matching the query.
 
@@ -565,8 +567,8 @@ class Milvus(VectorDb):
         return search_results
 
     async def async_search(
-        self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None
-    ) -> List[Document]:
+        self, query: str, limit: int = 5, filters: dict[str, Any] | None = None
+    ) -> list[Document]:
         if self.search_type == SearchType.hybrid:
             return self.hybrid_search(query, limit, filters)
 
@@ -601,7 +603,7 @@ class Milvus(VectorDb):
         log_info(f"Found {len(search_results)} documents")
         return search_results
 
-    def hybrid_search(self, query: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[Document]:
+    def hybrid_search(self, query: str, limit: int = 5, filters: dict[str, Any] | None = None) -> list[Document]:
         """
         Perform a hybrid search combining dense and sparse vector similarity.
 
@@ -687,8 +689,8 @@ class Milvus(VectorDb):
             log_info(f"Found {len(search_results)} documents")
             return search_results
 
-        except Exception as e:
-            logger.error(f"Error during hybrid search: {e}")
+        except Exception:
+            logger.error(f"Error during hybrid search")
             return []
 
     def drop(self) -> None:
@@ -707,9 +709,8 @@ class Milvus(VectorDb):
             await self.async_client.drop_collection(self.collection)
 
     def exists(self) -> bool:
-        if self.client:
-            if self.client.has_collection(self.collection):
-                return True
+        if self.client and self.client.has_collection(self.collection):
+            return True
         return False
 
     async def async_exists(self) -> bool:
@@ -722,7 +723,7 @@ class Milvus(VectorDb):
         return self.client.has_collection(self.collection)
 
     def get_count(self) -> int:
-        return self.client.get_collection_stats(collection_name="test_collection")["row_count"]
+        return self.client.get_collection_stats(collection_name=self.collection)["row_count"]
 
     def delete(self) -> bool:
         if self.client:
@@ -730,7 +731,7 @@ class Milvus(VectorDb):
             return True
         return False
 
-    def _build_expr(self, filters: Optional[Dict[str, Any]]) -> Optional[str]:
+    def _build_expr(self, filters: dict[str, Any] | None) -> str | None:
         """Build Milvus expression from filters."""
         if not filters:
             return None

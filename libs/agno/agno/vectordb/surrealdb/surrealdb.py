@@ -1,4 +1,6 @@
-from typing import Any, Dict, Final, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any, Dict, Final, Optional, Union
 
 try:
     from surrealdb import (

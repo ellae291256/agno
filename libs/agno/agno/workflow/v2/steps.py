@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -112,7 +115,7 @@ class Steps:
 
     def execute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+    ) -> list[StepOutput]:
         """Execute all steps in sequence and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -122,7 +125,7 @@ class Steps:
             return [StepOutput(step_name=self.name or "Steps", content="No steps to execute")]
 
         # Track outputs and pass data between steps - following Condition/Router pattern
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
         steps_step_outputs = {}
 
@@ -160,12 +163,12 @@ class Steps:
             log_debug(f"Steps End: {self.name} ({len(all_results)} results)", center=True, symbol="-")
             return all_results
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Steps execution failed: {e}")
             return [
                 StepOutput(
                     step_name=self.name or "Steps",
-                    content=f"Steps execution failed: {str(e)}",
+                    content=f"Steps execution failed: {e}",
                     success=False,
                     error=str(e),
                 )
@@ -279,11 +282,11 @@ class Steps:
             for result in all_results:
                 yield result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Steps streaming failed: {e}")
             error_result = StepOutput(
                 step_name=self.name or "Steps",
-                content=f"Steps execution failed: {str(e)}",
+                content=f"Steps execution failed: {e}",
                 success=False,
                 error=str(e),
             )
@@ -291,7 +294,7 @@ class Steps:
 
     async def aexecute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+    ) -> list[StepOutput]:
         """Execute all steps in sequence asynchronously and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -301,7 +304,7 @@ class Steps:
             return [StepOutput(step_name=self.name or "Steps", content="No steps to execute")]
 
         # Track outputs and pass data between steps - following Condition/Router pattern
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
         steps_step_outputs = {}
 
@@ -338,12 +341,12 @@ class Steps:
             log_debug(f"Steps End: {self.name} ({len(all_results)} results)", center=True, symbol="-")
             return all_results
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Async steps execution failed: {e}")
             return [
                 StepOutput(
                     step_name=self.name or "Steps",
-                    content=f"Steps execution failed: {str(e)}",
+                    content=f"Steps execution failed: {e}",
                     success=False,
                     error=str(e),
                 )
@@ -454,11 +457,11 @@ class Steps:
             for result in all_results:
                 yield result
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Async steps streaming failed: {e}")
             error_result = StepOutput(
                 step_name=self.name or "Steps",
-                content=f"Steps execution failed: {str(e)}",
+                content=f"Steps execution failed: {e}",
                 success=False,
                 error=str(e),
             )

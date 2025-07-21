@@ -64,8 +64,8 @@ def test_tool_call_requires_external_execution_stream():
     assert found_external_execution, "No tools were found to require external execution"
 
     found_external_execution = False
-    for response in agent.continue_run(run_id=response.run_id, updated_tools=response.tools, stream=True):
-        if response.is_paused:
+    for response2 in agent.continue_run(run_id=response.run_id, updated_tools=response.tools, stream=True):
+        if response2.is_paused:
             found_external_execution = True
     assert found_external_execution is False, "Some tools still require external execution"
 

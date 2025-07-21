@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import lancedb
@@ -101,7 +103,7 @@ class LanceDb(VectorDb):
                 self.table = table
                 self.table_name = self.table.name
                 self._vector_col = self.table.schema.names[0]
-                self._id = self.tbl.schema.names[1]  # type: ignore
+                self._id = self.table.schema.names[1]  # type: ignore
             else:
                 if not table_name:
                     raise ValueError("Either table or table_name should be provided.")
@@ -178,17 +180,16 @@ class LanceDb(VectorDb):
         Args:
             document (Document): Document to validate
         """
+        if self.table is None:
+            return False
         try:
-            if self.table is not None:
-                cleaned_content = document.content.replace("\x00", "\ufffd")
-                doc_id = md5(cleaned_content.encode()).hexdigest()
-                result = self.table.search().where(f"{self._id}='{doc_id}'").to_arrow()
-                return len(result) > 0
+            cleaned_content = document.content.replace("\x00", "\ufffd")
+            doc_id = md5(cleaned_content.encode()).hexdigest()
+            result = self.table.search().where(f"{self._id}='{doc_id}'").to_arrow()
+            return len(result) > 0
         except Exception:
             # Search sometimes fails with stale cache data, it means the doc doesn't exist
             return False
-
-        return False
 
     async def async_doc_exists(self, document: Document) -> bool:
         """
@@ -321,7 +322,7 @@ class LanceDb(VectorDb):
             log_debug(f"Asynchronously inserted {len(data)} documents")
         except Exception as e:
             logger.error(f"Error during async document insertion: {e}")
-            raise
+            raise RuntimeError(f"Error during async document insertion: {e}") from e
 
     def upsert(self, documents: List[Document], filters: Optional[Dict[str, Any]] = None) -> None:
         """
@@ -457,11 +458,11 @@ class LanceDb(VectorDb):
         query_embedding = self.embedder.get_embedding(query)
         if query_embedding is None:
             logger.error(f"Error getting embedding for Query: {query}")
-            return None
+            return []
 
         if self.table is None:
             logger.error("Table not initialized. Please create the table first")
-            return None  # type: ignore
+            return []
 
         results = self.table.search(
             query=query_embedding,
@@ -516,7 +517,7 @@ class LanceDb(VectorDb):
             query_type="fts",
         ).limit(limit)
 
-        return results.to_pandas()
+        return self._build_search_results(results.to_pandas())
 
     def _build_search_results(self, results) -> List[Document]:  # TODO: typehint pandas?
         search_results: List[Document] = []
@@ -536,6 +537,7 @@ class LanceDb(VectorDb):
 
         except Exception as e:
             logger.error(f"Error building search results: {e}")
+            return []
 
         return search_results
 

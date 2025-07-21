@@ -335,24 +335,22 @@ def test_drop_table(agent_storage):
 
 def test_mode_switching():
     """Test switching between agent, team, and workflow modes."""
-    with patch("agno.storage.mysql.scoped_session"):
-        with patch("agno.storage.mysql.inspect"):
-            with patch("agno.storage.mysql.create_engine"):
-                # Create storage in agent mode
-                storage = MySQLStorage(table_name="test_table", db_url="mysql+pymysql://user:pass@localhost/db")
-                assert storage.mode == "agent"
+    with patch("agno.storage.mysql.scoped_session"), patch("agno.storage.mysql.inspect"), patch("agno.storage.mysql.create_engine"):
+        # Create storage in agent mode
+        storage = MySQLStorage(table_name="test_table", db_url="mysql+pymysql://user:pass@localhost/db")
+        assert storage.mode == "agent"
 
-                # Switch to workflow mode
-                with patch.object(storage, "get_table") as mock_get_table:
-                    storage.mode = "workflow"
-                    assert storage.mode == "workflow"
-                    mock_get_table.assert_called_once()
+        # Switch to workflow mode
+        with patch.object(storage, "get_table") as mock_get_table:
+            storage.mode = "workflow"
+            assert storage.mode == "workflow"
+            mock_get_table.assert_called_once()
 
-                # Switch to team mode
-                with patch.object(storage, "get_table") as mock_get_table:
-                    storage.mode = "team"
-                    assert storage.mode == "team"
-                    mock_get_table.assert_called_once()
+        # Switch to team mode
+        with patch.object(storage, "get_table") as mock_get_table:
+            storage.mode = "team"
+            assert storage.mode == "team"
+            mock_get_table.assert_called_once()
 
 
 def test_schema_upgrade(agent_storage):
@@ -497,35 +495,33 @@ def test_error_handling(agent_storage):
 
 def test_all_modes_table_structure():
     """Test that table structure is correct for all modes."""
-    with patch("agno.storage.mysql.scoped_session"):
-        with patch("agno.storage.mysql.inspect"):
-            with patch("agno.storage.mysql.create_engine"):
-                # Test agent mode columns
-                agent_storage = MySQLStorage(
-                    table_name="agent_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="agent"
-                )
-                agent_table = agent_storage.get_table()
-                agent_columns = {c.name for c in agent_table.columns}
-                assert "agent_id" in agent_columns
-                assert "team_session_id" in agent_columns
-                assert "agent_data" in agent_columns
+    with patch("agno.storage.mysql.scoped_session"), patch("agno.storage.mysql.inspect"), patch("agno.storage.mysql.create_engine"):
+        # Test agent mode columns
+        agent_storage = MySQLStorage(
+            table_name="agent_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="agent"
+        )
+        agent_table = agent_storage.get_table()
+        agent_columns = {c.name for c in agent_table.columns}
+        assert "agent_id" in agent_columns
+        assert "team_session_id" in agent_columns
+        assert "agent_data" in agent_columns
 
-                # Test team mode columns
-                team_storage = MySQLStorage(
-                    table_name="team_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="team"
-                )
-                team_table = team_storage.get_table()
-                team_columns = {c.name for c in team_table.columns}
-                assert "team_id" in team_columns
-                assert "team_session_id" in team_columns
-                assert "team_data" in team_columns
+        # Test team mode columns
+        team_storage = MySQLStorage(
+            table_name="team_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="team"
+        )
+        team_table = team_storage.get_table()
+        team_columns = {c.name for c in team_table.columns}
+        assert "team_id" in team_columns
+        assert "team_session_id" in team_columns
+        assert "team_data" in team_columns
 
-                # Test workflow mode columns
-                workflow_storage = MySQLStorage(
-                    table_name="workflow_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="workflow"
-                )
-                workflow_table = workflow_storage.get_table()
-                workflow_columns = {c.name for c in workflow_table.columns}
-                assert "workflow_id" in workflow_columns
-                assert "workflow_data" in workflow_columns
-                assert "team_session_id" not in workflow_columns
+        # Test workflow mode columns
+        workflow_storage = MySQLStorage(
+            table_name="workflow_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="workflow"
+        )
+        workflow_table = workflow_storage.get_table()
+        workflow_columns = {c.name for c in workflow_table.columns}
+        assert "workflow_id" in workflow_columns
+        assert "workflow_data" in workflow_columns
+        assert "team_session_id" not in workflow_columns

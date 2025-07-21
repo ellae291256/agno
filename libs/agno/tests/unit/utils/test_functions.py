@@ -1,5 +1,5 @@
 import json
-from typing import Dict
+from collections.abc import Mapping
 
 import pytest
 

@@ -17,10 +17,7 @@ from agno.tools.github import GithubTools
 @pytest.fixture
 def mock_github():
     """Create a mock GitHub client."""
-    with (
-        patch("agno.tools.github.Github") as mock_github,
-        patch.dict("os.environ", {"GITHUB_ACCESS_TOKEN": "dummy_token"}),
-    ):
+    with patch("agno.tools.github.Github") as mock_github, patch.dict("os.environ", {"GITHUB_ACCESS_TOKEN": "dummy_token"}):
         mock_client = MagicMock(spec=Github)
         mock_github.return_value = mock_client
         mock_repo = MagicMock(spec=Repository)
@@ -64,7 +61,7 @@ def mock_paginated_list(mock_search_repos):
 
 def test_list_pull_requests(mock_github):
     """Test listing pull requests."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -125,7 +122,7 @@ def test_list_pull_requests(mock_github):
 
 def test_get_pull_request_with_details(mock_github):
     """Test getting a pull request with detailed information."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR data
@@ -138,8 +135,8 @@ def test_get_pull_request_with_details(mock_github):
     mock_pr.user.login = "test-user"
     mock_pr.user.avatar_url = "https://github.com/avatars/test-user.png"
     mock_pr.created_at.isoformat.return_value = "2024-03-01T12:00:00"
-    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0)
-    mock_pr.updated_at = datetime(2024, 3, 2, 12, 0, 0)
+    mock_pr.created_at = datetime(2024, 3, 1, 12, 0, 0, tzinfo=timezone.utc)
+    mock_pr.updated_at = datetime(2024, 3, 2, 12, 0, 0, tzinfo=timezone.utc)
     mock_pr.mergeable = True
     mock_pr.mergeable_state = "clean"
     mock_pr.additions = 100
@@ -214,7 +211,7 @@ def test_create_issue(mock_github):
 
 def test_get_repository(mock_github):
     """Test getting repository information."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository data
@@ -244,7 +241,7 @@ def test_get_repository(mock_github):
 
 def test_error_handling(mock_github):
     """Test error handling for various scenarios."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Test repository not found
@@ -505,7 +502,7 @@ def test_get_pull_request_count(mock_github):
 
 def test_get_repository_stars(mock_github):
     """Test getting repository star count."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock repository data
@@ -530,7 +527,7 @@ def test_get_repository_stars(mock_github):
 
 def test_get_pull_request_comments(mock_github):
     """Test getting comments on a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -585,7 +582,7 @@ def test_get_pull_request_comments(mock_github):
 
 def test_create_pull_request_comment(mock_github):
     """Test creating a comment on a pull request."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Mock PR
@@ -636,7 +633,7 @@ def test_create_pull_request_comment(mock_github):
 
 def test_edit_pull_request_comment(mock_github):
     """Test editing a pull request comment."""
-    mock_client, mock_repo = mock_github
+    _, mock_repo = mock_github
     github_tools = GithubTools()
 
     # Create mock comment with string properties instead of MagicMock properties

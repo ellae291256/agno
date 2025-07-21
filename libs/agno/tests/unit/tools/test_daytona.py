@@ -282,3 +282,4 @@ class TestDaytonaTools:
             result = tools.run_python_code(mock_agent, "print('test')")
             assert "error" in result
             assert "Execution error" in result
+        _ = mock_client

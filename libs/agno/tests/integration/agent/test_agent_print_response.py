@@ -292,28 +292,27 @@ def test_live_update_calls():
 
     mock_console = Mock(spec=Console)
 
-    with patch("rich.live.Live") as mock_live_class:
-        with patch("agno.agent.agent.create_panel"):
-            mock_live = Mock()
-            mock_live_class.return_value = mock_live
-            mock_live.__enter__ = Mock(return_value=mock_live)
-            mock_live.__exit__ = Mock(return_value=None)
+    with patch("rich.live.Live") as mock_live_class, patch("agno.agent.agent.create_panel"):
+        mock_live = Mock()
+        mock_live_class.return_value = mock_live
+        mock_live.__enter__ = Mock(return_value=mock_live)
+        mock_live.__exit__ = Mock(return_value=None)
 
-            with patch.object(agent, "run") as mock_run:
-                mock_response = Mock()
-                mock_response.content = "Simple response"
-                mock_response.thinking = None
-                mock_response.formatted_tool_calls = []
-                mock_response.citations = None
-                mock_response.is_paused = False
-                mock_response.extra_data = None
-                mock_response.get_content_as_string = Mock(return_value="Simple response")
-                mock_run.return_value = mock_response
+        with patch.object(agent, "run") as mock_run:
+            mock_response = Mock()
+            mock_response.content = "Simple response"
+            mock_response.thinking = None
+            mock_response.formatted_tool_calls = []
+            mock_response.citations = None
+            mock_response.is_paused = False
+            mock_response.extra_data = None
+            mock_response.get_content_as_string = Mock(return_value="Simple response")
+            mock_run.return_value = mock_response
 
-                agent.print_response(message="Test", show_message=True, console=mock_console, stream=False)
+            agent.print_response(message="Test", show_message=True, console=mock_console, stream=False)
 
-                # Live.update should be called multiple times as panels are added
-                assert mock_live.update.call_count >= 2, "Live.update should be called multiple times"
+            # Live.update should be called multiple times as panels are added
+            assert mock_live.update.call_count >= 2, "Live.update should be called multiple times"
 
 
 def test_simple_functionality():
@@ -327,37 +326,36 @@ def test_simple_functionality():
 
     mock_console = Mock(spec=Console)
 
-    with patch("rich.live.Live") as mock_live_class:
-        with patch("agno.agent.agent.create_panel") as mock_create_panel:
-            mock_live = Mock()
-            mock_live_class.return_value = mock_live
-            mock_live.__enter__ = Mock(return_value=mock_live)
-            mock_live.__exit__ = Mock(return_value=None)
+    with patch("rich.live.Live") as mock_live_class, patch("agno.agent.agent.create_panel") as mock_create_panel:
+        mock_live = Mock()
+        mock_live_class.return_value = mock_live
+        mock_live.__enter__ = Mock(return_value=mock_live)
+        mock_live.__exit__ = Mock(return_value=None)
 
-            with patch.object(agent, "run") as mock_run:
-                mock_response = Mock()
-                mock_response.content = "Simple test response"
-                mock_response.thinking = None
-                mock_response.formatted_tool_calls = []
-                mock_response.citations = None
-                mock_response.is_paused = False
-                mock_response.extra_data = None
-                mock_response.get_content_as_string = Mock(return_value="Simple test response")
-                mock_run.return_value = mock_response
+        with patch.object(agent, "run") as mock_run:
+            mock_response = Mock()
+            mock_response.content = "Simple test response"
+            mock_response.thinking = None
+            mock_response.formatted_tool_calls = []
+            mock_response.citations = None
+            mock_response.is_paused = False
+            mock_response.extra_data = None
+            mock_response.get_content_as_string = Mock(return_value="Simple test response")
+            mock_run.return_value = mock_response
 
-                # Call print_response
-                agent.print_response(message="Test message", console=mock_console, stream=False)
+            # Call print_response
+            agent.print_response(message="Test message", console=mock_console, stream=False)
 
-                # Basic verifications that should always pass
-                assert mock_run.called, "run() should be called"
-                assert mock_live_class.called, "Live should be created"
-                assert mock_create_panel.called, "create_panel should be called"
+            # Basic verifications that should always pass
+            assert mock_run.called, "run() should be called"
+            assert mock_live_class.called, "Live should be created"
+            assert mock_create_panel.called, "create_panel should be called"
 
-                # Print debug info
-                print(f"Number of create_panel calls: {len(mock_create_panel.call_args_list)}")
-                for i, call in enumerate(mock_create_panel.call_args_list):
-                    if len(call) > 1:
-                        print(f"Panel {i}: title='{call[1].get('title')}', content type={type(call[1].get('content'))}")
+            # Print debug info
+            print(f"Number of create_panel calls: {len(mock_create_panel.call_args_list)}")
+            for i, call in enumerate(mock_create_panel.call_args_list):
+                if len(call) > 1:
+                    print(f"Panel {i}: title='{call[1].get('title')}', content type={type(call[1].get('content'))}")
 
 
 def test_error_handling():
@@ -403,37 +401,36 @@ def test_stream_vs_non_stream_behavior():
 
     mock_console = Mock(spec=Console)
 
-    with patch("rich.live.Live") as mock_live_class:
-        with patch("agno.agent.agent.create_panel") as mock_create_panel:
-            mock_live = Mock()
-            mock_live_class.return_value = mock_live
-            mock_live.__enter__ = Mock(return_value=mock_live)
-            mock_live.__exit__ = Mock(return_value=None)
+    with patch("rich.live.Live") as mock_live_class, patch("agno.agent.agent.create_panel") as mock_create_panel:
+        mock_live = Mock()
+        mock_live_class.return_value = mock_live
+        mock_live.__enter__ = Mock(return_value=mock_live)
+        mock_live.__exit__ = Mock(return_value=None)
 
-            # Test non-streaming first
-            with patch.object(agent, "run") as mock_run:
-                mock_response = Mock()
-                mock_response.content = "Non-streaming response"
-                mock_response.thinking = None
-                mock_response.formatted_tool_calls = []
-                mock_response.citations = None
-                mock_response.is_paused = False
-                mock_response.extra_data = None
-                mock_response.get_content_as_string = Mock(return_value="Non-streaming response")
-                mock_run.return_value = mock_response
+        # Test non-streaming first
+        with patch.object(agent, "run") as mock_run:
+            mock_response = Mock()
+            mock_response.content = "Non-streaming response"
+            mock_response.thinking = None
+            mock_response.formatted_tool_calls = []
+            mock_response.citations = None
+            mock_response.is_paused = False
+            mock_response.extra_data = None
+            mock_response.get_content_as_string = Mock(return_value="Non-streaming response")
+            mock_run.return_value = mock_response
 
-                agent.print_response(message="Test", console=mock_console, stream=False)
+            agent.print_response(message="Test", console=mock_console, stream=False)
 
-                # Reset mocks
-                mock_run.reset_mock()
-                mock_create_panel.reset_mock()
+            # Reset mocks
+            mock_run.reset_mock()
+            mock_create_panel.reset_mock()
 
-                # Test streaming
-                mock_run.return_value = [mock_response]  # Return iterable for streaming
+            # Test streaming
+            mock_run.return_value = [mock_response]  # Return iterable for streaming
 
-                agent.print_response(message="Test", console=mock_console, stream=True)
+            agent.print_response(message="Test", console=mock_console, stream=True)
 
-                # Verify run was called with stream=True
-                assert any(call.kwargs.get("stream") for call in mock_run.call_args_list), (
-                    "run() should be called with stream=True in streaming mode"
-                )
+            # Verify run was called with stream=True
+            assert any(call.kwargs.get("stream") for call in mock_run.call_args_list), (
+                "run() should be called with stream=True in streaming mode"
+            )

@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from pydantic import BaseModel
 
@@ -12,14 +14,14 @@ from agno.run.team import TeamRunResponse
 class WorkflowExecutionInput:
     """Input data for a step execution"""
 
-    message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None
+    message: Optional[Union[str, dict[str, Any], list[Any], BaseModel]] = None
 
-    additional_data: Optional[Dict[str, Any]] = None
+    additional_data: Optional[dict[str, Any]] = None
 
     # Media inputs
-    images: Optional[List[ImageArtifact]] = None
-    videos: Optional[List[VideoArtifact]] = None
-    audio: Optional[List[AudioArtifact]] = None
+    images: Optional[list[ImageArtifact]] = None
+    videos: Optional[list[VideoArtifact]] = None
+    audio: Optional[list[AudioArtifact]] = None
 
     def get_message_as_string(self) -> Optional[str]:
         """Convert message to string representation"""
@@ -37,9 +39,9 @@ class WorkflowExecutionInput:
         else:
             return str(self.message)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
-        message_dict: Optional[Union[str, Dict[str, Any], List[Any]]] = None
+        message_dict: Optional[Union[str, dict[str, Any], list[Any]]] = None
         if self.message is not None:
             if isinstance(self.message, BaseModel):
                 message_dict = self.message.model_dump(exclude_none=True)
@@ -61,17 +63,17 @@ class WorkflowExecutionInput:
 class StepInput:
     """Input data for a step execution"""
 
-    message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None
+    message: Optional[Union[str, dict[str, Any], list[Any], BaseModel]] = None
 
     previous_step_content: Optional[Any] = None
-    previous_step_outputs: Optional[Dict[str, "StepOutput"]] = None
+    previous_step_outputs: Optional[dict[str, "StepOutput"]] = None
 
-    additional_data: Optional[Dict[str, Any]] = None
+    additional_data: Optional[dict[str, Any]] = None
 
     # Media inputs
-    images: Optional[List[ImageArtifact]] = None
-    videos: Optional[List[VideoArtifact]] = None
-    audio: Optional[List[AudioArtifact]] = None
+    images: Optional[list[ImageArtifact]] = None
+    videos: Optional[list[VideoArtifact]] = None
+    audio: Optional[list[AudioArtifact]] = None
 
     def get_message_as_string(self) -> Optional[str]:
         """Convert message to string representation"""
@@ -95,7 +97,7 @@ class StepInput:
             return None
         return self.previous_step_outputs.get(step_name)
 
-    def get_step_content(self, step_name: str) -> Optional[Union[str, Dict[str, str]]]:
+    def get_step_content(self, step_name: str) -> Optional[Union[str, dict[str, str]]]:
         """Get content from a specific previous step by name
 
         For parallel steps, if you ask for the parallel step name, returns a dict
@@ -136,10 +138,10 @@ class StepInput:
         last_output = list(self.previous_step_outputs.values())[-1] if self.previous_step_outputs else None
         return last_output.content if last_output else None  # type: ignore[return-value]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         # Handle the unified message field
-        message_dict: Optional[Union[str, Dict[str, Any], List[Any]]] = None
+        message_dict: Optional[Union[str, dict[str, Any], list[Any]]] = None
         if self.message is not None:
             if isinstance(self.message, BaseModel):
                 message_dict = self.message.model_dump(exclude_none=True)
@@ -186,31 +188,31 @@ class StepOutput:
     executor_name: Optional[str] = None
 
     # Primary output
-    content: Optional[Union[str, Dict[str, Any], List[Any], BaseModel, Any]] = None
+    content: Optional[Union[str, dict[str, Any], list[Any], BaseModel, Any]] = None
 
     # For parallel steps: store individual step outputs
-    parallel_step_outputs: Optional[Dict[str, "StepOutput"]] = None
+    parallel_step_outputs: Optional[dict[str, "StepOutput"]] = None
 
     # Execution response
     response: Optional[Union[RunResponse, TeamRunResponse]] = None
 
     # Media outputs
-    images: Optional[List[ImageArtifact]] = None
-    videos: Optional[List[VideoArtifact]] = None
-    audio: Optional[List[AudioArtifact]] = None
+    images: Optional[list[ImageArtifact]] = None
+    videos: Optional[list[VideoArtifact]] = None
+    audio: Optional[list[AudioArtifact]] = None
 
     # Metrics for this step execution
-    metrics: Optional[Dict[str, Any]] = None
+    metrics: Optional[dict[str, Any]] = None
 
     success: bool = True
     error: Optional[str] = None
 
     stop: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary"""
         # Handle the unified content field
-        content_dict: Optional[Union[str, Dict[str, Any], List[Any]]] = None
+        content_dict: Optional[Union[str, dict[str, Any], list[Any]]] = None
         if self.content is not None:
             if isinstance(self.content, BaseModel):
                 content_dict = self.content.model_dump(exclude_none=True)
@@ -232,7 +234,7 @@ class StepOutput:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "StepOutput":
+    def from_dict(cls, data: dict[str, Any]) -> "StepOutput":
         """Create StepOutput from dictionary"""
         from agno.run.response import RunResponse
         from agno.run.team import TeamRunResponse

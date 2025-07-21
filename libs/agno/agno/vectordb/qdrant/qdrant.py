@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 try:
     from qdrant_client import AsyncQdrantClient, QdrantClient  # noqa: F401

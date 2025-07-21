@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -16,8 +15,7 @@ TEST_PATH = "tmp/test_lancedb"
 def lance_db(mock_embedder):
     """Fixture to create and clean up a LanceDb instance"""
     os.makedirs(TEST_PATH, exist_ok=True)
-    if os.path.exists(TEST_PATH):
-        shutil.rmtree(TEST_PATH)
+    shutil.rmtree(TEST_PATH, ignore_errors=True)
         os.makedirs(TEST_PATH)
 
     db = LanceDb(uri=TEST_PATH, table_name=TEST_TABLE, embedder=mock_embedder)
@@ -26,7 +24,7 @@ def lance_db(mock_embedder):
 
     try:
         db.drop()
-    except Exception:
+    except OSError:
         pass
 
     if os.path.exists(TEST_PATH):

@@ -245,7 +245,7 @@ class Workflow:
         return event
 
     def _transform_step_output_to_event(
-        self, step_output: StepOutput, workflow_run_response: WorkflowRunResponse, step_index: Optional[int] = None
+        self, step_output: StepOutput, workflow_run_response: WorkflowRunResponse, step_index: int | None = None
     ) -> StepOutputEvent:
         """Transform a StepOutput object into a StepOutputEvent for consistent streaming interface"""
         return StepOutputEvent(
@@ -303,10 +303,10 @@ class Workflow:
     def _create_step_input(
         self,
         execution_input: WorkflowExecutionInput,
-        previous_step_outputs: Optional[Dict[str, StepOutput]] = None,
-        shared_images: Optional[List[ImageArtifact]] = None,
-        shared_videos: Optional[List[VideoArtifact]] = None,
-        shared_audio: Optional[List[AudioArtifact]] = None,
+        previous_step_outputs: dict[str, StepOutput] | None = None,
+        shared_images: list[ImageArtifact] | None = None,
+        shared_videos: list[VideoArtifact] | None = None,
+        shared_audio: list[AudioArtifact] | None = None,
     ) -> StepInput:
         """Helper method to create StepInput with enhanced data flow support"""
 
@@ -339,7 +339,7 @@ class Workflow:
             else:
                 return len(self.steps)
 
-    def _convert_dict_to_step_metrics(self, step_name: str, metrics_dict: Dict[str, Any]) -> StepMetrics:
+    def _convert_dict_to_step_metrics(self, step_name: str, metrics_dict: dict[str, Any]) -> StepMetrics:
         """Convert dictionary metrics to StepMetrics object"""
         return StepMetrics.from_dict(
             {
@@ -351,7 +351,7 @@ class Workflow:
             }
         )
 
-    def _aggregate_workflow_metrics(self, step_responses: List[Union[StepOutput, List[StepOutput]]]) -> WorkflowMetrics:
+    def _aggregate_workflow_metrics(self, step_responses: list[StepOutput | list[StepOutput]]) -> WorkflowMetrics:
         """Aggregate metrics from all step responses into structured workflow metrics"""
         steps_dict = {}
         total_steps = 0
@@ -531,7 +531,7 @@ class Workflow:
                 logger.error(f"Workflow execution failed: {e}")
                 # Store error response
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Workflow execution failed: {e}"
+                workflow_run_response.content = f"Workflow execution failed: {e}"  # noqa: BLE001
 
             finally:
                 if self.workflow_session:
@@ -705,7 +705,7 @@ class Workflow:
 
                 # Update workflow_run_response with error
                 workflow_run_response.content = error_event.error
-                workflow_run_response.status = RunStatus.error
+                workflow_run_response.status = RunStatus.error  # noqa: BLE001
 
         # Yield workflow completed event
         workflow_completed_event = WorkflowCompletedEvent(
@@ -895,7 +895,7 @@ class Workflow:
             except Exception as e:
                 logger.error(f"Workflow execution failed: {e}")
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Workflow execution failed: {e}"
+                workflow_run_response.content = f"Workflow execution failed: {e}"  # noqa: BLE001
 
         # Store error response
         if self.workflow_session:
@@ -1146,17 +1146,17 @@ class Workflow:
 
     def run(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         stream: bool = False,
-        stream_intermediate_steps: Optional[bool] = None,
+        stream_intermediate_steps: bool | None = None,
         **kwargs: Any,
-    ) -> Union[WorkflowRunResponse, Iterator[WorkflowRunResponseEvent]]:
+    ) -> WorkflowRunResponse | Iterator[WorkflowRunResponseEvent]:
         """Execute the workflow synchronously with optional streaming"""
         self._set_debug()
 
@@ -1199,7 +1199,7 @@ class Workflow:
             session_id=self.session_id,
             workflow_id=self.workflow_id,
             workflow_name=self.name,
-            created_at=int(datetime.now().timestamp()),
+            created_at=int(datetime.now(timezone.utc).timestamp()),
         )
         self.run_response = workflow_run_response
 
@@ -1256,17 +1256,17 @@ class Workflow:
 
     async def arun(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         stream: bool = False,
-        stream_intermediate_steps: Optional[bool] = False,
+        stream_intermediate_steps: bool = False,
         **kwargs: Any,
-    ) -> Union[WorkflowRunResponse, AsyncIterator[WorkflowRunResponseEvent]]:
+    ) -> WorkflowRunResponse | AsyncIterator[WorkflowRunResponseEvent]:
         """Execute the workflow synchronously with optional streaming"""
         self._set_debug()
 
@@ -1501,19 +1501,19 @@ class Workflow:
 
     def print_response(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         stream: bool = False,
         stream_intermediate_steps: bool = False,
         markdown: bool = True,
         show_time: bool = True,
         show_step_details: bool = True,
-        console: Optional[Any] = None,
+        console: Any | None = None,
         **kwargs: Any,
     ) -> None:
         """Print workflow execution with rich formatting and optional streaming
@@ -1571,17 +1571,17 @@ class Workflow:
 
     def _print_response(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        additional_data: dict[str, Any] | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         markdown: bool = True,
         show_time: bool = True,
         show_step_details: bool = True,
-        console: Optional[Any] = None,
+        console: Any | None = None,
         **kwargs: Any,
     ) -> None:
         """Print workflow execution with rich formatting (non-streaming)"""
@@ -1723,22 +1723,22 @@ class Workflow:
                 error_panel = create_panel(
                     content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
                 )
-                console.print(error_panel)  # type: ignore
+                console.print(error_panel)  # type: ignore  # noqa: BLE001  # noqa: BLE001
 
     def _print_response_stream(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        additional_data: dict[str, Any] | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         stream_intermediate_steps: bool = False,
         markdown: bool = True,
         show_time: bool = True,
         show_step_details: bool = True,
-        console: Optional[Any] = None,
+        console: Any | None = None,
         **kwargs: Any,
     ) -> None:
         """Print workflow execution with clean streaming"""
@@ -2343,17 +2343,17 @@ class Workflow:
 
     async def _aprint_response(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         markdown: bool = True,
         show_time: bool = True,
         show_step_details: bool = True,
-        console: Optional[Any] = None,
+        console: Any | None = None,
         **kwargs: Any,
     ) -> None:
         """Print workflow execution with rich formatting (non-streaming)"""

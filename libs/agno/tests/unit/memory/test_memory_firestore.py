@@ -269,7 +269,7 @@ def test_error_handling(memory_db):
     db, _, mock_client = memory_db
 
     # Test read_memories with exception
-    mock_client.collection.side_effect = Exception("Firestore error")
+    mock_client.collection.side_effect = RuntimeError("Firestore error")
 
     memories = db.read_memories(user_id="test-user")
     assert memories == []
@@ -278,12 +278,12 @@ def test_error_handling(memory_db):
     memory = MemoryRow(id="test", user_id="test-user", memory={"text": "test"})
 
     # Should raise the exception
-    with pytest.raises(Exception):
+    with pytest.raises(RuntimeError):
         db.upsert_memory(memory)
 
     # Test clear with exception
     mock_client.collection.side_effect = None
-    db.collection.list_documents.side_effect = Exception("Error")
+    db.collection.list_documents.side_effect = RuntimeError("Error")
 
     result = db.clear()
     assert result is False

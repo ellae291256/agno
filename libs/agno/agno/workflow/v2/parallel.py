@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import asyncio
+from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -185,7 +188,7 @@ class Parallel:
 
         return None
 
-    def _build_aggregated_content(self, step_outputs: List[StepOutput]) -> str:
+    def _build_aggregated_content(self, step_outputs: list[StepOutput]) -> str:
         """Build aggregated content from multiple step outputs"""
         aggregated = "## Parallel Execution Results\n\n"
 
@@ -201,7 +204,7 @@ class Parallel:
 
             aggregated += f"### {status_icon} {step_name}\n"
             if content and str(content).strip():
-                aggregated += f"{content}\n\n"
+                aggregated += f"{content!s}\n\n"
             else:
                 aggregated += "*(No content)*\n\n"
 
@@ -273,8 +276,8 @@ class Parallel:
         results_with_indices.sort(key=lambda x: x[0])
         results = [result for _, result in results_with_indices]
 
-        # Flatten results - handle steps that return List[StepOutput] (like Condition/Loop)
-        flattened_results: List[StepOutput] = []
+        # Flatten results - handle steps that return list[StepOutput] (like Condition/Loop)
+        flattened_results: list[StepOutput] = []
         for result in results:
             if isinstance(result, list):
                 flattened_results.extend(result)
@@ -404,8 +407,8 @@ class Parallel:
                 if not isinstance(event, StepOutput):
                     yield event
 
-        # Flatten step_results - handle steps that return List[StepOutput] (like Condition/Loop)
-        flattened_step_results: List[StepOutput] = []
+        # Flatten step_results - handle steps that return list[StepOutput] (like Condition/Loop)
+        flattened_step_results: list[StepOutput] = []
         for result in step_results:
             if isinstance(result, list):
                 flattened_step_results.extend(result)
