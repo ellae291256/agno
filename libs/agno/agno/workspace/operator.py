@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Optional, cast
 
 from rich.prompt import Prompt
 
@@ -127,7 +127,7 @@ def create_workspace(
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.GitError as e:
         logger.error(e)
         return None
 
@@ -141,7 +141,6 @@ def create_workspace(
         except Exception as e:
             logger.warning(f"Failed to delete {_dot_git_folder}: {e}")
             logger.info("Please delete the .git folder manually")
-            pass
 
     agno_config.add_new_ws_to_config(ws_root_path=ws_root_path)
 
@@ -156,7 +155,7 @@ def create_workspace(
             str(workspace_example_secrets_dir),
             str(workspace_secrets_dir),
         )
-    except Exception as e:
+    except (FileNotFoundError, OSError) as e:
         logger.warning(f"Could not create workspace/secrets: {e}")
         logger.warning("Please manually copy workspace/example_secrets to workspace/secrets")
 
@@ -238,11 +237,9 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
         from agno.api.user import create_anon_user
 
         logger.debug("Creating anon user")
-        with Live(transient=True) as live_log:
-            status = Status("Creating user...", spinner="aesthetic", speed=2.0, refresh_per_second=10)
+        with Live(transient=True) as live_log, Status("Creating user...", spinner="aesthetic", speed=2.0, refresh_per_second=10) as status:
             live_log.update(status)
             anon_user = create_anon_user()
-            status.stop()
         if anon_user is not None:
             agno_config.user = anon_user
 
@@ -508,7 +505,7 @@ def stop_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to delete
-    resource_groups_to_delete: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_delete: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="delete",
@@ -600,7 +597,7 @@ def update_workspace(
         logger.error("WorkspaceConfig invalid")
         return
 
-    print_heading("Updating workspace: {}".format(str(ws_config.ws_root_path.stem)))
+    print_heading(f"Updating workspace: {ws_config.ws_root_path.stem}")
     logger.debug(f"\ttarget_env   : {target_env}")
     logger.debug(f"\ttarget_infra : {target_infra}")
     logger.debug(f"\ttarget_group : {target_group}")
@@ -615,7 +612,7 @@ def update_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to update
-    resource_groups_to_update: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_update: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="create",
@@ -733,7 +730,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
 
     ws_dir_is_valid: bool = ws_root_path is not None and ws_root_path.exists() and ws_root_path.is_dir()
     if not ws_dir_is_valid:
-        logger.error("Invalid workspace directory: {}".format(ws_root_path))
+        logger.error(f"Invalid workspace directory: {ws_root_path}")
         return
 
     ######################################################

@@ -27,46 +27,41 @@ def mock_session():
 @pytest.fixture
 def agent_storage(mock_engine, mock_session):
     """Create a MySQLStorage instance for agent mode with mocked components."""
-    with patch("agno.storage.mysql.scoped_session", return_value=mock_session[0]):
-        with patch("agno.storage.mysql.inspect", return_value=MagicMock()):
-            storage = MySQLStorage(table_name="agent_sessions", schema="ai", db_engine=mock_engine, mode="agent")
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, mock_session[1]
+    with patch("agno.storage.mysql.scoped_session", return_value=mock_session[0]), patch("agno.storage.mysql.inspect", return_value=MagicMock()):
+        storage = MySQLStorage(table_name="agent_sessions", schema="ai", db_engine=mock_engine, mode="agent")
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, mock_session[1]
 
 
 @pytest.fixture
 def team_storage(mock_engine, mock_session):
     """Create a MySQLStorage instance for team mode with mocked components."""
-    with patch("agno.storage.mysql.scoped_session", return_value=mock_session[0]):
-        with patch("agno.storage.mysql.inspect", return_value=MagicMock()):
-            storage = MySQLStorage(table_name="team_sessions", schema="ai", db_engine=mock_engine, mode="team")
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, mock_session[1]
+    with patch("agno.storage.mysql.scoped_session", return_value=mock_session[0]), patch("agno.storage.mysql.inspect", return_value=MagicMock()):
+        storage = MySQLStorage(table_name="team_sessions", schema="ai", db_engine=mock_engine, mode="team")
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, mock_session[1]
 
 
 @pytest.fixture
 def workflow_storage(mock_engine, mock_session):
     """Create a MySQLStorage instance for workflow mode with mocked components."""
-    with patch("agno.storage.mysql.scoped_session", return_value=mock_session[0]):
-        with patch("agno.storage.mysql.inspect", return_value=MagicMock()):
-            storage = MySQLStorage(table_name="workflow_sessions", schema="ai", db_engine=mock_engine, mode="workflow")
-            # Mock table_exists to return True
-            storage.table_exists = MagicMock(return_value=True)
-            return storage, mock_session[1]
+    with patch("agno.storage.mysql.scoped_session", return_value=mock_session[0]), patch("agno.storage.mysql.inspect", return_value=MagicMock()):
+        storage = MySQLStorage(table_name="workflow_sessions", schema="ai", db_engine=mock_engine, mode="workflow")
+        # Mock table_exists to return True
+        storage.table_exists = MagicMock(return_value=True)
+        return storage, mock_session[1]
 
 
 def test_mysql_storage_initialization():
     """Test MySQLStorage initialization with different parameters."""
     # Test with db_url
-    with patch("agno.storage.mysql.create_engine") as mock_create_engine:
-        with patch("agno.storage.mysql.scoped_session"):
-            with patch("agno.storage.mysql.inspect"):
-                mock_engine = MagicMock()
-                mock_create_engine.return_value = mock_engine
+    with patch("agno.storage.mysql.create_engine") as mock_create_engine, patch("agno.storage.mysql.scoped_session"), patch("agno.storage.mysql.inspect"):
+        mock_engine = MagicMock()
+        mock_create_engine.return_value = mock_engine
 
-                storage = MySQLStorage(table_name="test_table", db_url="mysql+pymysql://user:pass@localhost/db")
+        storage = MySQLStorage(table_name="test_table", db_url="mysql+pymysql://user:pass@localhost/db")
 
                 mock_create_engine.assert_called_once_with("mysql+pymysql://user:pass@localhost/db")
                 assert storage.table_name == "test_table"
@@ -95,7 +90,6 @@ def test_agent_storage_crud(agent_storage):
     )
 
     # Mock the read method for initial check
-    original_read = storage.read
     storage.read = MagicMock(return_value=None)
 
     # Mock upsert to return the session directly
@@ -137,7 +131,6 @@ def test_team_storage_crud(team_storage):
     )
 
     # Mock the read method for initial check
-    original_read = storage.read
     storage.read = MagicMock(return_value=None)
 
     # Mock upsert to return the session directly
@@ -178,7 +171,6 @@ def test_workflow_storage_crud(workflow_storage):
     )
 
     # Mock the read method for initial check
-    original_read = storage.read
     storage.read = MagicMock(return_value=None)
 
     # Mock upsert to return the session directly
@@ -497,14 +489,12 @@ def test_error_handling(agent_storage):
 
 def test_all_modes_table_structure():
     """Test that table structure is correct for all modes."""
-    with patch("agno.storage.mysql.scoped_session"):
-        with patch("agno.storage.mysql.inspect"):
-            with patch("agno.storage.mysql.create_engine"):
-                # Test agent mode columns
-                agent_storage = MySQLStorage(
-                    table_name="agent_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="agent"
-                )
-                agent_table = agent_storage.get_table()
+    with patch("agno.storage.mysql.scoped_session"), patch("agno.storage.mysql.inspect"), patch("agno.storage.mysql.create_engine"):
+        # Test agent mode columns
+        agent_storage = MySQLStorage(
+            table_name="agent_table", db_url="mysql+pymysql://user:pass@localhost/db", mode="agent"
+        )
+        agent_table = agent_storage.get_table()
                 agent_columns = {c.name for c in agent_table.columns}
                 assert "agent_id" in agent_columns
                 assert "team_session_id" in agent_columns

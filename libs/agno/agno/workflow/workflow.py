@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncGenerator, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
+from typing import Any, AsyncGenerator, AsyncIterator, Callable, Optional, Union, cast, get_args
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -173,7 +173,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -278,7 +278,7 @@ class Workflow:
                 result = await self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.arun() failed: {e}")
-            raise e
+            raise
 
         # Handle async iterator results
         if isinstance(result, (AsyncIterator, AsyncGenerator)):
