@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import inspect
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Awaitable, Callable, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -197,7 +200,7 @@ class Router:
                     error=str(e),
                 )
                 all_results.append(error_output)
-                break
+                break  # Stop on first error
 
         log_debug(f"Router End: {self.name} ({len(all_results)} results)", center=True, symbol="-")
         return all_results
@@ -307,7 +310,7 @@ class Router:
                     error=str(e),
                 )
                 all_results.append(error_output)
-                break
+                break  # Stop on first error
 
         log_debug(f"Router End: {self.name} ({len(all_results)} results)", center=True, symbol="-")
 

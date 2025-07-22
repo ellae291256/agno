@@ -1,6 +1,7 @@
 import inspect
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Awaitable, Callable, Optional, Union
 
 from pydantic import BaseModel
 
@@ -263,7 +264,7 @@ class Step:
                         # Create empty StepOutput for skipped step
                         return StepOutput(content=f"Step {self.name} failed but skipped", success=False, error=str(e))
                     else:
-                        raise e
+                        raise
 
         return StepOutput(content=f"Step {self.name} failed but skipped", success=False)
 
@@ -415,7 +416,7 @@ class Step:
                         yield step_output
                         return
                     else:
-                        raise e
+                        raise
 
         return
 
@@ -538,7 +539,7 @@ class Step:
                         # Create empty StepOutput for skipped step
                         return StepOutput(content=f"Step {self.name} failed but skipped", success=False, error=str(e))
                     else:
-                        raise e
+                        raise
 
         return StepOutput(content=f"Step {self.name} failed but skipped", success=False)
 
@@ -706,7 +707,7 @@ class Step:
                         )
                         yield step_output
                     else:
-                        raise e
+                        raise
 
         return
 
@@ -822,7 +823,7 @@ class Step:
 
                     images.append(Image(**image_kwargs))
 
-                except Exception as e:
+                except (ValueError, TypeError, base64.binascii.Error) as e:
                     logger.error(f"Failed to process image content: {e}")
                     # Skip this image if we can't process it
                     continue

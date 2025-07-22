@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Awaitable, Callable, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -73,18 +76,20 @@ class Steps:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        steps_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: Union[StepOutput, list[StepOutput]],
+        steps_step_outputs: Optional[dict[str, StepOutput]] = None,
     ) -> StepInput:
         """Helper to update step input from step outputs - mirrors Condition/Router logic"""
+        from itertools import chain
+
         current_images = step_input.images or []
         current_videos = step_input.videos or []
         current_audio = step_input.audio or []
 
         if isinstance(step_outputs, list):
-            step_images = sum([out.images or [] for out in step_outputs], [])
-            step_videos = sum([out.videos or [] for out in step_outputs], [])
-            step_audio = sum([out.audio or [] for out in step_outputs], [])
+            step_images = list(chain.from_iterable(out.images or [] for out in step_outputs))
+            step_videos = list(chain.from_iterable(out.videos or [] for out in step_outputs))
+            step_audio = list(chain.from_iterable(out.audio or [] for out in step_outputs))
             # Use the last output's content for chaining
             previous_step_content = step_outputs[-1].content if step_outputs else None
         else:
@@ -112,7 +117,7 @@ class Steps:
 
     def execute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+    ) -> list[StepOutput]:
         """Execute all steps in sequence and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -122,7 +127,7 @@ class Steps:
             return [StepOutput(step_name=self.name or "Steps", content="No steps to execute")]
 
         # Track outputs and pass data between steps - following Condition/Router pattern
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
         steps_step_outputs = {}
 
@@ -291,7 +296,7 @@ class Steps:
 
     async def aexecute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+    ) -> list[StepOutput]:
         """Execute all steps in sequence asynchronously and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -301,7 +306,7 @@ class Steps:
             return [StepOutput(step_name=self.name or "Steps", content="No steps to execute")]
 
         # Track outputs and pass data between steps - following Condition/Router pattern
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
         steps_step_outputs = {}
 
