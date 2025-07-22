@@ -1,6 +1,6 @@
 import inspect
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -72,8 +72,8 @@ class Condition:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        condition_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: StepOutput | list[StepOutput],
+        condition_step_outputs: dict[str, StepOutput] | None = None,
     ) -> StepInput:
         """Helper to update step input from step outputs - mirrors Loop logic"""
         current_images = step_input.images or []
@@ -81,9 +81,9 @@ class Condition:
         current_audio = step_input.audio or []
 
         if isinstance(step_outputs, list):
-            all_images = sum([out.images or [] for out in step_outputs], [])
-            all_videos = sum([out.videos or [] for out in step_outputs], [])
-            all_audio = sum([out.audio or [] for out in step_outputs], [])
+            all_images = [img for out in step_outputs for img in (out.images or [])]
+            all_videos = [vid for out in step_outputs for vid in (out.videos or [])]
+            all_audio = [aud for out in step_outputs for aud in (out.audio or [])]
             # Use the last output's content for chaining
             previous_step_content = step_outputs[-1].content if step_outputs else None
         else:
@@ -145,8 +145,8 @@ class Condition:
         return False
 
     def execute(
-        self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+        self, step_input: StepInput, session_id: str | None = None, user_id: str | None = None
+    ) -> list[StepOutput]:
         """Execute the condition and its steps with sequential chaining if condition is true"""
         log_debug(f"Condition Start: {self.name}", center=True, symbol="-")
 
@@ -161,9 +161,9 @@ class Condition:
             return []
 
         log_debug(f"Condition {self.name} met, executing {len(self.steps)} steps")
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
-        condition_step_outputs = {}
+        condition_step_outputs: dict[str, StepOutput] = {}
 
         for i, step in enumerate(self.steps):
             try:
@@ -197,12 +197,12 @@ class Condition:
                     current_step_input, step_output, condition_step_outputs
                 )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Condition step {step_name} failed: {e}")
                 error_output = StepOutput(
                     step_name=step_name,
-                    content=f"Step {step_name} failed: {str(e)}",
+                    content=f"Step {step_name} failed: {e}",
                     success=False,
                     error=str(e),
                 )
@@ -344,8 +344,7 @@ class Condition:
                 step_results=all_results,
             )
 
-        for result in all_results:
-            yield result
+        yield from all_results
 
     async def aexecute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
@@ -522,12 +521,12 @@ class Condition:
                             current_step_input, step_outputs_for_step, condition_step_outputs
                         )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Condition step {step_name} async streaming failed: {e}")
                 error_output = StepOutput(
                     step_name=step_name,
-                    content=f"Step {step_name} failed: {str(e)}",
+                    content=f"Step {step_name} failed: {e}",
                     success=False,
                     error=str(e),
                 )
