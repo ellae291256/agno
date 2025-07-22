@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Union
 
 from pydantic import BaseModel
 
@@ -545,12 +547,12 @@ class Step:
     async def aexecute_stream(
         self,
         step_input: StepInput,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         stream_intermediate_steps: bool = False,
-        workflow_run_response: Optional["WorkflowRunResponse"] = None,
-        step_index: Optional[Union[int, tuple]] = None,
-    ) -> AsyncIterator[Union[WorkflowRunResponseEvent, StepOutput]]:
+        workflow_run_response: WorkflowRunResponse | None = None,
+        step_index: int | tuple | None = None,
+    ) -> AsyncIterator[WorkflowRunResponseEvent | StepOutput]:
         """Execute the step with event-driven streaming support"""
 
         if step_input.previous_step_outputs:
@@ -712,9 +714,9 @@ class Step:
 
     def _prepare_message(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]],
-        previous_step_outputs: Optional[Dict[str, StepOutput]] = None,
-    ) -> Optional[Union[str, List[Any], Dict[str, Any], BaseModel]]:
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        previous_step_outputs: dict[str, StepOutput] | None = None,
+    ) -> str | list[Any] | dict[str, Any] | BaseModel | None:
         """Prepare the primary input by combining message and previous step outputs"""
 
         if previous_step_outputs and self._executor_type in ["agent", "team"]:
@@ -769,7 +771,7 @@ class Step:
             # Convert any other type to string
             return RunResponse(content=str(result))
 
-    def _convert_audio_artifacts_to_audio(self, audio_artifacts: List[AudioArtifact]) -> List[Audio]:
+    def _convert_audio_artifacts_to_audio(self, audio_artifacts: list[AudioArtifact]) -> list[Audio]:
         """Convert AudioArtifact objects to Audio objects"""
         audios = []
         for audio_artifact in audio_artifacts:
@@ -782,7 +784,7 @@ class Step:
                 continue
         return audios
 
-    def _convert_image_artifacts_to_images(self, image_artifacts: List[ImageArtifact]) -> List[Image]:
+    def _convert_image_artifacts_to_images(self, image_artifacts: list[ImageArtifact]) -> list[Image]:
         """
         Convert ImageArtifact objects to Image objects with proper content handling.
 
@@ -834,7 +836,7 @@ class Step:
 
         return images
 
-    def _convert_video_artifacts_to_videos(self, video_artifacts: List[VideoArtifact]) -> List[Video]:
+    def _convert_video_artifacts_to_videos(self, video_artifacts: list[VideoArtifact]) -> list[Video]:
         """
         Convert VideoArtifact objects to Video objects with proper content handling.
 

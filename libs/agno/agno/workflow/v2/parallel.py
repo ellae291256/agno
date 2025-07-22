@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import asyncio
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -23,11 +25,11 @@ WorkflowSteps = List[
             [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
         ],
         Step,
-        "Steps",  # type: ignore # noqa: F821
-        "Loop",  # type: ignore # noqa: F821
-        "Parallel",  # type: ignore # noqa: F821
-        "Condition",  # type: ignore # noqa: F821
-        "Router",  # type: ignore # noqa: F821
+        "Steps",
+        "Loop",
+        "Parallel",
+        "Condition",
+        "Router",
     ]
 ]
 
@@ -199,7 +201,7 @@ class Parallel:
             else:
                 status_icon = "✅ SUCCESS:"
 
-            aggregated += f"### {status_icon} {step_name}\n"
+            aggregated += f"### {status_icon!s} {step_name}\n"
             if content and str(content).strip():
                 aggregated += f"{content}\n\n"
             else:
@@ -234,6 +236,60 @@ class Parallel:
                         step_name=step_name, content=f"Step {step_name} failed: {str(e)}", success=False, error=str(e)
                     ),
                 )
+
+        # Use index to preserve order
+        indexed_steps = list(enumerate(self.steps))
+
+        with ThreadPoolExecutor(max_workers=len(self.steps)) as executor:
+            # Submit all tasks with their original indices
+            future_to_index = {
+                executor.submit(execute_step_with_index, indexed_step): indexed_step[0]
+                for indexed_step in indexed_steps
+            }
+
+            # Collect results
+            results_with_indices = []
+            for future in as_completed(future_to_index):
+                try:
+                    index, result = future.result()
+                    results_with_indices.append((index, result))
+                    step_name = getattr(self.steps[index], "name", f"step_{index}")
+                    log_debug(f"Parallel step {step_name} completed")
+                except Exception as e:
+                    index = future_to_index[future]
+                    step_name = getattr(self.steps[index], "name", f"step_{index}")
+                    logger.error(f"Parallel step {step_name} failed: {e}")
+                    results_with_indices.append(
+                        (
+                            index,
+                            StepOutput(
+                                step_name=step_name,
+                                content=f"Step {step_name} failed: {str(e)}",
+                                success=False,
+                                error=str(e),
+                            ),
+                        )
+                    )
+
+        # Sort by original index to preserve order
+        results_with_indices.sort(key=lambda x: x[0])
+        results = [result for _, result in results_with_indices]
+
+        # Flatten results - handle steps that return list[StepOutput] (like Condition/Loop)
+        flattened_results: list[StepOutput] = []
+        for result in results:
+            if isinstance(result, list):
+                flattened_results.extend(result)
+            else:
+                flattened_results.append(result)
+
+        # Aggregate all results into a single StepOutput
+        aggregated_result = self._aggregate_results(flattened_results)
+
+        # Use workflow logger for parallel completion
+        log_debug(f"Parallel End: {self.name} ({len(self.steps)} steps)", center=True, symbol="=")
+
+        return aggregated_result
 
         # Use index to preserve order
         indexed_steps = list(enumerate(self.steps))
@@ -404,8 +460,8 @@ class Parallel:
                 if not isinstance(event, StepOutput):
                     yield event
 
-        # Flatten step_results - handle steps that return List[StepOutput] (like Condition/Loop)
-        flattened_step_results: List[StepOutput] = []
+        # Flatten step_results - handle steps that return list[StepOutput] (like Condition/Loop)
+        flattened_step_results: list[StepOutput] = []
         for result in step_results:
             if isinstance(result, list):
                 flattened_step_results.extend(result)
@@ -500,8 +556,8 @@ class Parallel:
         processed_results_with_indices.sort(key=lambda x: x[0])
         results = [result for _, result in processed_results_with_indices]
 
-        # Flatten results - handle steps that return List[StepOutput] (like Condition/Loop)
-        flattened_results: List[StepOutput] = []
+        # Flatten results - handle steps that return list[StepOutput] (like Condition/Loop)
+        flattened_results: list[StepOutput] = []
         for result in results:
             if isinstance(result, list):
                 flattened_results.extend(result)
@@ -629,8 +685,8 @@ class Parallel:
                 if not isinstance(event, StepOutput):
                     yield event
 
-        # Flatten step_results - handle steps that return List[StepOutput] (like Condition/Loop)
-        flattened_step_results: List[StepOutput] = []
+        # Flatten step_results - handle steps that return list[StepOutput] (like Condition/Loop)
+        flattened_step_results: list[StepOutput] = []
         for result in step_results:
             if isinstance(result, list):
                 flattened_step_results.extend(result)

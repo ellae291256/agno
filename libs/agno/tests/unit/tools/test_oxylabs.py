@@ -78,16 +78,14 @@ class TestOxylabsToolsInitialization:
     def test_init_without_credentials(self):
         """Test initialization failure without credentials."""
         # Ensure no environment variables are set
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
-                OxylabsTools()
+        with patch.dict("os.environ", {}, clear=True), pytest.raises(ValueError, match="No Oxylabs credentials provided"):
+            OxylabsTools()
 
     def test_init_partial_credentials(self):
         """Test initialization failure with partial credentials."""
         # Ensure no environment variables are set
-        with patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(ValueError, match="No Oxylabs credentials provided"):
-                OxylabsTools(username="test_user")
+        with patch.dict("os.environ", {}, clear=True), pytest.raises(ValueError, match="No Oxylabs credentials provided"):
+            OxylabsTools(username="test_user")
 
 
 class TestSearchGoogle:

@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any
 
 try:
     from upstash_vector import Index, Vector
@@ -104,7 +106,7 @@ class UpstashVectorDb(VectorDb):
             self.index.info()
             return True
         except Exception as e:
-            logger.error(f"Error checking index existence: {str(e)}")
+            logger.error(f"Error checking index existence: {e}")
             return False
 
     def create(self) -> None:
@@ -161,7 +163,7 @@ class UpstashVectorDb(VectorDb):
             bool: True if the index exists, False otherwise. (Name is not used.)
         """
         logger.warning(
-            f"You can check if an index with name {name} exists in Upstash Console."
+            f"You can check if an index with name {name!s} exists in Upstash Console."
             "The token and url parameters you provided are used to connect to a specific index."
         )
         return self.exists()

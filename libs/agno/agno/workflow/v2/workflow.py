@@ -1,18 +1,16 @@
+from __future__ import annotations
+
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from os import getenv
 from typing import (
     Any,
     AsyncIterator,
     Awaitable,
     Callable,
-    Dict,
     Iterator,
-    List,
     Literal,
-    Optional,
-    Union,
     overload,
 )
 from uuid import uuid4
@@ -74,7 +72,7 @@ WorkflowSteps = Union[
         Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput], Any],
     ],
     Steps,
-    List[
+    list[
         Union[
             Callable[
                 [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
@@ -95,55 +93,55 @@ class Workflow:
     """Pipeline-based workflow execution"""
 
     # Workflow identification - make name optional with default
-    name: Optional[str] = None
-    workflow_id: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    workflow_id: str | None = None
+    description: str | None = None
 
     # Workflow configuration
-    steps: Optional[WorkflowSteps] = None
+    steps: WorkflowSteps | None = None
 
-    storage: Optional[Storage] = None
+    storage: Storage | None = None
 
     # Session management
-    session_id: Optional[str] = None
-    session_name: Optional[str] = None
-    user_id: Optional[str] = None
-    workflow_session_id: Optional[str] = None
-    workflow_session_state: Optional[Dict[str, Any]] = None
+    session_id: str | None = None
+    session_name: str | None = None
+    user_id: str | None = None
+    workflow_session_id: str | None = None
+    workflow_session_state: dict[str, Any] | None = None
 
     # Runtime state
-    run_id: Optional[str] = None
-    run_response: Optional[WorkflowRunResponse] = None
+    run_id: str | None = None
+    run_response: WorkflowRunResponse | None = None
 
     # Workflow session for storage
-    workflow_session: Optional[WorkflowSessionV2] = None
-    debug_mode: Optional[bool] = False
+    workflow_session: WorkflowSessionV2 | None = None
+    debug_mode: bool = False
 
     # --- Workflow Streaming ---
     # Stream the response from the Workflow
-    stream: Optional[bool] = None
+    stream: bool | None = None
     # Stream the intermediate steps from the Workflow
     stream_intermediate_steps: bool = False
 
     store_events: bool = False
-    events_to_skip: Optional[List[WorkflowRunEvent]] = None
+    events_to_skip: list[WorkflowRunEvent] | None = None
 
     def __init__(
         self,
-        workflow_id: Optional[str] = None,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-        storage: Optional[Storage] = None,
-        steps: Optional[WorkflowSteps] = None,
-        session_id: Optional[str] = None,
-        session_name: Optional[str] = None,
-        workflow_session_state: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        debug_mode: Optional[bool] = False,
-        stream: Optional[bool] = None,
+        workflow_id: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
+        storage: Storage | None = None,
+        steps: WorkflowSteps | None = None,
+        session_id: str | None = None,
+        session_name: str | None = None,
+        workflow_session_state: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        debug_mode: bool = False,
+        stream: bool | None = None,
         stream_intermediate_steps: bool = False,
         store_events: bool = False,
-        events_to_skip: Optional[List[WorkflowRunEvent]] = None,
+        events_to_skip: list[WorkflowRunEvent] | None = None,
     ):
         self.workflow_id = workflow_id
         self.name = name
@@ -161,7 +159,7 @@ class Workflow:
         self.stream_intermediate_steps = stream_intermediate_steps
 
     @property
-    def run_parameters(self) -> Dict[str, Any]:
+    def run_parameters(self) -> dict[str, Any]:
         """Get the run parameters for the workflow"""
 
         if self.steps is None:
@@ -464,15 +462,15 @@ class Workflow:
         else:
             try:
                 # Track outputs from each step for enhanced data flow
-                collected_step_outputs: List[Union[StepOutput, List[StepOutput]]] = []
-                previous_step_outputs: Dict[str, StepOutput] = {}
+                collected_step_outputs: list[Union[StepOutput, list[StepOutput]]] = []
+                previous_step_outputs: dict[str, StepOutput] = {}
 
-                shared_images: List[ImageArtifact] = execution_input.images or []
-                output_images: List[ImageArtifact] = (execution_input.images or []).copy()  # Start with input images
-                shared_videos: List[VideoArtifact] = execution_input.videos or []
-                output_videos: List[VideoArtifact] = (execution_input.videos or []).copy()  # Start with input videos
-                shared_audio: List[AudioArtifact] = execution_input.audio or []
-                output_audio: List[AudioArtifact] = (execution_input.audio or []).copy()  # Start with input audio
+                shared_images: list[ImageArtifact] = execution_input.images or []
+                output_images: list[ImageArtifact] = (execution_input.images or []).copy()  # Start with input images
+                shared_videos: list[VideoArtifact] = execution_input.videos or []
+                output_videos: list[VideoArtifact] = (execution_input.videos or []).copy()  # Start with input videos
+                shared_audio: list[AudioArtifact] = execution_input.audio or []
+                output_audio: list[AudioArtifact] = (execution_input.audio or []).copy()  # Start with input audio
 
                 for i, step in enumerate(self.steps):  # type: ignore[arg-type]
                     step_name = getattr(step, "name", f"step_{i + 1}")
@@ -549,10 +547,10 @@ class Workflow:
                 import traceback
 
                 traceback.print_exc()
-                logger.error(f"Workflow execution failed: {e}")
+                logger.error(f"Workflow execution failed: {e!s}")
                 # Store error response
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Workflow execution failed: {e}"
+                workflow_run_response.content = f"Workflow execution failed: {e!s}"
 
             finally:
                 if self.workflow_session:
@@ -710,7 +708,7 @@ class Workflow:
                 workflow_run_response.status = RunStatus.completed
 
             except Exception as e:
-                logger.error(f"Workflow execution failed: {e}")
+                logger.error(f"Workflow execution failed: {e!s}")
 
                 from agno.run.v2.workflow import WorkflowErrorEvent
 
@@ -914,9 +912,9 @@ class Workflow:
                 workflow_run_response.status = RunStatus.completed
 
             except Exception as e:
-                logger.error(f"Workflow execution failed: {e}")
+                logger.error(f"Workflow execution failed: {e!s}")
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Workflow execution failed: {e}"
+                workflow_run_response.content = f"Workflow execution failed: {e!s}"
 
         # Store error response
         if self.workflow_session:
@@ -1149,13 +1147,13 @@ class Workflow:
 
     def _run_background(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         **kwargs: Any,
     ) -> WorkflowRunResponse:
         """Execute workflow in background using asyncio.create_task() - DIRECT EXECUTION"""
@@ -1182,7 +1180,7 @@ class Workflow:
             session_id=self.session_id,
             workflow_id=self.workflow_id,
             workflow_name=self.name,
-            created_at=int(datetime.now().timestamp()),
+            created_at=int(datetime.now(timezone.utc).timestamp()),
             status=RunStatus.pending,
             content="Workflow execution started in background",
         )
@@ -1221,13 +1219,13 @@ class Workflow:
                 # Quick status update to database
                 self.update_background_status(self.run_id or "", workflow_run_response.status)
 
-                log_debug(f"Background execution completed with status: {workflow_run_response.status}")
+                log_debug(f"Background execution completed with status: {workflow_run_response.status!s}")
                 log_debug(
                     f"Content length: {len(str(workflow_run_response.content)) if workflow_run_response.content else 0}"
                 )
 
             except Exception as e:
-                logger.error(f"Background workflow execution failed: {e}")
+                logger.error(f"Background workflow execution failed: {e!s}")
                 workflow_run_response.status = RunStatus.error
                 workflow_run_response.content = f"Background execution failed: {str(e)}"
                 self.update_background_status(self.run_id or "", RunStatus.error)
@@ -1256,13 +1254,13 @@ class Workflow:
 
     async def _arun_background(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
         **kwargs: Any,
     ) -> WorkflowRunResponse:
         """Execute workflow in background using asyncio.create_task() - DIRECT EXECUTION"""
@@ -1511,7 +1509,7 @@ class Workflow:
             session_id=self.session_id,
             workflow_id=self.workflow_id,
             workflow_name=self.name,
-            created_at=int(datetime.now().timestamp()),
+            created_at=int(datetime.now(timezone.utc).timestamp()),
         )
         self.run_response = workflow_run_response
 
@@ -1783,7 +1781,7 @@ class Workflow:
                 )
                 saved_session = self.write_to_storage()
                 if saved_session is None:
-                    raise Exception("Failed to create new WorkflowSessionV2 in storage")
+                    raise RuntimeError("Failed to create new WorkflowSessionV2 in storage")
                 log_debug(f"Created WorkflowSessionV2: {saved_session.session_id}")
 
         return self.session_id
@@ -1819,8 +1817,6 @@ class Workflow:
                 f"**Structured Output:**\n\n```json\n{actual_content.model_dump_json(indent=2, exclude_none=True)}\n```"
             )
         elif isinstance(actual_content, (dict, list)):
-            import json
-
             return f"**Structured Output:**\n\n```json\n{json.dumps(actual_content, indent=2, default=str)}\n```"
         else:
             # Fallback to string conversion
@@ -1912,13 +1908,12 @@ class Workflow:
         **kwargs: Any,
     ) -> None:
         """Print workflow execution with rich formatting (non-streaming)"""
+        from agno.utils.response import create_panel
+        from agno.utils.timer import Timer
         from rich.live import Live
         from rich.markdown import Markdown
         from rich.status import Status
         from rich.text import Text
-
-        from agno.utils.response import create_panel
-        from agno.utils.timer import Timer
 
         if console is None:
             from agno.cli.console import console
@@ -1944,8 +1939,6 @@ class Workflow:
                 if isinstance(message, BaseModel):
                     data_display = message.model_dump_json(indent=2, exclude_none=True)
                 elif isinstance(message, (dict, list)):
-                    import json
-
                     data_display = json.dumps(message, indent=2, default=str)
                 else:
                     data_display = str(message)
@@ -2048,7 +2041,7 @@ class Workflow:
                 traceback.print_exc()
                 response_timer.stop()
                 error_panel = create_panel(
-                    content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
+                    content=f"Workflow execution failed: {e!s}", title="Execution Error", border_style="red"
                 )
                 console.print(error_panel)  # type: ignore
 
@@ -3375,7 +3368,7 @@ class Workflow:
                 )
                 console.print(error_panel)  # type: ignore
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert workflow to dictionary representation"""
         # TODO: Handle nested
         if self.steps is None or callable(self.steps):

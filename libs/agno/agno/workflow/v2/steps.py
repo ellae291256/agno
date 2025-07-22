@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -12,7 +14,7 @@ from agno.run.v2.workflow import (
 from agno.utils.log import log_debug, logger
 from agno.workflow.v2.step import Step, StepInput, StepOutput
 
-WorkflowSteps = List[
+WorkflowSteps = list[
     Union[
         Callable[
             [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
@@ -39,8 +41,8 @@ class Steps:
     description: Optional[str] = None
 
     def __init__(
-        self, name: Optional[str] = None, description: Optional[str] = None, steps: Optional[List[Any]] = None
-    ):  # Change to List[Any]
+        self, name: Optional[str] = None, description: Optional[str] = None, steps: Optional[list[Any]] = None
+    ):
         self.name = name
         self.description = description
         self.steps = steps if steps else []
@@ -73,8 +75,8 @@ class Steps:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        steps_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: Union[StepOutput, list[StepOutput]],
+        steps_step_outputs: Optional[dict[str, StepOutput]] = None,
     ) -> StepInput:
         """Helper to update step input from step outputs - mirrors Condition/Router logic"""
         current_images = step_input.images or []
@@ -112,7 +114,7 @@ class Steps:
 
     def execute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+    ) -> list[StepOutput]:
         """Execute all steps in sequence and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -169,7 +171,7 @@ class Steps:
                     success=False,
                     error=str(e),
                 )
-            ]
+            ]  # noqa: BLE001
 
     def execute_stream(
         self,
@@ -287,11 +289,11 @@ class Steps:
                 success=False,
                 error=str(e),
             )
-            yield error_result
+            yield error_result  # noqa: BLE001
 
     async def aexecute(
         self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+    ) -> list[StepOutput]:
         """Execute all steps in sequence asynchronously and return the final result"""
         log_debug(f"Steps Start: {self.name} ({len(self.steps)} steps)", center=True, symbol="-")
 
@@ -301,7 +303,7 @@ class Steps:
             return [StepOutput(step_name=self.name or "Steps", content="No steps to execute")]
 
         # Track outputs and pass data between steps - following Condition/Router pattern
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
         steps_step_outputs = {}
 
@@ -347,7 +349,7 @@ class Steps:
                     success=False,
                     error=str(e),
                 )
-            ]
+            ]  # noqa: BLE001
 
     async def aexecute_stream(
         self,
@@ -462,4 +464,4 @@ class Steps:
                 success=False,
                 error=str(e),
             )
-            yield error_result
+            yield error_result  # noqa: BLE001

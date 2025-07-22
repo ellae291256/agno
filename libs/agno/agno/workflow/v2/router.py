@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import AsyncIterator, Awaitable, Callable, Iterator, Optional
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -14,18 +16,16 @@ from agno.utils.log import log_debug, logger
 from agno.workflow.v2.step import Step
 from agno.workflow.v2.types import StepInput, StepOutput
 
-WorkflowSteps = List[
-    Union[
-        Callable[
-            [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
-        ],
-        Step,
-        "Steps",  # type: ignore # noqa: F821
-        "Loop",  # type: ignore # noqa: F821
-        "Parallel",  # type: ignore # noqa: F821
-        "Condition",  # type: ignore # noqa: F821
-        "Router",  # type: ignore # noqa: F821
+WorkflowSteps = list[
+    Callable[
+        [StepInput], StepOutput | Awaitable[StepOutput] | Iterator[StepOutput] | AsyncIterator[StepOutput]
     ]
+    | Step
+    | Steps  # type: ignore # noqa: F821
+    | Loop  # type: ignore # noqa: F821
+    | Parallel  # type: ignore # noqa: F821
+    | Condition  # type: ignore # noqa: F821
+    | Router  # type: ignore # noqa: F821
 ]
 
 
@@ -34,10 +34,7 @@ class Router:
     """A router that dynamically selects which step(s) to execute based on input"""
 
     # Router function that returns the step(s) to execute
-    selector: Union[
-        Callable[[StepInput], Union[WorkflowSteps, List[WorkflowSteps]]],
-        Callable[[StepInput], Awaitable[Union[WorkflowSteps, List[WorkflowSteps]]]],
-    ]
+    selector: Callable[[StepInput], WorkflowSteps | list[WorkflowSteps]] | Callable[[StepInput], Awaitable[WorkflowSteps | list[WorkflowSteps]]]
     choices: WorkflowSteps  # Available steps that can be selected
 
     name: Optional[str] = None
@@ -71,8 +68,8 @@ class Router:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        router_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: StepOutput | list[StepOutput],
+        router_step_outputs: dict[str, StepOutput] | None = None,
     ) -> StepInput:
         """Helper to update step input from step outputs - mirrors Loop logic"""
         current_images = step_input.images or []
@@ -106,7 +103,7 @@ class Router:
             audio=current_audio + all_audio,
         )
 
-    def _route_steps(self, step_input: StepInput) -> List[Step]:  # type: ignore[return-value]
+    def _route_steps(self, step_input: StepInput) -> list[Step]:  # type: ignore[return-value]
         """Route to the appropriate steps based on input"""
         if callable(self.selector):
             result = self.selector(step_input)
@@ -122,7 +119,7 @@ class Router:
 
         return []
 
-    async def _aroute_steps(self, step_input: StepInput) -> List[Step]:  # type: ignore[return-value]
+    async def _aroute_steps(self, step_input: StepInput) -> list[Step]:  # type: ignore[return-value]
         """Async version of step routing"""
         if callable(self.selector):
             if inspect.iscoroutinefunction(self.selector):
@@ -142,8 +139,8 @@ class Router:
         return []
 
     def execute(
-        self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+        self, step_input: StepInput, session_id: str | None = None, user_id: str | None = None
+    ) -> list[StepOutput]:
         """Execute the router and its selected steps with sequential chaining"""
         log_debug(f"Router Start: {self.name}", center=True, symbol="-")
 
@@ -156,7 +153,7 @@ class Router:
         if not steps_to_execute:
             return []
 
-        all_results: List[StepOutput] = []
+        all_results: list[StepOutput] = []
         current_step_input = step_input
         router_step_outputs = {}
 
@@ -205,12 +202,12 @@ class Router:
     def execute_stream(
         self,
         step_input: StepInput,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         stream_intermediate_steps: bool = False,
-        workflow_run_response: Optional[WorkflowRunResponse] = None,
-        step_index: Optional[Union[int, tuple]] = None,
-    ) -> Iterator[Union[WorkflowRunResponseEvent, StepOutput]]:
+        workflow_run_response: WorkflowRunResponse | None = None,
+        step_index: int | tuple | None = None,
+    ) -> Iterator[WorkflowRunResponseEvent | StepOutput]:
         """Execute the router with streaming support"""
         log_debug(f"Router Start: {self.name}", center=True, symbol="-")
 
