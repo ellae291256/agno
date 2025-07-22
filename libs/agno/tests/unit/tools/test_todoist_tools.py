@@ -37,18 +37,16 @@ def test_init_with_api_token():
 
 def test_init_with_env_var():
     """Test initialization with environment variable."""
-    with patch("agno.tools.todoist.TodoistAPI") as mock_api:
-        with patch("os.getenv") as mock_getenv:
-            mock_getenv.return_value = "env_token"
-            TodoistTools()
-            mock_api.assert_called_once_with("env_token")
+    with patch("agno.tools.todoist.TodoistAPI") as mock_api, patch("os.getenv") as mock_getenv:
+        mock_getenv.return_value = "env_token"
+        TodoistTools()
+        mock_api.assert_called_once_with("env_token")
 
 
 def test_init_without_token():
     """Test initialization without API token."""
-    with patch.dict("os.environ", clear=True):
-        with pytest.raises(ValueError, match="TODOIST_API_TOKEN not set"):
-            TodoistTools()
+    with patch.dict("os.environ", clear=True), pytest.raises(ValueError, match="TODOIST_API_TOKEN not set"):
+        TodoistTools()
 
 
 def test_init_with_selective_tools():

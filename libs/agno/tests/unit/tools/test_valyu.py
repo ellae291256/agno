@@ -60,7 +60,8 @@ class TestValyuTools:
     @patch.dict("os.environ", {"VALYU_API_KEY": "env_key"})
     def test_init_with_env_api_key(self, mock_valyu):
         """Test initialization with API key from environment."""
-        tools = ValyuTools()
+        with patch.dict("os.environ", {"VALYU_API_KEY": "env_key"}):
+            tools = ValyuTools()
         assert tools.api_key == "env_key"
 
     def test_parse_results_basic(self, valyu_tools):
