@@ -5,7 +5,7 @@ import inspect
 from dataclasses import dataclass, field, fields
 from os import getenv
 from types import GeneratorType
-from typing import Any, AsyncIterator, Callable, Dict, List, Optional, Union, cast, get_args
+from typing import Any, AsyncIterator, Callable, Optional, Union, cast, get_args
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -175,7 +175,7 @@ class Workflow:
             result = self._subclass_run(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.run() failed: {e}")
-            raise e
+            raise
 
         # The run_workflow() method handles both Iterator[RunResponse] and RunResponse
         # Case 1: The run method returns an Iterator[RunResponse]
@@ -274,7 +274,7 @@ class Workflow:
             result = await self._subclass_arun(**kwargs)
         except Exception as e:
             logger.error(f"Workflow.arun() failed: {e}")
-            raise e
+            raise
 
         # Handle single RunResponse result
         if isinstance(result, RunResponse):
@@ -358,7 +358,7 @@ class Workflow:
             log_debug(f"Workflow Run End: {self.run_id}", center=True)
         except Exception as e:
             logger.error(f"Workflow.arun() failed: {e}")
-            raise e
+            raise
 
     async def arun(self, **kwargs: Any):
         """Async version of run() that calls arun_workflow()"""
@@ -487,7 +487,7 @@ class Workflow:
         # use dataclasses.fields() to iterate through fields
         for f in fields(self):
             field_type = f.type
-            if isinstance(field_type, Agent):
+            if field_type is Agent:
                 field_value = getattr(self, f.name)
                 field_value.session_id = self.session_id
 
@@ -501,8 +501,8 @@ class Workflow:
             workflow_data["description"] = self.description
         return workflow_data
 
-    def get_session_data(self) -> Dict[str, Any]:
-        session_data: Dict[str, Any] = {}
+    def get_session_data(self) -> dict[str, Any]:
+        session_data: dict[str, Any] = {}
         if self.session_name is not None:
             session_data["session_name"] = self.session_name
         if self.session_state and len(self.session_state) > 0:
@@ -627,16 +627,16 @@ class Workflow:
                     for run in session.memory["runs"]:
                         run_session_id = run["session_id"]
                         self.memory.runs[run_session_id].append(RunResponse.from_dict(run))
-                except Exception as e:
+                except (KeyError, TypeError, ValueError) as e:
                     log_warning(f"Failed to load runs from memory: {e}")
             else:
                 try:
                     if "runs" in session.memory:
                         try:
                             self.memory.runs = [WorkflowRun(**m) for m in session.memory["runs"]]
-                        except Exception as e:
+                        except (TypeError, ValueError) as e:
                             logger.warning(f"Failed to load runs from memory: {e}")
-                except Exception as e:
+                except (TypeError, ValueError) as e:
                     logger.warning(f"Failed to load WorkflowMemory: {e}")
 
         log_debug(f"-*- WorkflowSession loaded: {session.session_id}")

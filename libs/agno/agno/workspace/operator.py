@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Optional, cast
 
 from rich.prompt import Prompt
 
@@ -127,7 +129,7 @@ def create_workspace(
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.GitError as e:
         logger.error(e)
         return None
 
@@ -138,7 +140,7 @@ def create_workspace(
         logger.debug(f"Deleting {_dot_git_folder}")
         try:
             _dot_git_exists = not rmdir_recursive(_dot_git_folder)
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"Failed to delete {_dot_git_folder}: {e}")
             logger.info("Please delete the .git folder manually")
             pass
@@ -156,7 +158,7 @@ def create_workspace(
             str(workspace_example_secrets_dir),
             str(workspace_secrets_dir),
         )
-    except Exception as e:
+    except OSError as e:
         logger.warning(f"Could not create workspace/secrets: {e}")
         logger.warning("Please manually copy workspace/example_secrets to workspace/secrets")
 
@@ -260,7 +262,7 @@ def setup_workspace(ws_root_path: Path) -> Optional[WorkspaceConfig]:
             # We make a call to the api to create a new ws_schema
             logger.debug("Creating ws_schema")
             logger.debug(f"Getting teams for user: {agno_config.user.email}")
-            teams: Optional[List[TeamSchema]] = None
+            teams: Optional[list[TeamSchema]] = None
             selected_team: Optional[TeamSchema] = None
             team_identifier: Optional[TeamIdentifier] = None
             with Live(transient=True) as live_log:
@@ -689,7 +691,7 @@ def update_workspace(
         )
 
 
-def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[List[Path]]) -> None:
+def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[list[Path]]) -> None:
     if ws_to_delete is None or len(ws_to_delete) == 0:
         print_heading("No workspaces to delete")
         return

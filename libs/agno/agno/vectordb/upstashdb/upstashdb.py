@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
+
+from typing import Any, Optional
 
 try:
     from upstash_vector import Index, Vector
@@ -112,14 +114,12 @@ class UpstashVectorDb(VectorDb):
         logger.warning(
             "Indexes can only be created through the Upstash Console or the developer API. Please create an index before using this vector database."
         )
-        pass
 
     def drop(self) -> None:
         """You can drop indexes via Upstash Console."""
         logger.warning(
             "Indexes can only be dropped through the Upstash Console. Make sure you have an existing index before performing operations."
         )
-        pass
 
     def drop_namespace(self, namespace: Optional[str] = None) -> None:
         """Delete a namespace from the index.
@@ -243,15 +243,15 @@ class UpstashVectorDb(VectorDb):
         limit: int = 5,
         filters: Optional[Dict[str, Any]] = None,
         namespace: Optional[str] = None,
-    ) -> List[Document]:
+    ) -> list[Document]:
         """Search for documents in the index.
         Args:
             query (str): The query string to search for.
             limit (int, optional): Maximum number of results to return. Defaults to 5.
-            filters (Optional[Dict[str, Any]], optional): Metadata filters for the search.
-            namespace (Optional[str], optional): The namespace to search in. Defaults to None, which uses the instance namespace.
+            filters (dict[str, Any] | None, optional): Metadata filters for the search.
+            namespace (str | None, optional): The namespace to search in. Defaults to None, which uses the instance namespace.
         Returns:
-            List[Document]: List of matching documents.
+            list[Document]: List of matching documents.
         """
         _namespace = self.namespace if namespace is None else namespace
 
@@ -328,7 +328,6 @@ class UpstashVectorDb(VectorDb):
         """Optimize the index.
         This method is empty as Upstash automatically optimizes indexes.
         """
-        pass
 
     async def async_name_exists(self, name: str) -> bool:
         raise NotImplementedError(f"Async not supported on {self.__class__.__name__}.")

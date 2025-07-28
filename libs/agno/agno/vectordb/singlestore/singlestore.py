@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import json
 from hashlib import md5
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     from sqlalchemy.dialects import mysql
