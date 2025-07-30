@@ -137,7 +137,7 @@ class TestPostgresTools:
         mock_file = mock_open()
         export_path = "/tmp/test_export.csv"
 
-        with patch("builtins.open", mock_file):
+        with patch("builtins.open", mock_file), patch.object(postgres_tools, "connection") as mock_conn:
             result = postgres_tools.export_table_to_path("employees", export_path)
 
         # Verify safe query construction (using sql.Identifier)
@@ -183,7 +183,7 @@ class TestPostgresTools:
         mock_cursor.description = [("id",), ("name",)]
 
         # Mock file operations to raise IOError
-        with patch("builtins.open", side_effect=IOError("Permission denied")):
+        with patch("builtins.open", side_effect=IOError("Permission denied")), patch.object(postgres_tools, "connection") as mock_conn:
             result = postgres_tools.export_table_to_path("employees", "/invalid/path/file.csv")
 
         # Verify error is caught and returned
@@ -191,10 +191,9 @@ class TestPostgresTools:
 
     def test_context_manager_support(self, mock_connection):
         """Test that PostgresTools works as a context manager."""
-        with patch("psycopg2.connect", return_value=mock_connection):
-            with PostgresTools(host="localhost", db_name="testdb") as tools:
-                assert tools is not None
-                assert hasattr(tools, "close")
+        with patch("psycopg2.connect", return_value=mock_connection), PostgresTools(host="localhost", db_name="testdb") as tools:
+            assert tools is not None
+            assert hasattr(tools, "close")
 
         # Verify close was called (though mocked)
         # In real implementation, this would close the connection
@@ -204,8 +203,7 @@ class TestPostgresTools:
         # Simulate closed connection
         mock_connection.closed = 1  # 1 means closed
 
-        with patch("psycopg2.connect", return_value=mock_connection) as mock_connect:
-            tools = PostgresTools(host="localhost", db_name="testdb")
+        with patch("psycopg2.connect", return_value=mock_connection) as mock_connect, PostgresTools(host="localhost", db_name="testdb") as tools:
             # Access connection property to trigger reconnection
             _ = tools.connection
 

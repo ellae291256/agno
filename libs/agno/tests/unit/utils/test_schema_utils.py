@@ -1,7 +1,5 @@
 """Tests for schema_utils module"""
 
-from typing import Dict, List, Optional
-
 from pydantic import BaseModel, Field
 
 from agno.utils.models.schema_utils import (

@@ -1,4 +1,4 @@
-from typing import Generator, List
+from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -172,11 +172,11 @@ def test_insert(surrealdb_vector, mock_surrealdb_client, sample_documents):
     assert mock_surrealdb_client.create.call_count == 3
 
     # Check args for first document
-    args, _ = mock_surrealdb_client.create.call_args_list[0]
-    assert args[0] == "test_collection"
-    assert "content" in args[1]
-    assert "embedding" in args[1]
-    assert "meta_data" in args[1]
+    call_args = mock_surrealdb_client.create.call_args_list[0]
+    assert call_args[0][0] == "test_collection"
+    assert "content" in call_args[0][1]
+    assert "embedding" in call_args[0][1]
+    assert "meta_data" in call_args[0][1]
 
 
 def test_upsert(surrealdb_vector, mock_surrealdb_client, sample_documents):
@@ -186,12 +186,12 @@ def test_upsert(surrealdb_vector, mock_surrealdb_client, sample_documents):
     assert mock_surrealdb_client.query.call_count == 3
 
     # Check args for first call
-    args, _ = mock_surrealdb_client.query.call_args_list[0]
-    assert "UPSERT test_collection" in args[0]
-    assert "SET content = $content" in args[0]
-    assert "content" in args[1]
-    assert "embedding" in args[1]
-    assert "meta_data" in args[1]
+    call_args = mock_surrealdb_client.query.call_args_list[0]
+    assert "UPSERT test_collection" in call_args[0][0]
+    assert "SET content = $content" in call_args[0][0]
+    assert "content" in call_args[0][1]
+    assert "embedding" in call_args[0][1]
+    assert "meta_data" in call_args[0][1]
 
 
 def test_search(surrealdb_vector: SurrealDb, mock_surrealdb_client: MagicMock) -> None:
@@ -220,11 +220,11 @@ def test_search(surrealdb_vector: SurrealDb, mock_surrealdb_client: MagicMock) -
 
     # Verify search query
     mock_surrealdb_client.query.assert_called_once()
-    args, kwargs = mock_surrealdb_client.query.call_args
-    assert "SELECT" in args[0]
-    assert "FROM test_collection" in args[0]
-    assert "WHERE embedding <|2, 40|>" in args[0]
-    assert "LIMIT 2" in args[0]
+    call_args = mock_surrealdb_client.query.call_args
+    assert "SELECT" in call_args[0][0]
+    assert "FROM test_collection" in call_args[0][0]
+    assert "WHERE embedding <|2, 40|>" in call_args[0][0]
+    assert "LIMIT 2" in call_args[0][0]
 
 
 def test_drop(surrealdb_vector, mock_surrealdb_client):

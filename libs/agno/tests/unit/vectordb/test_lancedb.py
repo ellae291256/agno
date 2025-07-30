@@ -1,6 +1,5 @@
 import os
 import shutil
-from typing import List
 
 import pytest
 
@@ -26,8 +25,8 @@ def lance_db(mock_embedder):
 
     try:
         db.drop()
-    except Exception:
-        pass
+    except Exception as e:
+        raise e
 
     if os.path.exists(TEST_PATH):
         shutil.rmtree(TEST_PATH)
@@ -77,7 +76,7 @@ def test_vector_search(lance_db, sample_documents):
     import json
 
     found = False
-    for _, row in results.iterrows():
+    for row in results.iterrows():
         payload = json.loads(row["payload"])
         if "coconut" in payload["content"].lower():
             found = True

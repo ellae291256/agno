@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Type, Union
+from typing import Any, AsyncIterator, Iterator, Mapping, Optional, Type, Union
 
 from pydantic import BaseModel
 

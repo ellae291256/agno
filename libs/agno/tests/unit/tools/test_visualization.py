@@ -409,9 +409,9 @@ def test_custom_filename(viz_tools):
     with patch("matplotlib.pyplot.savefig"):
         result = viz_tools.create_bar_chart(data=test_data, filename=custom_filename)
 
-        result_dict = json.loads(result)
-        assert result_dict["status"] == "success"
-        assert custom_filename in result_dict["file_path"]
+    result_dict = json.loads(result)
+    assert result_dict["status"] == "success"
+    assert custom_filename in result_dict["file_path"]
 
 
 @patch("matplotlib.pyplot.savefig", side_effect=Exception("Save failed"))
