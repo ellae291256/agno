@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import json
 from dataclasses import dataclass
 from os import getenv
-from typing import Any, AsyncIterator, Dict, Iterator, List, Mapping, Optional, Type, Union
+from typing import Any, AsyncIterator, Dict, Iterator, Mapping, Optional, Type, Union
 
 from pydantic import BaseModel
 
@@ -214,8 +216,8 @@ class LiteLLM(Model):
             # litellm.acompletion returns a coroutine that resolves to an async iterator
             # We need to await it first to get the actual async iterator
             async_stream = await self.get_client().acompletion(**completion_kwargs)
-            async for chunk in async_stream:
-                yield chunk
+            async for _ in async_stream:
+                pass
         except Exception as e:
             log_error(f"Error in streaming response: {e}")
             raise
