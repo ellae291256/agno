@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from pathlib import Path
-from typing import Dict, List, Optional, cast
+from typing import Dict, cast
 
 from rich.prompt import Prompt
 
@@ -127,7 +129,7 @@ def create_workspace(
             str(ws_root_path),
             progress=GitCloneProgress(),  # type: ignore
         )
-    except Exception as e:
+    except git.exc.GitCommandError as e:
         logger.error(e)
         return None
 
@@ -138,7 +140,7 @@ def create_workspace(
         logger.debug(f"Deleting {_dot_git_folder}")
         try:
             _dot_git_exists = not rmdir_recursive(_dot_git_folder)
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"Failed to delete {_dot_git_folder}: {e}")
             logger.info("Please delete the .git folder manually")
             pass
@@ -156,7 +158,7 @@ def create_workspace(
             str(workspace_example_secrets_dir),
             str(workspace_secrets_dir),
         )
-    except Exception as e:
+    except OSError as e:
         logger.warning(f"Could not create workspace/secrets: {e}")
         logger.warning("Please manually copy workspace/example_secrets to workspace/secrets")
 
@@ -480,14 +482,14 @@ def start_workspace(
 def stop_workspace(
     agno_config: AgnoCliConfig,
     ws_config: WorkspaceConfig,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool = False,
+    auto_confirm: bool = False,
+    force: bool | None = None,
 ) -> None:
     """Stop an Agno Workspace. This is called from `ag ws down`"""
     if ws_config is None:
@@ -508,7 +510,7 @@ def stop_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to delete
-    resource_groups_to_delete: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_delete: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="delete",
@@ -585,15 +587,15 @@ def stop_workspace(
 def update_workspace(
     agno_config: AgnoCliConfig,
     ws_config: WorkspaceConfig,
-    target_env: Optional[str] = None,
-    target_infra: Optional[str] = None,
-    target_group: Optional[str] = None,
-    target_name: Optional[str] = None,
-    target_type: Optional[str] = None,
-    dry_run: Optional[bool] = False,
-    auto_confirm: Optional[bool] = False,
-    force: Optional[bool] = None,
-    pull: Optional[bool] = False,
+    target_env: str | None = None,
+    target_infra: str | None = None,
+    target_group: str | None = None,
+    target_name: str | None = None,
+    target_type: str | None = None,
+    dry_run: bool = False,
+    auto_confirm: bool = False,
+    force: bool | None = None,
+    pull: bool = False,
 ) -> None:
     """Update an Agno Workspace. This is called from `ag ws patch`"""
     if ws_config is None:
@@ -615,7 +617,7 @@ def update_workspace(
     ws_config.set_local_env()
 
     # Get resource groups to update
-    resource_groups_to_update: List[InfraResources] = ws_config.get_resources(
+    resource_groups_to_update: list[InfraResources] = ws_config.get_resources(
         env=target_env,
         infra=target_infra,
         order="create",
@@ -689,7 +691,7 @@ def update_workspace(
         )
 
 
-def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[List[Path]]) -> None:
+def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: list[Path] | None) -> None:
     if ws_to_delete is None or len(ws_to_delete) == 0:
         print_heading("No workspaces to delete")
         return
@@ -698,7 +700,7 @@ def delete_workspace(agno_config: AgnoCliConfig, ws_to_delete: Optional[List[Pat
         agno_config.delete_ws(ws_root_path=ws_root)
 
 
-def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
+def set_workspace_as_active(ws_dir_name: str | None) -> None:
     from agno.cli.operator import initialize_agno
 
     ######################################################
@@ -707,7 +709,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
     ######################################################
     # 1.1 Check AgnoCliConfig is valid
     ######################################################
-    agno_config: Optional[AgnoCliConfig] = AgnoCliConfig.from_saved_config()
+    agno_config: AgnoCliConfig | None = AgnoCliConfig.from_saved_config()
     if not agno_config:
         agno_config = initialize_agno()
         if not agno_config:
@@ -718,14 +720,14 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
     # 1.2 Check ws_root_path is valid
     ######################################################
     # By default, we assume this command is run from the workspace directory
-    ws_root_path: Optional[Path] = None
+    ws_root_path: Path | None = None
     if ws_dir_name is None:
         # If the user does not provide a ws_name, that implies `ag set` is ran from
         # the workspace directory.
         ws_root_path = Path(".").resolve()
     else:
         # If the user provides a workspace name manually, we find the dir for that ws
-        ws_config: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_dir_name(ws_dir_name)
+        ws_config: WorkspaceConfig | None = agno_config.get_ws_config_by_dir_name(ws_dir_name)
         if ws_config is None:
             logger.error(f"Could not find workspace {ws_dir_name}")
             return
@@ -740,7 +742,7 @@ def set_workspace_as_active(ws_dir_name: Optional[str]) -> None:
     # 1.3 Validate WorkspaceConfig is available i.e. a workspace is available at this directory
     ######################################################
     logger.debug(f"Checking for a workspace at path: {ws_root_path}")
-    active_ws_config: Optional[WorkspaceConfig] = agno_config.get_ws_config_by_path(ws_root_path)
+    active_ws_config: WorkspaceConfig | None = agno_config.get_ws_config_by_path(ws_root_path)
     if active_ws_config is None:
         # This happens when the workspace is not yet setup
         print_info(f"Could not find a workspace at path: {ws_root_path}")

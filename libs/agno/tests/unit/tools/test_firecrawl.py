@@ -14,14 +14,16 @@ TEST_API_URL = "https://api.firecrawl.dev"
 
 
 @pytest.fixture
+@pytest.fixture
 def mock_firecrawl():
     """Create a mock FirecrawlApp instance."""
     with patch("agno.tools.firecrawl.FirecrawlApp") as mock_firecrawl_cls:
         mock_app = Mock(spec=FirecrawlApp)
         mock_firecrawl_cls.return_value = mock_app
-        return mock_app
+        yield mock_app
 
 
+@pytest.fixture
 @pytest.fixture
 def firecrawl_tools(mock_firecrawl):
     """Create a FirecrawlTools instance with mocked dependencies."""
@@ -29,7 +31,7 @@ def firecrawl_tools(mock_firecrawl):
         tools = FirecrawlTools()
         # Directly set the app to our mock to avoid initialization issues
         tools.app = mock_firecrawl
-        return tools
+        yield tools
 
 
 def test_init_with_env_vars():

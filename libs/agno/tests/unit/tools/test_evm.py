@@ -44,8 +44,8 @@ def mock_web3_client():
 @pytest.fixture
 def mock_web3_constructor():
     """Mock the Web3 constructor and HTTPProvider."""
-    with patch("agno.tools.evm.Web3") as mock_web3_class, patch("agno.tools.evm.HTTPProvider") as mock_http_provider:
-        yield mock_web3_class, mock_http_provider
+    with patch("agno.tools.evm.Web3") as mock_web3_class, patch("agno.tools.evm.HTTPProvider"):
+        yield mock_web3_class
 
 
 @pytest.fixture
@@ -66,7 +66,7 @@ class TestEvmToolsInitialization:
 
     def test_init_with_credentials(self, mock_web3_constructor, mock_web3_client):
         """Test initialization with provided credentials."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -81,7 +81,7 @@ class TestEvmToolsInitialization:
 
     def test_init_with_env_variables(self, mock_web3_constructor, mock_web3_client, mock_environment_variables):
         """Test initialization with environment variables."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools()
@@ -104,7 +104,7 @@ class TestEvmToolsInitialization:
 
     def test_private_key_prefix_added(self, mock_web3_constructor, mock_web3_client):
         """Test that 0x prefix is added to private key if missing."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -120,7 +120,7 @@ class TestGasFeeCalculation:
 
     def test_get_max_priority_fee_per_gas(self, mock_web3_constructor, mock_web3_client):
         """Test max priority fee per gas calculation."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -135,7 +135,7 @@ class TestGasFeeCalculation:
 
     def test_get_max_fee_per_gas(self, mock_web3_constructor, mock_web3_client):
         """Test max fee per gas calculation."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -152,7 +152,7 @@ class TestGasFeeCalculation:
 
     def test_get_max_fee_per_gas_no_base_fee(self, mock_web3_constructor, mock_web3_client):
         """Test max fee per gas calculation when base fee is not available."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_client.eth.get_block.return_value = {}  # No baseFeePerGas
         mock_web3_class.return_value = mock_web3_client
 
@@ -170,7 +170,7 @@ class TestSendTransaction:
 
     def test_send_transaction_success(self, mock_web3_constructor, mock_web3_client):
         """Test successful transaction sending."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -194,7 +194,7 @@ class TestSendTransaction:
 
     def test_send_transaction_invalid_address(self, mock_web3_constructor, mock_web3_client):
         """Test transaction sending with invalid address."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -210,7 +210,7 @@ class TestSendTransaction:
 
     def test_send_transaction_zero_amount(self, mock_web3_constructor, mock_web3_client):
         """Test transaction sending with zero amount."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -230,7 +230,7 @@ class TestErrorHandling:
 
     def test_transaction_exception_handling(self, mock_web3_constructor, mock_web3_client):
         """Test handling of transaction exceptions."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_client.eth.send_raw_transaction.side_effect = Exception("Network error")
         mock_web3_class.return_value = mock_web3_client
 
@@ -270,7 +270,7 @@ class TestTransactionParameters:
 
     def test_transaction_params_construction(self, mock_web3_constructor, mock_web3_client):
         """Test that transaction parameters are constructed correctly."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -298,7 +298,7 @@ class TestToolkitIntegration:
 
     def test_tools_registration(self, mock_web3_constructor, mock_web3_client):
         """Test that tools are properly registered in the toolkit."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(
@@ -313,7 +313,7 @@ class TestToolkitIntegration:
 
     def test_toolkit_name(self, mock_web3_constructor, mock_web3_client):
         """Test that toolkit has correct name."""
-        mock_web3_class, mock_http_provider = mock_web3_constructor
+        mock_web3_class = mock_web3_constructor
         mock_web3_class.return_value = mock_web3_client
 
         tools = EvmTools(

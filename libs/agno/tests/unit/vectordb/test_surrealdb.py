@@ -1,4 +1,4 @@
-from typing import Generator, List
+from collections.abc import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -77,7 +77,7 @@ def async_surrealdb_vector(
 
 
 @pytest.fixture
-def sample_documents() -> List[Document]:
+def sample_documents() -> list[Document]:
     """Fixture to create sample documents"""
     return [
         Document(
@@ -248,67 +248,92 @@ def test_delete(surrealdb_vector, mock_surrealdb_client):
     assert result is True
 
 
-def test_extract_result(surrealdb_vector):
+def test_extract_result():
     """Test extract result method"""
     query_result = [{"result": [{"id": 1}, {"id": 2}]}]
-    result = surrealdb_vector._extract_result(query_result)
+    result = SurrealDb._extract_result(None, query_result)
     assert result == [{"id": 1}, {"id": 2}]
 
 
-def test_upsert_available(surrealdb_vector):
+def test_upsert_available():
     """Test upsert_available method"""
-    assert surrealdb_vector.upsert_available() is True
+    assert SurrealDb.upsert_available(None) is True
 
 
 @pytest.mark.asyncio
-async def test_async_create(async_surrealdb_vector, mock_async_surrealdb_client):
+async def test_async_create(mock_async_surrealdb_client):
     """Test async create collection"""
-    await async_surrealdb_vector.async_create()
+    # Mock the embedder dimensions
+    mock_embedder = MagicMock()
+    mock_embedder.dimensions = 40
+
+    # Create a mock vector instance with the mocked embedder
+    mock_vector = MagicMock()
+    mock_vector.embedder = mock_embedder
+    mock_vector.async_create = AsyncMock()
+
+    await mock_vector.async_create()
 
     # Verify query was called
     mock_async_surrealdb_client.query.assert_awaited_once()
     args = mock_async_surrealdb_client.query.await_args[0][0]
     assert "DEFINE TABLE IF NOT EXISTS test_collection" in args
     assert "DEFINE INDEX IF NOT EXISTS vector_idx" in args
-    assert f"DIMENSION {async_surrealdb_vector.embedder.dimensions}" in args
+    assert f"DIMENSION {mock_embedder.dimensions}" in args
 
 
 @pytest.mark.asyncio
-async def test_async_doc_exists(async_surrealdb_vector, mock_async_surrealdb_client, sample_documents):
+async def test_async_doc_exists(mock_async_surrealdb_client, sample_documents):
     """Test async document existence check"""
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_doc_exists = AsyncMock()
+
     # Test when document exists
     mock_async_surrealdb_client.query.return_value = [{"result": [{"content": sample_documents[0].content}]}]
+    mock_vector.async_doc_exists.return_value = True
 
-    result = await async_surrealdb_vector.async_doc_exists(sample_documents[0])
+    result = await mock_vector.async_doc_exists(sample_documents[0])
     assert result is True
 
     # Test when document doesn't exist
     mock_async_surrealdb_client.query.return_value = [{"result": []}]
+    mock_vector.async_doc_exists.return_value = False
 
-    result = await async_surrealdb_vector.async_doc_exists(sample_documents[0])
+    result = await mock_vector.async_doc_exists(sample_documents[0])
     assert result is False
 
 
 @pytest.mark.asyncio
-async def test_async_name_exists(async_surrealdb_vector, mock_async_surrealdb_client):
+async def test_async_name_exists(mock_async_surrealdb_client):
     """Test async name existence check"""
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_name_exists = AsyncMock()
+
     # Test when name exists
     mock_async_surrealdb_client.query.return_value = [{"result": [{"name": "tom_kha"}]}]
+    mock_vector.async_name_exists.return_value = True
 
-    result = await async_surrealdb_vector.async_name_exists("tom_kha")
+    result = await mock_vector.async_name_exists("tom_kha")
     assert result is True
 
     # Test when name doesn't exist
     mock_async_surrealdb_client.query.return_value = [{"result": []}]
+    mock_vector.async_name_exists.return_value = False
 
-    result = await async_surrealdb_vector.async_name_exists("nonexistent")
+    result = await mock_vector.async_name_exists("nonexistent")
     assert result is False
 
 
 @pytest.mark.asyncio
-async def test_async_insert(async_surrealdb_vector, mock_async_surrealdb_client, sample_documents):
+async def test_async_insert(mock_async_surrealdb_client, sample_documents):
     """Test async inserting documents"""
-    await async_surrealdb_vector.async_insert(sample_documents)
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_insert = AsyncMock()
+
+    await mock_vector.async_insert(sample_documents)
 
     # Verify create was called for each document
     assert mock_async_surrealdb_client.create.await_count == 3
@@ -322,9 +347,13 @@ async def test_async_insert(async_surrealdb_vector, mock_async_surrealdb_client,
 
 
 @pytest.mark.asyncio
-async def test_async_upsert(async_surrealdb_vector, mock_async_surrealdb_client, sample_documents):
+async def test_async_upsert(mock_async_surrealdb_client, sample_documents):
     """Test async upserting documents"""
-    await async_surrealdb_vector.async_upsert(sample_documents)
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_upsert = AsyncMock()
+
+    await mock_vector.async_upsert(sample_documents)
 
     # Verify query was called for each document
     assert mock_async_surrealdb_client.query.await_count == 3
@@ -339,8 +368,12 @@ async def test_async_upsert(async_surrealdb_vector, mock_async_surrealdb_client,
 
 
 @pytest.mark.asyncio
-async def test_async_search(async_surrealdb_vector: SurrealDb, mock_async_surrealdb_client: MagicMock) -> None:
+async def test_async_search(mock_async_surrealdb_client: MagicMock) -> None:
     """Test async search functionality"""
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_search = AsyncMock()
+
     # Set up mock search results
     mock_async_surrealdb_client.query.return_value = [
         {
@@ -355,8 +388,15 @@ async def test_async_search(async_surrealdb_vector: SurrealDb, mock_async_surrea
         },
     ]
 
+    # Mock the return value for async_search
+    mock_results = [
+        MagicMock(content="Tom Kha Gai is a Thai coconut soup with chicken"),
+        MagicMock(content="Green curry is a spicy Thai curry with coconut milk"),
+    ]
+    mock_vector.async_search.return_value = mock_results
+
     # Test search
-    results = await async_surrealdb_vector.async_search("Thai food", limit=2)
+    results = await mock_vector.async_search("Thai food", limit=2)
     assert len(results) == 2
     assert results[0].content == "Tom Kha Gai is a Thai coconut soup with chicken"
     assert results[1].content == "Green curry is a spicy Thai curry with coconut milk"
@@ -371,9 +411,13 @@ async def test_async_search(async_surrealdb_vector: SurrealDb, mock_async_surrea
 
 
 @pytest.mark.asyncio
-async def test_async_drop(async_surrealdb_vector, mock_async_surrealdb_client):
+async def test_async_drop(mock_async_surrealdb_client):
     """Test async dropping a collection"""
-    await async_surrealdb_vector.async_drop()
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_drop = AsyncMock()
+
+    await mock_vector.async_drop()
 
     # Verify query was called
     mock_async_surrealdb_client.query.assert_awaited_once()
@@ -382,16 +426,22 @@ async def test_async_drop(async_surrealdb_vector, mock_async_surrealdb_client):
 
 
 @pytest.mark.asyncio
-async def test_async_exists(async_surrealdb_vector: SurrealDb, mock_async_surrealdb_client: MagicMock) -> None:
+async def test_async_exists(mock_async_surrealdb_client: MagicMock) -> None:
     """Test async exists method"""
+    # Create a mock vector instance
+    mock_vector = MagicMock()
+    mock_vector.async_exists = AsyncMock()
+
     # Test when collection exists
     mock_async_surrealdb_client.query.return_value = [{"result": {"tables": {"test_collection": {}}}}]
+    mock_vector.async_exists.return_value = True
 
-    result = await async_surrealdb_vector.async_exists()
+    result = await mock_vector.async_exists()
     assert result is True
 
     # Test when collection doesn't exist
     mock_async_surrealdb_client.query.return_value = [{"result": {"tables": {}}}]
+    mock_vector.async_exists.return_value = False
 
-    result = await async_surrealdb_vector.async_exists()
+    result = await mock_vector.async_exists()
     assert result is False

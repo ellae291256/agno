@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Union
 
 from pydantic import BaseModel
 
@@ -154,7 +156,6 @@ def test_get_json_schema_with_pydantic_model():
     user_schema = schema["properties"]["user"]
     assert user_schema["type"] == "object"
     assert "properties" in user_schema
-    print(schema)
     assert user_schema["properties"]["name"]["type"] == "string"
     assert user_schema["properties"]["age"]["type"] == "integer"
     assert user_schema["properties"]["is_active"]["type"] == "boolean"

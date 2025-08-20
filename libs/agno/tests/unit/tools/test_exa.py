@@ -11,21 +11,21 @@ from agno.tools.exa import ExaTools
 
 
 @pytest.fixture
-def mock_exa_client():
+@patch("agno.tools.exa.Exa")
+def mock_exa_client(mock_exa):
     """Create a mock Exa API client."""
-    with patch("agno.tools.exa.Exa") as mock_exa:
-        mock_client = Mock(spec=Exa)
-        mock_exa.return_value = mock_client
-        return mock_client
+    mock_client = Mock(spec=Exa)
+    mock_exa.return_value = mock_client
+    return mock_client
 
 
 @pytest.fixture
+@patch.dict("os.environ", {"EXA_API_KEY": "test_key"})
 def exa_tools(mock_exa_client):
     """Create ExaTools instance with mocked API."""
-    with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
-        tools = ExaTools()
-        tools.exa = mock_exa_client
-        return tools
+    tools = ExaTools()
+    tools.exa = mock_exa_client
+    return tools
 
 
 def create_mock_search_result(
@@ -47,12 +47,12 @@ def create_mock_search_result(
     return result
 
 
-def test_init_with_api_key():
+@patch("agno.tools.exa.Exa")
+@patch.dict("os.environ", {"EXA_API_KEY": "test_key"})
+def test_init_with_api_key(mock_exa):
     """Test initialization with provided API key."""
-    with patch("agno.tools.exa.Exa") as mock_exa:
-        with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
-            ExaTools()
-            mock_exa.assert_called_once_with("test_key")
+    ExaTools()
+    mock_exa.assert_called_once_with("test_key")
 
 
 def test_init_with_selective_tools():
@@ -283,12 +283,12 @@ def test_exa_answer_with_model_selection(exa_tools, mock_exa_client):
         exa_tools.exa_answer("test question")
 
 
+@patch.dict("os.environ", {"EXA_API_KEY": "test_key"})
 def test_init_with_research_tool():
     """Test initialization with research tool enabled."""
-    with patch.dict("os.environ", {"EXA_API_KEY": "test_key"}):
-        tools = ExaTools(research=True)
+    tools = ExaTools(research=True)
 
-        assert "research" in [func.name for func in tools.functions.values()]
+    assert "research" in [func.name for func in tools.functions.values()]
 
 
 def test_research_success(exa_tools, mock_exa_client):

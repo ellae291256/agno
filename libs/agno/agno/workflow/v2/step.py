@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable
 
 from pydantic import BaseModel
 
@@ -263,7 +265,7 @@ class Step:
                         # Create empty StepOutput for skipped step
                         return StepOutput(content=f"Step {self.name} failed but skipped", success=False, error=str(e))
                     else:
-                        raise e
+                        raise
 
         return StepOutput(content=f"Step {self.name} failed but skipped", success=False)
 
@@ -415,7 +417,7 @@ class Step:
                         yield step_output
                         return
                     else:
-                        raise e
+                        raise
 
         return
 
@@ -538,7 +540,7 @@ class Step:
                         # Create empty StepOutput for skipped step
                         return StepOutput(content=f"Step {self.name} failed but skipped", success=False, error=str(e))
                     else:
-                        raise e
+                        raise
 
         return StepOutput(content=f"Step {self.name} failed but skipped", success=False)
 
@@ -706,15 +708,15 @@ class Step:
                         )
                         yield step_output
                     else:
-                        raise e
+                        raise
 
         return
 
     def _prepare_message(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]],
-        previous_step_outputs: Optional[Dict[str, StepOutput]] = None,
-    ) -> Optional[Union[str, List[Any], Dict[str, Any], BaseModel]]:
+        message: str | Dict[str, Any] | List[Any] | BaseModel | None = None,
+        previous_step_outputs: Dict[str, StepOutput] | None = None,
+    ) -> str | List[Any] | Dict[str, Any] | BaseModel | None:
         """Prepare the primary input by combining message and previous step outputs"""
 
         if previous_step_outputs and self._executor_type in ["agent", "team"]:
@@ -769,7 +771,7 @@ class Step:
             # Convert any other type to string
             return RunResponse(content=str(result))
 
-    def _convert_audio_artifacts_to_audio(self, audio_artifacts: List[AudioArtifact]) -> List[Audio]:
+    def _convert_audio_artifacts_to_audio(self, audio_artifacts: list[AudioArtifact]) -> list[Audio]:
         """Convert AudioArtifact objects to Audio objects"""
         audios = []
         for audio_artifact in audio_artifacts:
@@ -782,7 +784,7 @@ class Step:
                 continue
         return audios
 
-    def _convert_image_artifacts_to_images(self, image_artifacts: List[ImageArtifact]) -> List[Image]:
+    def _convert_image_artifacts_to_images(self, image_artifacts: list[ImageArtifact]) -> list[Image]:
         """
         Convert ImageArtifact objects to Image objects with proper content handling.
 
@@ -822,7 +824,7 @@ class Step:
 
                     images.append(Image(**image_kwargs))
 
-                except Exception as e:
+                except (ValueError, TypeError, KeyError) as e:
                     logger.error(f"Failed to process image content: {e}")
                     # Skip this image if we can't process it
                     continue
@@ -834,7 +836,7 @@ class Step:
 
         return images
 
-    def _convert_video_artifacts_to_videos(self, video_artifacts: List[VideoArtifact]) -> List[Video]:
+    def _convert_video_artifacts_to_videos(self, video_artifacts: list[VideoArtifact]) -> list[Video]:
         """
         Convert VideoArtifact objects to Video objects with proper content handling.
 

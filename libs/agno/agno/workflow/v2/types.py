@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -12,14 +14,14 @@ from agno.run.team import TeamRunResponse
 class WorkflowExecutionInput:
     """Input data for a step execution"""
 
-    message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None
+    message: str | Dict[str, Any] | list[Any] | BaseModel | None = None
 
-    additional_data: Optional[Dict[str, Any]] = None
+    additional_data: Dict[str, Any] | None = None
 
     # Media inputs
-    images: Optional[List[ImageArtifact]] = None
-    videos: Optional[List[VideoArtifact]] = None
-    audio: Optional[List[AudioArtifact]] = None
+    images: list[ImageArtifact] | None = None
+    videos: list[VideoArtifact] | None = None
+    audio: list[AudioArtifact] | None = None
 
     def get_message_as_string(self) -> Optional[str]:
         """Convert message to string representation"""
@@ -61,17 +63,17 @@ class WorkflowExecutionInput:
 class StepInput:
     """Input data for a step execution"""
 
-    message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None
+    message: str | Dict[str, Any] | list[Any] | BaseModel | None = None
 
-    previous_step_content: Optional[Any] = None
-    previous_step_outputs: Optional[Dict[str, "StepOutput"]] = None
+    previous_step_content: Any | None = None
+    previous_step_outputs: Dict[str, StepOutput] | None = None
 
-    additional_data: Optional[Dict[str, Any]] = None
+    additional_data: Dict[str, Any] | None = None
 
     # Media inputs
-    images: Optional[List[ImageArtifact]] = None
-    videos: Optional[List[VideoArtifact]] = None
-    audio: Optional[List[AudioArtifact]] = None
+    images: list[ImageArtifact] | None = None
+    videos: list[VideoArtifact] | None = None
+    audio: list[AudioArtifact] | None = None
 
     def get_message_as_string(self) -> Optional[str]:
         """Convert message to string representation"""
@@ -180,30 +182,30 @@ class StepInput:
 class StepOutput:
     """Output data from a step execution"""
 
-    step_name: Optional[str] = None
-    step_id: Optional[str] = None
-    executor_type: Optional[str] = None
-    executor_name: Optional[str] = None
+    step_name: str | None = None
+    step_id: str | None = None
+    executor_type: str | None = None
+    executor_name: str | None = None
 
     # Primary output
-    content: Optional[Union[str, Dict[str, Any], List[Any], BaseModel, Any]] = None
+    content: str | Dict[str, Any] | list[Any] | BaseModel | Any | None = None
 
     # For parallel steps: store individual step outputs
-    parallel_step_outputs: Optional[Dict[str, "StepOutput"]] = None
+    parallel_step_outputs: Dict[str, StepOutput] | None = None
 
     # Execution response
-    response: Optional[Union[RunResponse, TeamRunResponse]] = None
+    response: RunResponse | TeamRunResponse | None = None
 
     # Media outputs
-    images: Optional[List[ImageArtifact]] = None
-    videos: Optional[List[VideoArtifact]] = None
-    audio: Optional[List[AudioArtifact]] = None
+    images: list[ImageArtifact] | None = None
+    videos: list[VideoArtifact] | None = None
+    audio: list[AudioArtifact] | None = None
 
     # Metrics for this step execution
-    metrics: Optional[Dict[str, Any]] = None
+    metrics: Dict[str, Any] | None = None
 
     success: bool = True
-    error: Optional[str] = None
+    error: str | None = None
 
     stop: bool = False
 

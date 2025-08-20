@@ -1,5 +1,8 @@
+from __future__ import annotations
+
+from collections.abc import AsyncIterator, Iterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, Awaitable, Callable, Optional
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -18,11 +21,11 @@ WorkflowSteps = List[
             [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
         ],
         Step,
-        "Steps",  # type: ignore # noqa: F821
-        "Loop",  # type: ignore # noqa: F821
-        "Parallel",  # type: ignore # noqa: F821
-        "Condition",  # type: ignore # noqa: F821
-        "Router",  # type: ignore # noqa: F821
+        "Steps",  # type: ignore
+        "Loop",  # type: ignore
+        "Parallel",  # type: ignore
+        "Condition",  # type: ignore
+        "Router",  # type: ignore
     ]
 ]
 
@@ -82,9 +85,9 @@ class Steps:
         current_audio = step_input.audio or []
 
         if isinstance(step_outputs, list):
-            step_images = sum([out.images or [] for out in step_outputs], [])
-            step_videos = sum([out.videos or [] for out in step_outputs], [])
-            step_audio = sum([out.audio or [] for out in step_outputs], [])
+            step_images = [img for out in step_outputs for img in (out.images or [])]
+            step_videos = [vid for out in step_outputs for vid in (out.videos or [])]
+            step_audio = [aud for out in step_outputs for aud in (out.audio or [])]
             # Use the last output's content for chaining
             previous_step_content = step_outputs[-1].content if step_outputs else None
         else:

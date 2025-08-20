@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import time
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Any, AsyncIterator, Iterator, Tuple, Type, Union
 
 import httpx
 from pydantic import BaseModel
@@ -466,10 +468,10 @@ class OpenAIResponses(Model):
 
     def invoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Union[dict, Type[BaseModel]] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Response:
         """
         Send a request to the OpenAI Responses API.
@@ -521,10 +523,10 @@ class OpenAIResponses(Model):
 
     async def ainvoke(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Union[dict, Type[BaseModel]] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Response:
         """
         Sends an asynchronous request to the OpenAI Responses API.
@@ -576,10 +578,10 @@ class OpenAIResponses(Model):
 
     def invoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Union[dict, Type[BaseModel]] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> Iterator[ResponseStreamEvent]:
         """
         Send a streaming request to the OpenAI Responses API.
@@ -632,10 +634,10 @@ class OpenAIResponses(Model):
 
     async def ainvoke_stream(
         self,
-        messages: List[Message],
-        response_format: Optional[Union[Dict, Type[BaseModel]]] = None,
-        tools: Optional[List[Dict[str, Any]]] = None,
-        tool_choice: Optional[Union[str, Dict[str, Any]]] = None,
+        messages: list[Message],
+        response_format: Union[dict, Type[BaseModel]] | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
     ) -> AsyncIterator[ResponseStreamEvent]:
         """
         Sends an asynchronous streaming request to the OpenAI Responses API.
@@ -688,19 +690,19 @@ class OpenAIResponses(Model):
             raise ModelProviderError(message=str(exc), model_name=self.name, model_id=self.id) from exc
 
     def format_function_call_results(
-        self, messages: List[Message], function_call_results: List[Message], tool_call_ids: List[str]
+        self, messages: list[Message], function_call_results: list[Message], tool_call_ids: list[str]
     ) -> None:
         """
         Handle the results of function calls.
 
         Args:
-            messages (List[Message]): The list of conversation messages.
-            function_call_results (List[Message]): The results of the function calls.
-            tool_ids (List[str]): The tool ids.
+            messages (list[Message]): The list of conversation messages.
+            function_call_results (list[Message]): The results of the function calls.
+            tool_ids (list[str]): The tool ids.
         """
         if len(function_call_results) > 0:
-            for _fc_message_index, _fc_message in enumerate(function_call_results):
-                _fc_message.tool_call_id = tool_call_ids[_fc_message_index]
+            for _fc_message in function_call_results:
+                _fc_message.tool_call_id = tool_call_ids[len(messages)]
                 messages.append(_fc_message)
 
     def parse_provider_response(self, response: Response, **kwargs) -> ModelResponse:

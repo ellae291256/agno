@@ -105,7 +105,7 @@ def test_get_access_token_refresh_on_expiry(zoom_tools, mock_token_response):
         assert token1 == "test_access_token"
 
         # Manually expire the token
-        zoom_tools._ZoomTools__token_expiry = datetime.now() - timedelta(seconds=1)
+        zoom_tools._ZoomTools__token_expiry = datetime.now(timezone.utc) - timedelta(seconds=1)
 
         # Should get new token
         token2 = zoom_tools.get_access_token()
@@ -253,7 +253,10 @@ def test_list_meetings_success(zoom_tools):
         ],
     }
 
-    with patch.object(ZoomTools, "get_access_token", return_value="test_token"), patch("requests.get") as mock_get:
+    with (
+        patch.object(ZoomTools, "get_access_token", return_value="test_token"),
+        patch("requests.get") as mock_get,
+    ):
         mock_get.return_value.json.return_value = mock_response
         mock_get.return_value.raise_for_status = MagicMock()
 
@@ -296,7 +299,10 @@ def test_get_meeting_recordings_success(zoom_tools):
         ],
     }
 
-    with patch.object(ZoomTools, "get_access_token", return_value="test_token"), patch("requests.get") as mock_get:
+    with (
+        patch.object(ZoomTools, "get_access_token", return_value="test_token"),
+        patch("requests.get") as mock_get,
+    ):
         mock_get.return_value.json.return_value = mock_response
         mock_get.return_value.raise_for_status = MagicMock()
 
@@ -345,7 +351,10 @@ def test_delete_meeting_success(zoom_tools):
 )
 def test_api_methods_request_failure(zoom_tools, method_name, mock_func, error_message):
     """Test API methods handle request failures gracefully"""
-    with patch.object(ZoomTools, "get_access_token", return_value="test_token"), patch(mock_func) as mock_request:
+    with (
+        patch.object(ZoomTools, "get_access_token", return_value="test_token"),
+        patch(mock_func) as mock_request,
+    ):
         mock_request.side_effect = requests.RequestException(error_message)
 
         method = getattr(zoom_tools, method_name)
