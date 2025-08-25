@@ -561,7 +561,7 @@ class Workflow:
                 logger.error(f"Workflow execution failed: {e}")
                 # Store error response
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Workflow execution failed: {e}"
+                workflow_run_response.content = f"Workflow execution failed: {e}"  # noqa: BLE001
 
             finally:
                 self._save_run_to_storage(workflow_run_response)
@@ -740,7 +740,7 @@ class Workflow:
 
                 # Update workflow_run_response with error
                 workflow_run_response.content = error_event.error
-                workflow_run_response.status = RunStatus.error
+                workflow_run_response.status = RunStatus.error  # noqa: BLE001  # noqa: BLE001  # noqa: BLE001
 
         # Yield workflow completed event
         workflow_completed_event = WorkflowCompletedEvent(
@@ -933,7 +933,7 @@ class Workflow:
             except Exception as e:
                 logger.error(f"Workflow execution failed: {e}")
                 workflow_run_response.status = RunStatus.error
-                workflow_run_response.content = f"Workflow execution failed: {e}"
+                workflow_run_response.content = f"Workflow execution failed: {e}"  # noqa: BLE001
 
         # Store error response
         self._save_run_to_storage(workflow_run_response)
@@ -1233,7 +1233,7 @@ class Workflow:
         # Return SAME object that will be updated by background execution
         return workflow_run_response
 
-    def get_run(self, run_id: str) -> Optional[WorkflowRunResponse]:
+    def get_run(self, run_id: str) -> "WorkflowRunResponse | None":
         """Get the status and details of a background workflow run - SIMPLIFIED"""
         if self.storage is not None and self.session_id is not None:
             session = self.storage.read(session_id=self.session_id)
@@ -1248,50 +1248,50 @@ class Workflow:
     @overload
     def run(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
-        files: Optional[List[File]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
+        files: list[File] | None = None,
         stream: Literal[False] = False,
-        stream_intermediate_steps: Optional[bool] = None,
-        background: Optional[bool] = False,
+        stream_intermediate_steps: bool | None = None,
+        background: bool = False,
     ) -> WorkflowRunResponse: ...
 
     @overload
     def run(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
-        files: Optional[List[File]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
+        files: list[File] | None = None,
         stream: Literal[True] = True,
-        stream_intermediate_steps: Optional[bool] = None,
-        background: Optional[bool] = False,
+        stream_intermediate_steps: bool | None = None,
+        background: bool = False,
     ) -> Iterator[WorkflowRunResponseEvent]: ...
 
     def run(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
-        files: Optional[List[File]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
+        files: list[File] | None = None,
         stream: bool = False,
-        stream_intermediate_steps: Optional[bool] = None,
-        background: Optional[bool] = False,
+        stream_intermediate_steps: bool | None = None,
+        background: bool = False,
         **kwargs: Any,
-    ) -> Union[WorkflowRunResponse, Iterator[WorkflowRunResponseEvent]]:
+    ) -> WorkflowRunResponse | Iterator[WorkflowRunResponseEvent]:
         """Execute the workflow synchronously with optional streaming"""
 
         if background:
@@ -1369,50 +1369,50 @@ class Workflow:
     @overload
     async def arun(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
-        files: Optional[List[File]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
+        files: list[File] | None = None,
         stream: Literal[False] = False,
-        stream_intermediate_steps: Optional[bool] = None,
-        background: Optional[bool] = False,
+        stream_intermediate_steps: bool | None = None,
+        background: bool = False,
     ) -> WorkflowRunResponse: ...
 
     @overload
     async def arun(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
-        files: Optional[List[File]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
+        files: list[File] | None = None,
         stream: Literal[True] = True,
-        stream_intermediate_steps: Optional[bool] = None,
-        background: Optional[bool] = False,
+        stream_intermediate_steps: bool | None = None,
+        background: bool = False,
     ) -> AsyncIterator[WorkflowRunResponseEvent]: ...
 
     async def arun(
         self,
-        message: Optional[Union[str, Dict[str, Any], List[Any], BaseModel]] = None,
-        additional_data: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        audio: Optional[List[Audio]] = None,
-        images: Optional[List[Image]] = None,
-        videos: Optional[List[Video]] = None,
-        files: Optional[List[File]] = None,
+        message: str | dict[str, Any] | list[Any] | BaseModel | None = None,
+        additional_data: dict[str, Any] | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        audio: list[Audio] | None = None,
+        images: list[Image] | None = None,
+        videos: list[Video] | None = None,
+        files: list[File] | None = None,
         stream: bool = False,
-        stream_intermediate_steps: Optional[bool] = False,
-        background: Optional[bool] = False,
+        stream_intermediate_steps: bool = False,
+        background: bool = False,
         **kwargs: Any,
-    ) -> Union[WorkflowRunResponse, AsyncIterator[WorkflowRunResponseEvent]]:
+    ) -> WorkflowRunResponse | AsyncIterator[WorkflowRunResponseEvent]:
         """Execute the workflow synchronously with optional streaming"""
         if background:
             return await self._arun_background(
@@ -1888,7 +1888,7 @@ class Workflow:
                 error_panel = create_panel(
                     content=f"Workflow execution failed: {str(e)}", title="Execution Error", border_style="red"
                 )
-                console.print(error_panel)  # type: ignore
+                console.print(error_panel)  # type: ignore  # noqa: BLE001  # noqa: BLE001  # noqa: BLE001  # noqa: BLE001
 
     def _print_response_stream(
         self,
@@ -1976,7 +1976,7 @@ class Workflow:
 
         # Smart step hierarchy tracking
         current_primitive_context = None  # Current primitive being executed (parallel, loop, etc.)
-        step_display_cache = {}  # type: ignore
+        # step_display_cache = {}  # type: ignore
 
         def get_step_display_number(step_index: Union[int, tuple], step_name: str = "") -> str:
             """Generate clean two-level step numbering: x.y format only"""
@@ -3222,7 +3222,7 @@ class Workflow:
                 )
                 console.print(error_panel)  # type: ignore
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert workflow to dictionary representation"""
         # TODO: Handle nested
         if self.steps is None or callable(self.steps):

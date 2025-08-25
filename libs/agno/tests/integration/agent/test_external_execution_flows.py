@@ -1,6 +1,6 @@
 import pytest
 
-from agno.agent import Agent, RunResponse  # noqa
+from agno.agent import Agent
 from agno.models.openai import OpenAIChat
 from agno.tools.decorator import tool
 
@@ -135,7 +135,7 @@ async def test_tool_call_requires_external_execution_stream_async():
     )
 
     found_external_execution = False
-    async for response in await agent.arun(
+    async for response in agent.arun(
         "Send an email to john@doe.com with the subject 'Test' and the body 'Hello, how are you?'", stream=True
     ):
         if response.is_paused:
@@ -153,7 +153,7 @@ async def test_tool_call_requires_external_execution_stream_async():
     assert found_external_execution, "No tools were found to require external execution"
 
     found_external_execution = False
-    async for response in await agent.acontinue_run(run_id=response.run_id, updated_tools=response.tools, stream=True):
+    async for response in agent.acontinue_run(run_id=response.run_id, updated_tools=response.tools, stream=True):
         if response.is_paused:
             found_external_execution = True
     assert found_external_execution is False, "Some tools still require external execution"

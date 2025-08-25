@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import AsyncIterator, Awaitable, Callable, Iterator, Optional, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -187,7 +189,7 @@ class Router:
                     current_step_input, step_output, router_step_outputs
                 )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Router step {step_name} failed: {e}")
                 error_output = StepOutput(
@@ -297,7 +299,7 @@ class Router:
                             current_step_input, step_outputs_for_step, router_step_outputs
                         )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Router step {step_name} streaming failed: {e}")
                 error_output = StepOutput(
@@ -377,7 +379,7 @@ class Router:
                     current_step_input, step_output, router_step_outputs
                 )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Router step {step_name} async failed: {e}")
                 error_output = StepOutput(
@@ -489,7 +491,7 @@ class Router:
                             current_step_input, step_outputs_for_step, router_step_outputs
                         )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Router step {step_name} async streaming failed: {e}")
                 error_output = StepOutput(

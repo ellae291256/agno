@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, Union
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -14,7 +16,7 @@ from agno.utils.log import log_debug, logger
 from agno.workflow.v2.step import Step
 from agno.workflow.v2.types import StepInput, StepOutput
 
-WorkflowSteps = List[
+WorkflowSteps = list[
     Union[
         Callable[
             [StepInput], Union[StepOutput, Awaitable[StepOutput], Iterator[StepOutput], AsyncIterator[StepOutput]]
@@ -41,8 +43,8 @@ class Condition:
     ]
     steps: WorkflowSteps
 
-    name: Optional[str] = None
-    description: Optional[str] = None
+    name: str | None = None
+    description: str | None = None
 
     def _prepare_steps(self):
         """Prepare the steps for execution - mirrors workflow logic"""
@@ -72,8 +74,8 @@ class Condition:
     def _update_step_input_from_outputs(
         self,
         step_input: StepInput,
-        step_outputs: Union[StepOutput, List[StepOutput]],
-        condition_step_outputs: Optional[Dict[str, StepOutput]] = None,
+        step_outputs: Union[StepOutput, list[StepOutput]],
+        condition_step_outputs: dict[str, StepOutput] | None = None,
     ) -> StepInput:
         """Helper to update step input from step outputs - mirrors Loop logic"""
         current_images = step_input.images or []
@@ -145,8 +147,8 @@ class Condition:
         return False
 
     def execute(
-        self, step_input: StepInput, session_id: Optional[str] = None, user_id: Optional[str] = None
-    ) -> List[StepOutput]:
+        self, step_input: StepInput, session_id: str | None = None, user_id: str | None = None
+    ) -> list[StepOutput]:
         """Execute the condition and its steps with sequential chaining if condition is true"""
         log_debug(f"Condition Start: {self.name}", center=True, symbol="-")
 
@@ -197,7 +199,7 @@ class Condition:
                     current_step_input, step_output, condition_step_outputs
                 )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Condition step {step_name} failed: {e}")
                 error_output = StepOutput(
@@ -215,11 +217,11 @@ class Condition:
     def execute_stream(
         self,
         step_input: StepInput,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         stream_intermediate_steps: bool = False,
-        workflow_run_response: Optional[WorkflowRunResponse] = None,
-        step_index: Optional[Union[int, tuple]] = None,
+        workflow_run_response: WorkflowRunResponse | None = None,
+        step_index: int | tuple | None = None,
     ) -> Iterator[Union[WorkflowRunResponseEvent, StepOutput]]:
         """Execute the condition with streaming support - mirrors Loop logic"""
         log_debug(f"Condition Start: {self.name}", center=True, symbol="-")
@@ -317,7 +319,7 @@ class Condition:
                             current_step_input, step_outputs_for_step, condition_step_outputs
                         )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Condition step {step_name} streaming failed: {e}")
                 error_output = StepOutput(
@@ -400,7 +402,7 @@ class Condition:
                     current_step_input, step_output, condition_step_outputs
                 )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Condition step {step_name} async failed: {e}")
                 error_output = StepOutput(
@@ -418,11 +420,11 @@ class Condition:
     async def aexecute_stream(
         self,
         step_input: StepInput,
-        session_id: Optional[str] = None,
-        user_id: Optional[str] = None,
+        session_id: str | None = None,
+        user_id: str | None = None,
         stream_intermediate_steps: bool = False,
-        workflow_run_response: Optional[WorkflowRunResponse] = None,
-        step_index: Optional[Union[int, tuple]] = None,
+        workflow_run_response: WorkflowRunResponse | None = None,
+        step_index: int | tuple | None = None,
     ) -> AsyncIterator[Union[WorkflowRunResponseEvent, TeamRunResponseEvent, RunResponseEvent, StepOutput]]:
         """Async execute the condition with streaming support - mirrors Loop logic"""
         log_debug(f"Condition Start: {self.name}", center=True, symbol="-")
@@ -522,7 +524,7 @@ class Condition:
                             current_step_input, step_outputs_for_step, condition_step_outputs
                         )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 step_name = getattr(step, "name", f"step_{i}")
                 logger.error(f"Condition step {step_name} async streaming failed: {e}")
                 error_output = StepOutput(

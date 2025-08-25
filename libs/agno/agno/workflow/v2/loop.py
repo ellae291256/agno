@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import AsyncIterator, Awaitable, Callable
 
 from agno.run.response import RunResponseEvent
 from agno.run.team import TeamRunResponseEvent
@@ -186,6 +188,7 @@ class Loop:
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
                     # Continue with loop if end condition fails
+                    continue
 
         log_debug(f"Loop End: {self.name} ({iteration} iterations)", center=True, symbol="=")
 
@@ -313,6 +316,7 @@ class Loop:
                     log_debug(f"End condition returned: {should_break}, should_continue: {should_continue}")
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
+                    should_continue = True
 
             if early_termination:
                 should_continue = False
@@ -424,6 +428,7 @@ class Loop:
                         break
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
+                    continue
 
         # Use workflow logger for async loop completion
         log_debug(f"Async Loop End: {self.name} ({iteration} iterations)", center=True, symbol="=")
@@ -555,6 +560,7 @@ class Loop:
                     log_debug(f"End condition returned: {should_break}, should_continue: {should_continue}")
                 except Exception as e:
                     logger.warning(f"End condition evaluation failed: {e}")
+                    should_continue = True
 
             if early_termination:
                 should_continue = False

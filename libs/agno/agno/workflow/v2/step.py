@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from dataclasses import dataclass
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional, Union
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Optional, Union
 
 from pydantic import BaseModel
 
@@ -254,7 +256,7 @@ class Step:
 
                 return step_output
 
-            except Exception as e:
+            except (RuntimeError, ValueError) as e:
                 self.retry_count = attempt + 1
                 logger.warning(f"Step {self.name} failed (attempt {attempt + 1}): {e}")
 
@@ -403,7 +405,7 @@ class Step:
                     )
 
                 return
-            except Exception as e:
+            except (RuntimeError, ValueError) as e:
                 self.retry_count = attempt + 1
                 logger.warning(f"Step {self.name} failed (attempt {attempt + 1}): {e}")
 
@@ -531,7 +533,7 @@ class Step:
 
                 return step_output
 
-            except Exception as e:
+            except (RuntimeError, ValueError) as e:
                 self.retry_count = attempt + 1
                 logger.warning(f"Step {self.name} failed (attempt {attempt + 1}): {e}")
 
@@ -697,7 +699,7 @@ class Step:
                     )
                 return
 
-            except Exception as e:
+            except (RuntimeError, ValueError) as e:
                 self.retry_count = attempt + 1
                 logger.warning(f"Step {self.name} failed (attempt {attempt + 1}): {e}")
 
@@ -773,7 +775,7 @@ class Step:
             # Convert any other type to string
             return RunResponse(content=str(result))
 
-    def _convert_audio_artifacts_to_audio(self, audio_artifacts: List[AudioArtifact]) -> List[Audio]:
+    def _convert_audio_artifacts_to_audio(self, audio_artifacts: list[AudioArtifact]) -> list[Audio]:
         """Convert AudioArtifact objects to Audio objects"""
         audios = []
         for audio_artifact in audio_artifacts:
@@ -786,7 +788,7 @@ class Step:
                 continue
         return audios
 
-    def _convert_image_artifacts_to_images(self, image_artifacts: List[ImageArtifact]) -> List[Image]:
+    def _convert_image_artifacts_to_images(self, image_artifacts: list[ImageArtifact]) -> list[Image]:
         """
         Convert ImageArtifact objects to Image objects with proper content handling.
 
@@ -826,7 +828,7 @@ class Step:
 
                     images.append(Image(**image_kwargs))
 
-                except Exception as e:
+                except (ValueError, Exception) as e:
                     logger.error(f"Failed to process image content: {e}")
                     # Skip this image if we can't process it
                     continue
@@ -838,7 +840,7 @@ class Step:
 
         return images
 
-    def _convert_video_artifacts_to_videos(self, video_artifacts: List[VideoArtifact]) -> List[Video]:
+    def _convert_video_artifacts_to_videos(self, video_artifacts: list[VideoArtifact]) -> list[Video]:
         """
         Convert VideoArtifact objects to Video objects with proper content handling.
 
